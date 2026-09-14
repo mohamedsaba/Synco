@@ -6,6 +6,8 @@ export type ScenarioSnapshot = Readonly<{
   acceptanceCriteria: readonly string[];
   filePath: string;
   originalContent: string;
+  type?: 'single_file' | 'multi_file';
+  imageName?: string;
 }>;
 
 export const sliceOneScenario: ScenarioSnapshot = {

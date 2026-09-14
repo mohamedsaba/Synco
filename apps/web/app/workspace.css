@@ -176,6 +176,39 @@
   font-size: 0.68rem;
 }
 
+.workspace-file-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.file-tab {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all 0.1s ease;
+}
+
+.file-tab:hover {
+  background: #ece9dc;
+  border-color: var(--ink);
+}
+
+.file-tab-active {
+  background: var(--ink);
+  color: var(--surface);
+  border-color: var(--ink);
+  font-weight: 600;
+}
+
 textarea {
   width: 100%;
   flex: 1;

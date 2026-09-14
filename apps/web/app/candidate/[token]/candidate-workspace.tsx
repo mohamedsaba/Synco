@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import type { CommandExecResult } from '../../../src/sandbox/sandbox';
+import type {
+  CommandExecResult,
+  WorkspaceFileInfo,
+} from '../../../src/sandbox/sandbox';
 import type { toCandidateSessionView } from '../../../src/sessions/candidate-session-view';
 
 type CandidateSessionView = ReturnType<typeof toCandidateSessionView>;
@@ -26,6 +29,17 @@ export const CandidateWorkspace = ({
   token,
 }: CandidateWorkspaceProps) => {
   const [session, setSession] = useState(initialSession);
+  const isMultiFile =
+    session.scenarioType === 'multi_file' ||
+    session.scenario.type === 'multi_file';
+
+  const [workspaceFiles, setWorkspaceFiles] = useState<
+    readonly WorkspaceFileInfo[]
+  >([]);
+  const [selectedFile, setSelectedFile] = useState<string>(
+    session.scenario.filePath || 'inventory/service.py',
+  );
+
   const [content, setContent] = useState(initialSession.workingContent);
   const [notice, setNotice] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -35,6 +49,102 @@ export const CandidateWorkspace = ({
   const [commandInput, setCommandInput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [commandHistory, setCommandHistory] = useState<ExecutedCommand[]>([]);
+
+  const refreshFiles = async () => {
+    try {
+      const response = await fetch(
+        `/api/candidate/sessions/${token}/workspace/tree`,
+      );
+      if (response.ok) {
+        const data = (await response.json()) as {
+          files: WorkspaceFileInfo[];
+        };
+        setWorkspaceFiles(data.files.filter((f) => !f.isDirectory));
+      }
+    } catch {
+      // Ignore background refresh failure
+    }
+  };
+
+  const loadFile = async (filePath: string) => {
+    setIsBusy(true);
+    setNotice(null);
+    try {
+      const response = await fetch(
+        `/api/candidate/sessions/${token}/workspace/file?path=${encodeURIComponent(filePath)}`,
+      );
+      if (!response.ok) {
+        const err = (await response.json()) as ApiError;
+        throw new Error(err.error?.message ?? `Could not read ${filePath}`);
+      }
+      const data = (await response.json()) as {
+        path: string;
+        content: string;
+      };
+      setContent(data.content);
+      setSelectedFile(data.path);
+      setIsDirty(false);
+    } catch (error) {
+      setNotice(
+        error instanceof Error ? error.message : `Failed to load ${filePath}`,
+      );
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  useEffect(() => {
+    let active = true;
+    if (session.status === 'ACTIVE' && isMultiFile) {
+      void (async () => {
+        try {
+          const treeRes = await fetch(
+            `/api/candidate/sessions/${token}/workspace/tree`,
+          );
+          if (treeRes.ok && active) {
+            const treeData = (await treeRes.json()) as {
+              files: WorkspaceFileInfo[];
+            };
+            const nonDirs = treeData.files.filter((f) => !f.isDirectory);
+            setWorkspaceFiles(nonDirs);
+          }
+
+          const fileRes = await fetch(
+            `/api/candidate/sessions/${token}/workspace/file?path=${encodeURIComponent(selectedFile)}`,
+          );
+          if (fileRes.ok && active) {
+            const fileData = (await fileRes.json()) as {
+              path: string;
+              content: string;
+            };
+            setContent(fileData.content);
+          }
+        } catch {
+          // Ignore background fetch error
+        }
+      })();
+    }
+    return () => {
+      active = false;
+    };
+  }, [session.status, isMultiFile, token, selectedFile]);
+
+  const handleSelectFile = async (filePath: string) => {
+    if (filePath === selectedFile) return;
+    if (isDirty) {
+      // Auto-save current file before switching
+      try {
+        await fetch(`/api/candidate/sessions/${token}/workspace/file`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: selectedFile, content }),
+        });
+      } catch {
+        // Continue switching even if auto-save fails
+      }
+    }
+    await loadFile(filePath);
+  };
 
   const request = async (path: string, init: RequestInit = {}) => {
     const response = await fetch(
@@ -68,34 +178,80 @@ export const CandidateWorkspace = ({
       const nextSession = await request('/activate', { method: 'POST' });
       setSession(nextSession);
       setNotice('Session active. Sandbox is ready and editing is enabled.');
+      if (
+        nextSession.scenarioType === 'multi_file' ||
+        nextSession.scenario.type === 'multi_file'
+      ) {
+        const treeRes = await fetch(
+          `/api/candidate/sessions/${token}/workspace/tree`,
+        );
+        if (treeRes.ok) {
+          const treeData = (await treeRes.json()) as {
+            files: WorkspaceFileInfo[];
+          };
+          const nonDirs = treeData.files.filter((f) => !f.isDirectory);
+          setWorkspaceFiles(nonDirs);
+          const initialPath =
+            nextSession.scenario.filePath ||
+            nonDirs[0]?.path ||
+            'inventory/service.py';
+          await loadFile(initialPath);
+        }
+      }
     });
 
   const save = () =>
     runAction(async () => {
-      const nextSession = await request('/file', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
-      });
-      setSession(nextSession);
-      setIsDirty(false);
-      setNotice('Saved to the server.');
+      if (isMultiFile) {
+        const res = await fetch(
+          `/api/candidate/sessions/${token}/workspace/file`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: selectedFile, content }),
+          },
+        );
+        if (!res.ok) {
+          const err = (await res.json()) as ApiError;
+          throw new Error(err.error?.message ?? 'Failed to save file.');
+        }
+        setIsDirty(false);
+        setNotice(`Saved ${selectedFile} to container.`);
+        await refreshFiles();
+      } else {
+        const nextSession = await request('/file', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content }),
+        });
+        setSession(nextSession);
+        setIsDirty(false);
+        setNotice('Saved to the server.');
+      }
     });
 
   const submit = () =>
     runAction(async () => {
       if (isDirty) {
-        await request('/file', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content }),
-        });
+        if (isMultiFile) {
+          await fetch(`/api/candidate/sessions/${token}/workspace/file`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: selectedFile, content }),
+          });
+        } else {
+          await request('/file', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content }),
+          });
+        }
       }
 
       const nextSession = await request('/submit', { method: 'POST' });
       setSession(nextSession);
       setIsDirty(false);
-      setNotice('Submitted. Sandbox terminated and file is now immutable.');
+      setNotice('Submitted. Sandbox terminated and files are now immutable.');
     });
 
   const executeCommand = async (e?: React.FormEvent) => {
@@ -152,7 +308,8 @@ export const CandidateWorkspace = ({
       <div className="workspace-grid">
         <section className="brief-panel" aria-labelledby="scenario-title">
           <p className="fixture-label">
-            Slice 2 fixture · v{session.scenario.version}
+            {isMultiFile ? 'Scenario 001 fixture' : 'Slice 2 fixture'} · v
+            {session.scenario.version}
           </p>
           <h1 id="scenario-title">{session.scenario.title}</h1>
           <p className="brief-copy">{session.scenario.brief}</p>
@@ -165,23 +322,50 @@ export const CandidateWorkspace = ({
           </ul>
 
           <div className="capture-note">
-            This slice records saved file snapshots and authoritative command
-            lifecycle events inside an isolated sandbox container. It does not
-            include AI assistance or automated candidate evaluation.
+            This scenario records saved workspace file mutations and
+            authoritative command lifecycle events inside an isolated
+            multi-service sandbox container. It does not include AI assistance
+            or automated candidate evaluation.
           </div>
         </section>
 
         <section className="editor-panel" aria-labelledby="file-name">
           <div className="file-bar">
             <div>
-              <span className="file-kicker">Permitted file</span>
-              <h2 id="file-name">{session.scenario.filePath}</h2>
+              <span className="file-kicker">
+                {isMultiFile ? 'Workspace file' : 'Permitted file'}
+              </span>
+              <h2 id="file-name">
+                {isMultiFile ? selectedFile : session.scenario.filePath}
+              </h2>
             </div>
             {isDirty ? <span className="unsaved">Unsaved</span> : null}
           </div>
 
+          {isMultiFile && isActive && workspaceFiles.length > 0 ? (
+            <div
+              className="workspace-file-selector"
+              role="tablist"
+              aria-label="Workspace files"
+            >
+              {workspaceFiles.map((file) => (
+                <button
+                  key={file.path}
+                  type="button"
+                  role="tab"
+                  aria-selected={file.path === selectedFile}
+                  className={`file-tab ${file.path === selectedFile ? 'file-tab-active' : ''}`}
+                  onClick={() => handleSelectFile(file.path)}
+                  disabled={!isActive || isBusy}
+                >
+                  {file.path}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
           <textarea
-            aria-label={`Edit ${session.scenario.filePath}`}
+            aria-label={`Edit ${isMultiFile ? selectedFile : session.scenario.filePath}`}
             disabled={!isActive || isBusy}
             onChange={(event) => {
               setContent(event.target.value);
@@ -228,7 +412,7 @@ export const CandidateWorkspace = ({
                     onClick={submit}
                     type="button"
                   >
-                    Submit final file
+                    {isMultiFile ? 'Submit assessment' : 'Submit final file'}
                   </button>
                 </>
               ) : null}

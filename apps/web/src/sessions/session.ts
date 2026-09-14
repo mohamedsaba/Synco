@@ -12,6 +12,8 @@ export type AssessmentSession = Readonly<{
   createdAt: string;
   activatedAt: string | null;
   submittedAt: string | null;
+  scenarioType?: 'single_file' | 'multi_file';
+  submittedDiff?: string | null;
 }>;
 
 export type SubmittedSession = AssessmentSession &
@@ -70,6 +72,7 @@ export const editSession = (
 export const submitSession = (
   session: AssessmentSession,
   submittedAt: string,
+  submittedDiff?: string | null,
 ): SubmittedSession => {
   if (session.status === 'SUBMITTED') {
     return session as SubmittedSession;
@@ -87,6 +90,7 @@ export const submitSession = (
     status: 'SUBMITTED',
     submittedContent: session.workingContent,
     submittedAt,
+    submittedDiff: submittedDiff ?? session.submittedDiff ?? null,
   };
 };
 

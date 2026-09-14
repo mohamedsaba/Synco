@@ -1,0 +1,35 @@
+import type { ScenarioSnapshot } from './slice-one-scenario';
+
+export const scenario001: ScenarioSnapshot = {
+  id: 'scenario-001-cache-staleness',
+  version: '1.0.0',
+  title: 'Stale storefront inventory after warehouse restock',
+  brief: [
+    'Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.',
+    '',
+    'Expected Behavior:',
+    'After stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.',
+    '',
+    'Environment & Tools:',
+    '- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).',
+    '- Tests can be run from the command console: pytest',
+    '- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory',
+    '- Redis CLI: redis-cli',
+    '',
+    'Your Task:',
+    '1. Investigate the cause of the discrepancy.',
+    '2. Implement an appropriate fix in the codebase.',
+    '3. Verify that your change corrects the issue and does not introduce regressions.',
+    '4. Submit your work when finished.',
+  ].join('\n'),
+  acceptanceCriteria: [
+    'Storefront inventory reflects completed restocks immediately.',
+    'Equivalent valid warehouse identifiers return consistent inventory.',
+    'Existing inventory reads continue to work.',
+    'Supplied verification suite passes cleanly.',
+  ],
+  filePath: 'inventory/service.py',
+  originalContent: '',
+  type: 'multi_file',
+  imageName: 'delimit-scenario-001:latest',
+};

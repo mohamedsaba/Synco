@@ -2,6 +2,8 @@ import { BoundedStreamAccumulator } from './bounded-stream-accumulator';
 import {
   type CommandExecResult,
   type SandboxAdapter,
+  type SandboxCreateOptions,
+  type WorkspaceFileInfo,
   SandboxError,
 } from './sandbox';
 
@@ -34,7 +36,7 @@ export class MockSandboxAdapter implements SandboxAdapter {
 
   async createAndVerify(
     sessionId: string,
-    initialFiles: Readonly<Record<string, string>> = {},
+    options?: SandboxCreateOptions | Readonly<Record<string, string>>,
   ): Promise<void> {
     if (this.failCreationForSessionId === sessionId) {
       throw new SandboxError(
@@ -44,14 +46,61 @@ export class MockSandboxAdapter implements SandboxAdapter {
     }
 
     const files = new Map<string, string>();
-    for (const [path, content] of Object.entries(initialFiles)) {
-      files.set(path, content);
+    const initialFiles =
+      options && 'initialFiles' in options
+        ? options.initialFiles
+        : (options as Record<string, string> | undefined);
+
+    if (initialFiles) {
+      for (const [path, content] of Object.entries(initialFiles)) {
+        files.set(path, content);
+      }
     }
 
     this.activeSandboxes.set(sessionId, {
       files,
       cwd: '/workspace',
     });
+  }
+
+  async readFile(sessionId: string, filePath: string): Promise<string> {
+    const sandbox = this.activeSandboxes.get(sessionId);
+    if (!sandbox) {
+      throw new SandboxError(
+        'SANDBOX_NOT_FOUND',
+        `No active sandbox found for session ${sessionId}`,
+      );
+    }
+    const normalized = filePath.replace(/^\/workspace\/?/, '');
+    const content = sandbox.files.get(normalized);
+    if (content === undefined) {
+      throw new SandboxError('SANDBOX_NOT_FOUND', `File ${filePath} not found`);
+    }
+    return content;
+  }
+
+  async listFiles(sessionId: string): Promise<readonly WorkspaceFileInfo[]> {
+    const sandbox = this.activeSandboxes.get(sessionId);
+    if (!sandbox) {
+      throw new SandboxError(
+        'SANDBOX_NOT_FOUND',
+        `No active sandbox found for session ${sessionId}`,
+      );
+    }
+    const result: WorkspaceFileInfo[] = [];
+    for (const [path, content] of sandbox.files.entries()) {
+      result.push({
+        path,
+        size: Buffer.byteLength(content, 'utf8'),
+        isDirectory: false,
+      });
+    }
+    return result;
+  }
+
+  async captureDiff(_sessionId: string): Promise<string> {
+    void _sessionId;
+    return '--- a/mock\n+++ b/mock\n';
   }
 
   async exec(

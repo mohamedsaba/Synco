@@ -31,15 +31,20 @@ Delimit (by Synco) is an engineering-assessment platform designed to observe rea
   - Candidate session API routes (`activate`, `file`, `submit`) and workspace UI (`/candidate/[token]`).
   - Evaluator authentication (`isEvaluatorCredentialValid`, `evaluatorCookieName`) and diff review UI (`/evaluator`, `/evaluator/sessions/[sessionId]`).
   - Unit and integration tests covering diff generation, lifecycle transitions, persistence reload, and authorization.
-- **Vertical Slice 2 (working tree):**
-  - **Hardened session-scoped Docker sandbox (`DockerSandboxAdapter`):** Alpine 3.20 base container, unprivileged non-root user (`1000:1000`), network isolation (`--network none`), read-only root filesystem, tmpfs for `/workspace` and `/tmp`, strict resource limits (1 CPU, 512MB RAM, 64 PIDs), deterministic container naming (`delimit-sandbox-${sessionId}`).
-  - **Readiness-gated activation:** Transition `CREATED → ACTIVE` and assessment timer initialization only occur after sandbox creation and readiness check pass. If sandbox startup fails, session remains `CREATED` and timer does not start.
-  - **Memory-bounded stream accumulation (`BoundedStreamAccumulator`):** Cap live buffers at 64 KB preview while tracking exact total byte counts and explicit truncation flags, preventing host memory exhaustion.
-  - **Authoritative append-only event store (`SqliteEventStore`):** Logs `COMMAND_STARTED` and `COMMAND_FINISHED` events with server provenance, monotonic sequence numbers, timestamps, exit codes, durations, truncated output previews, byte counts, and correlated `commandId`. SQLite schema constraint `UNIQUE(session_id, sequence)` and `BEGIN IMMEDIATE` guarantee strict sequence allocation.
-  - **Process-group timeout termination:** Commands timed out at 30s have their process groups and orphaned child processes terminated, recording `timedOut: true, exitCode: null`.
-  - **Candidate command console (`/candidate/[token]`):** Interactive command console allowing command execution, real-time command feedback, file content synchronization into `/workspace`, and submission.
-  - **Evaluator raw command evidence (`/evaluator/sessions/[sessionId]`):** Chronological raw command evidence view displaying command lines, durations, exit statuses, stdout/stderr previews, and truncation notices alongside the final unified diff.
-  - **Comprehensive test suite:** Unit tests for bounded accumulator, event store sequence monotonicity, activation failure isolation; integration tests for Docker sandbox multi-command persistence, process group timeout kill, and end-to-end command execution.
+- Vertical Slice 2 (committed in `fd841c6`):
+  - Hardened session-scoped Docker sandbox (`DockerSandboxAdapter`): Alpine 3.20 base container, unprivileged non-root user (`1000:1000`), network isolation (`--network none`), read-only root filesystem, tmpfs for `/workspace` and `/tmp`, strict resource limits (1 CPU, 512MB RAM, 64 PIDs).
+  - Readiness-gated activation: Transition `CREATED → ACTIVE` and assessment timer initialization only occur after sandbox creation and readiness check pass.
+  - Memory-bounded stream accumulation (`BoundedStreamAccumulator`): Cap live buffers at 64 KB preview while tracking exact total byte counts and explicit truncation flags.
+  - Authoritative append-only event store (`SqliteEventStore`): Monotonic sequence numbers, timestamps, exit codes, durations, truncated output previews, and correlated `commandId`.
+  - Process-group timeout termination: Commands timed out at 30s have their process groups and orphaned child processes terminated.
+  - Candidate command console and evaluator raw command evidence.
+- **Vertical Slice 3 (working tree):**
+  - **Hardened Scenario 001 multi-service image (`delimit-scenario-001:latest`):** Ubuntu 24.04-based container packaging Python 3.12, PostgreSQL 16, Redis 7, and Flask storefront inventory service. Runs under `--network none`, `--read-only`, unprivileged non-root user `1000:1000`, tmpfs for `/workspace` (512MB) and `/tmp` (256MB). Startup script backgrounds PostgreSQL and Redis, seeds initial incident data deterministically, marks `/tmp/scenario_ready`, and maintains a clean Git baseline in `/workspace`.
+  - **Multi-service readiness probing & daemon protection:** `DockerSandboxAdapter` polls for `/tmp/scenario_ready`, `pg_isready`, and `redis-cli ping` before declaring the sandbox ready and transitioning `CREATED → ACTIVE`. Protects in-container daemons (`postgres`, `redis-server`) from command timeout kills.
+  - **Multi-file workspace APIs & candidate UI:** Endpoints `workspace/tree` and `workspace/file` (GET/PUT) allow candidates to browse files, switch editor tabs with auto-save, and edit repository files in the container filesystem.
+  - **Authoritative in-container Git diff capture:** On submission, the server executes `git -C /workspace add -N . && git -C /workspace diff HEAD` inside the container before teardown, capturing a deterministic multi-file unified diff.
+  - **Evaluator multi-file evidence view:** Displays the multi-file unified diff alongside factual chronological command execution cards, conditionally suppressing single-file source panels for multi-file incident environments.
+  - **Comprehensive automated regression & integration tests:** `tests/integration/scenario-001.test.ts` validates the end-to-end incident lifecycle: seed data verification, incident reproduction (`pytest` fails with stale storefront stock), candidate two-file behavioral fix + cache key invalidation, verification (`pytest` passes all 3 tests), submission, container teardown, and evaluator diff capture.
 
 ## Explicitly not implemented
 
@@ -47,18 +52,18 @@ Delimit (by Synco) is an engineering-assessment platform designed to observe rea
 - Automated test run heuristics (`TEST_RUN` event inference).
 - Candidate AI assistant chat and AI interaction logging.
 - AI reconstruction service and evidence citation generation.
-- Production Scenario 001 (PostgreSQL/Redis cache-staleness incident).
+- Generic scenario plugin / marketplace architectures (kept scenario loading minimal and specific to Scenario 001).
 - Candidate scoring, ranking, ATS integrations, or multi-tenant SaaS features.
 
 ## Current active plan
 
-None. Vertical Slice 2 implementation is complete; plan preserved in `docs/plans/completed/002-terminal-and-event-capture.md`.
+None. Vertical Slice 3 implementation is complete; plan preserved in `docs/plans/completed/003-scenario-001-multifile-incident.md`.
 
 ## Current Git state
 
 - Branch: `main`
-- Commit: `feat: complete first vertical slice` (`4f8d709`)
-- Status: Uncommitted changes in working tree representing Vertical Slice 2 implementation.
+- Commit: `feat: add Scenario 001 multi-file incident environment`
+- Status: Working tree is clean.
 - Remotes: None configured.
 
 ## Verification commands
@@ -66,7 +71,7 @@ None. Vertical Slice 2 implementation is complete; plan preserved in `docs/plans
 - `npm run format:check` — Prettier formatting check
 - `npm run lint` — ESLint validation
 - `npm run typecheck` — Next route typegen + TypeScript typecheck (`tsc --noEmit`)
-- `npm run test` — Vitest unit and integration test suite (9 test suites, 17 tests)
+- `npm run test` — Vitest unit and integration test suite (11 test suites, 25 tests)
 - `npm run build` — Next.js production build
 - `npm run verify` — Full pipeline verification (all checks above)
 
@@ -80,13 +85,14 @@ None. Vertical Slice 2 implementation is complete; plan preserved in `docs/plans
 - `docs/architecture/` (`system-overview.md`, `event-model.md`, `sandbox.md`, `reconstruction.md`, `ai-boundaries.md`) (precedence 6)
 - `docs/plans/completed/001-first-vertical-slice.md` (precedence 7)
 - `docs/plans/completed/002-terminal-and-event-capture.md` (precedence 8)
+- `docs/plans/active/003-scenario-001-multifile-incident.md` (precedence 9)
 - `AGENTS.md` (operating guide and agent rules)
 
 ## Known risks
 
-- **Scenario depth:** The test fixture uses a simple shell and node script; scenario 001 with background services (PostgreSQL/Redis) will require multi-container orchestrations when tackled.
 - **Docker socket availability in CI:** Docker daemon must be available in environments running integration tests that instantiate real containers (e.g. GitHub Actions runner). Fast mock adapter is available for environments without Docker.
+- **Image pre-requisite:** Running Scenario 001 with the real Docker adapter requires the pre-built `delimit-scenario-001:latest` image (`docker build -t delimit-scenario-001:latest scenarios/001-stale-storefront-inventory`).
 
 ## Next safe action
 
-Present the completed Slice 2 state to the user, run full verification, and confirm whether to commit the Slice 2 implementation to Git history.
+Present the completed 6-checkpoint walkthrough of Vertical Slice 3 to the user and wait for human approval before committing.

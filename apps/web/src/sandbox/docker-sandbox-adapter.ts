@@ -4,6 +4,8 @@ import { BoundedStreamAccumulator } from './bounded-stream-accumulator';
 import {
   type CommandExecResult,
   type SandboxAdapter,
+  type SandboxCreateOptions,
+  type WorkspaceFileInfo,
   SandboxError,
 } from './sandbox';
 
@@ -28,7 +30,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
 
   async createAndVerify(
     sessionId: string,
-    initialFiles: Readonly<Record<string, string>> = {},
+    options?: SandboxCreateOptions | Readonly<Record<string, string>>,
   ): Promise<void> {
     const containerName = this.getContainerName(sessionId);
 
@@ -37,40 +39,78 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       () => {},
     );
 
-    // Run container with strict security bounds:
-    // - read-only root
-    // - tmpfs /tmp (noexec, nosuid)
-    // - tmpfs /workspace (owned by user 1000)
-    // - network none
-    // - memory 512m, cpu 1.0, pids 64
-    // - dropped capabilities, no privilege escalation
-    // - non-root user (1000:1000)
+    const isOptionsObject =
+      options !== undefined &&
+      (('scenarioType' in options && options.scenarioType !== undefined) ||
+        ('imageName' in options && options.imageName !== undefined) ||
+        ('initialFiles' in options && options.initialFiles !== undefined));
+
+    const initialFiles: Readonly<Record<string, string>> = isOptionsObject
+      ? ((options as SandboxCreateOptions).initialFiles ?? {})
+      : ((options as Readonly<Record<string, string>>) ?? {});
+
+    const imageName =
+      isOptionsObject && (options as SandboxCreateOptions).imageName
+        ? (options as SandboxCreateOptions).imageName!
+        : this.imageName;
+
+    const isMultiFile =
+      (isOptionsObject &&
+        (options as SandboxCreateOptions).scenarioType === 'multi_file') ||
+      imageName.includes('scenario-001');
+
     try {
-      await this.runProcess('docker', [
-        'run',
-        '-d',
-        '--name',
-        containerName,
-        '--read-only',
-        '--tmpfs',
-        '/tmp:rw,noexec,nosuid,size=64m',
-        '--tmpfs',
-        '/workspace:rw,exec,nosuid,size=256m,uid=1000,gid=1000',
-        '--network',
-        'none',
-        '--memory=512m',
-        '--cpus=1.0',
-        '--pids-limit=64',
-        '--cap-drop=ALL',
-        '--security-opt=no-new-privileges:true',
-        '--user',
-        '1000:1000',
-        '-w',
-        '/workspace',
-        this.imageName,
-        'sleep',
-        'infinity',
-      ]);
+      if (isMultiFile) {
+        await this.runProcess('docker', [
+          'run',
+          '-d',
+          '--name',
+          containerName,
+          '--read-only',
+          '--tmpfs',
+          '/tmp:rw,exec,nosuid,size=256m,uid=1000,gid=1000',
+          '--tmpfs',
+          '/workspace:rw,exec,nosuid,size=512m,uid=1000,gid=1000',
+          '--network',
+          'none',
+          '--memory=1024m',
+          '--cpus=1.0',
+          '--pids-limit=128',
+          '--cap-drop=ALL',
+          '--security-opt=no-new-privileges:true',
+          '--user',
+          '1000:1000',
+          '-w',
+          '/workspace',
+          imageName,
+        ]);
+      } else {
+        await this.runProcess('docker', [
+          'run',
+          '-d',
+          '--name',
+          containerName,
+          '--read-only',
+          '--tmpfs',
+          '/tmp:rw,noexec,nosuid,size=64m',
+          '--tmpfs',
+          '/workspace:rw,exec,nosuid,size=256m,uid=1000,gid=1000',
+          '--network',
+          'none',
+          '--memory=512m',
+          '--cpus=1.0',
+          '--pids-limit=64',
+          '--cap-drop=ALL',
+          '--security-opt=no-new-privileges:true',
+          '--user',
+          '1000:1000',
+          '-w',
+          '/workspace',
+          imageName,
+          'sleep',
+          'infinity',
+        ]);
+      }
     } catch (error) {
       throw new SandboxError(
         'SANDBOX_CREATION_FAILED',
@@ -79,7 +119,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       );
     }
 
-    // Populate initial files
+    // Populate initial files if any
     try {
       for (const [filePath, content] of Object.entries(initialFiles)) {
         const dir = filePath.includes('/')
@@ -110,18 +150,34 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       }
 
       // Readiness check
-      const readyCheck = await this.runProcess('docker', [
-        'exec',
-        containerName,
-        'sh',
-        '-c',
-        'echo delimit-ready',
-      ]);
+      if (isMultiFile) {
+        const readyCheck = await this.runProcess('docker', [
+          'exec',
+          containerName,
+          'sh',
+          '-c',
+          'for i in $(seq 1 100); do if [ -f /tmp/scenario_ready ] && pg_isready -h 127.0.0.1 -p 5432 -U delimit -q && redis-cli ping | grep -q PONG; then echo delimit-ready; exit 0; fi; sleep 0.1; done; echo not-ready; exit 1',
+        ]);
 
-      if (!readyCheck.stdout.includes('delimit-ready')) {
-        throw new Error(
-          `Readiness probe returned unexpected output: ${readyCheck.stdout}`,
-        );
+        if (!readyCheck.stdout.includes('delimit-ready')) {
+          throw new Error(
+            `Multi-service readiness probe returned unexpected output: ${readyCheck.stdout}`,
+          );
+        }
+      } else {
+        const readyCheck = await this.runProcess('docker', [
+          'exec',
+          containerName,
+          'sh',
+          '-c',
+          'echo delimit-ready',
+        ]);
+
+        if (!readyCheck.stdout.includes('delimit-ready')) {
+          throw new Error(
+            `Readiness probe returned unexpected output: ${readyCheck.stdout}`,
+          );
+        }
       }
     } catch (error) {
       await this.teardown(sessionId).catch(() => {});
@@ -205,13 +261,24 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       });
 
       const killDescendantsInsideContainer = async () => {
-        // Kill process group and any lingering non-PID-1 processes in the container
+        // Kill process group and any lingering non-daemon processes spawned by the command,
+        // while preserving background scenario services (postgres, redis, app.py, sleep infinity)
         const killCmd = [
           `pgid=$(cat "/tmp/cmd_${commandId}.pgid" 2>/dev/null)`,
           `if [ -n "$pgid" ]; then kill -KILL -$pgid 2>/dev/null; rm -f "/tmp/cmd_${commandId}.pgid"; fi`,
           `for dir in /proc/[0-9]*; do`,
           `  p=\${dir##*/}`,
-          `  if [ "$p" != "1" ] && [ "$p" != "$$" ]; then kill -9 "$p" 2>/dev/null; fi`,
+          `  if [ "$p" != "1" ] && [ "$p" != "$$" ]; then`,
+          `    comm=$(cat /proc/$p/comm 2>/dev/null)`,
+          `    cmdline=$(cat /proc/$p/cmdline 2>/dev/null)`,
+          `    case "$comm" in`,
+          `      postgres|redis-server|postmaster) continue ;;`,
+          `    esac`,
+          `    case "$cmdline" in`,
+          `      *app.py*|*start_services.sh*) continue ;;`,
+          `    esac`,
+          `    kill -9 "$p" 2>/dev/null`,
+          `  fi`,
           `done`,
           `sleep 0.1`,
         ].join('\n');
@@ -281,7 +348,15 @@ export class DockerSandboxAdapter implements SandboxAdapter {
     content: string,
   ): Promise<void> {
     const containerName = this.getContainerName(sessionId);
-    const normalized = filePath.replace(/^\/workspace\/?/, '');
+    const normalized = filePath
+      .replace(/^\/+/, '')
+      .replace(/^workspace\/?/, '');
+    if (normalized.includes('..') || normalized.startsWith('/')) {
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        `Invalid file path: ${filePath}`,
+      );
+    }
     const dir = normalized.includes('/')
       ? normalized.slice(0, normalized.lastIndexOf('/'))
       : '';
@@ -308,6 +383,95 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       ],
       content,
     );
+  }
+
+  async readFile(sessionId: string, filePath: string): Promise<string> {
+    const containerName = this.getContainerName(sessionId);
+    const normalized = filePath
+      .replace(/^\/+/, '')
+      .replace(/^workspace\/?/, '');
+    if (normalized.includes('..') || normalized.startsWith('/')) {
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        `Invalid file path: ${filePath}`,
+      );
+    }
+
+    try {
+      const res = await this.runProcess('docker', [
+        'exec',
+        containerName,
+        'cat',
+        `/workspace/${normalized}`,
+      ]);
+      return res.stdout;
+    } catch (error) {
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        `Failed to read file ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+        error,
+      );
+    }
+  }
+
+  async listFiles(sessionId: string): Promise<readonly WorkspaceFileInfo[]> {
+    const containerName = this.getContainerName(sessionId);
+    try {
+      const res = await this.runProcess('docker', [
+        'exec',
+        containerName,
+        'sh',
+        '-c',
+        'cd /workspace && find . -mindepth 1 -not -path "*/.*" -not -path "*/__pycache__*" -not -path "*/.pytest_cache*" -exec stat -c "%n|%s|%F" {} + 2>/dev/null || true',
+      ]);
+      const lines = res.stdout.trim().split('\n').filter(Boolean);
+      const files: WorkspaceFileInfo[] = [];
+      for (const line of lines) {
+        const parts = line.split('|');
+        if (parts.length < 3) continue;
+        const rawPath = parts[0];
+        const size = parseInt(parts[1], 10) || 0;
+        const fileType = parts[2];
+        const relPath = rawPath.replace(/^\.\//, '');
+        files.push({
+          path: relPath,
+          size,
+          isDirectory: fileType === 'directory',
+        });
+      }
+      return files.sort((a, b) => {
+        if (a.isDirectory !== b.isDirectory) {
+          return a.isDirectory ? -1 : 1;
+        }
+        return a.path.localeCompare(b.path);
+      });
+    } catch (error) {
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        `Failed to list files: ${error instanceof Error ? error.message : String(error)}`,
+        error,
+      );
+    }
+  }
+
+  async captureDiff(sessionId: string): Promise<string> {
+    const containerName = this.getContainerName(sessionId);
+    try {
+      const res = await this.runProcess('docker', [
+        'exec',
+        containerName,
+        'sh',
+        '-c',
+        'if git -C /workspace rev-parse --is-inside-work-tree >/dev/null 2>&1; then git -C /workspace add -N . && git -C /workspace diff HEAD; fi',
+      ]);
+      return res.stdout;
+    } catch (error) {
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        `Failed to capture diff: ${error instanceof Error ? error.message : String(error)}`,
+        error,
+      );
+    }
   }
 
   async teardown(sessionId: string): Promise<void> {

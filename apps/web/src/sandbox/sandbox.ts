@@ -26,10 +26,22 @@ export class SandboxError extends Error {
   }
 }
 
+export type WorkspaceFileInfo = Readonly<{
+  path: string;
+  size: number;
+  isDirectory: boolean;
+}>;
+
+export type SandboxCreateOptions = Readonly<{
+  imageName?: string;
+  initialFiles?: Readonly<Record<string, string>>;
+  scenarioType?: 'single_file' | 'multi_file';
+}>;
+
 export interface SandboxAdapter {
   createAndVerify(
     sessionId: string,
-    initialFiles?: Readonly<Record<string, string>>,
+    options?: SandboxCreateOptions | Readonly<Record<string, string>>,
   ): Promise<void>;
 
   exec(
@@ -45,6 +57,12 @@ export interface SandboxAdapter {
     filePath: string,
     content: string,
   ): Promise<void>;
+
+  readFile(sessionId: string, filePath: string): Promise<string>;
+
+  listFiles(sessionId: string): Promise<readonly WorkspaceFileInfo[]>;
+
+  captureDiff(sessionId: string): Promise<string>;
 
   teardown(sessionId: string): Promise<void>;
 }

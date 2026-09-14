@@ -27,6 +27,8 @@ type SessionRow = Readonly<{
   created_at: string;
   activated_at: string | null;
   submitted_at: string | null;
+  scenario_type: 'single_file' | 'multi_file' | null;
+  submitted_diff: string | null;
 }>;
 
 const schema = `
@@ -45,7 +47,9 @@ const schema = `
     submitted_content TEXT,
     created_at TEXT NOT NULL,
     activated_at TEXT,
-    submitted_at TEXT
+    submitted_at TEXT,
+    scenario_type TEXT DEFAULT 'single_file',
+    submitted_diff TEXT
   );
 `;
 
@@ -60,6 +64,7 @@ const toSession = (row: SessionRow): AssessmentSession => ({
     acceptanceCriteria: JSON.parse(row.acceptance_criteria) as string[],
     filePath: row.file_path,
     originalContent: row.original_content,
+    type: row.scenario_type ?? 'single_file',
   },
   status: row.status,
   workingContent: row.working_content,
@@ -67,6 +72,8 @@ const toSession = (row: SessionRow): AssessmentSession => ({
   createdAt: row.created_at,
   activatedAt: row.activated_at,
   submittedAt: row.submitted_at,
+  scenarioType: row.scenario_type ?? 'single_file',
+  submittedDiff: row.submitted_diff,
 });
 
 export class SqliteSessionStore {
@@ -80,8 +87,8 @@ export class SqliteSessionStore {
             id, candidate_token_hash, scenario_id, scenario_version,
             scenario_title, scenario_brief, acceptance_criteria, file_path,
             original_content, status, working_content, submitted_content,
-            created_at, activated_at, submitted_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            created_at, activated_at, submitted_at, scenario_type, submitted_diff
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           session.id,
@@ -99,6 +106,8 @@ export class SqliteSessionStore {
           session.createdAt,
           session.activatedAt,
           session.submittedAt,
+          session.scenarioType ?? session.scenario.type ?? 'single_file',
+          session.submittedDiff ?? null,
         );
 
       return session;
@@ -133,9 +142,13 @@ export class SqliteSessionStore {
     );
   }
 
-  submit(candidateTokenHash: string, submittedAt: string) {
+  submit(
+    candidateTokenHash: string,
+    submittedAt: string,
+    submittedDiff?: string | null,
+  ) {
     return this.mutate(candidateTokenHash, (session) =>
-      submitSession(session, submittedAt),
+      submitSession(session, submittedAt, submittedDiff),
     ) as SubmittedSession;
   }
 
@@ -158,7 +171,7 @@ export class SqliteSessionStore {
           .prepare(
             `UPDATE assessment_sessions SET
               status = ?, working_content = ?, submitted_content = ?,
-              activated_at = ?, submitted_at = ?
+              activated_at = ?, submitted_at = ?, submitted_diff = ?
             WHERE id = ?`,
           )
           .run(
@@ -167,6 +180,7 @@ export class SqliteSessionStore {
             updated.submittedContent,
             updated.activatedAt,
             updated.submittedAt,
+            updated.submittedDiff ?? null,
             updated.id,
           );
 
@@ -196,6 +210,17 @@ export class SqliteSessionStore {
     database.pragma('journal_mode = WAL');
     database.pragma('busy_timeout = 5000');
     database.exec(schema);
+
+    try {
+      database.exec(
+        "ALTER TABLE assessment_sessions ADD COLUMN scenario_type TEXT DEFAULT 'single_file'",
+      );
+    } catch {}
+    try {
+      database.exec(
+        'ALTER TABLE assessment_sessions ADD COLUMN submitted_diff TEXT',
+      );
+    } catch {}
 
     try {
       return operation(database);

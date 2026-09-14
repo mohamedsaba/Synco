@@ -12,6 +12,7 @@ import {
   type SandboxAdapter,
   SandboxError,
 } from '../sandbox/sandbox';
+import { scenario001 } from '../scenarios/scenario-001';
 import { sliceOneScenario } from '../scenarios/slice-one-scenario';
 import {
   type AssessmentSession,
@@ -52,21 +53,26 @@ export class SessionService {
     this.sandboxAdapter = options.sandboxAdapter;
   }
 
-  createSession() {
+  createSession(options?: { scenarioId?: string }) {
     const candidateToken = this.createToken();
-    const originalContent = normalizeLineEndings(
-      sliceOneScenario.originalContent,
-    );
+    const scenario =
+      options?.scenarioId === scenario001.id ||
+      options?.scenarioId === 'scenario-001'
+        ? scenario001
+        : sliceOneScenario;
+    const originalContent = normalizeLineEndings(scenario.originalContent);
     const session: AssessmentSession = {
       id: this.createId(),
       candidateTokenHash: hashCandidateToken(candidateToken),
-      scenario: { ...sliceOneScenario, originalContent },
+      scenario: { ...scenario, originalContent },
       status: 'CREATED',
       workingContent: originalContent,
       submittedContent: null,
       createdAt: this.now(),
       activatedAt: null,
       submittedAt: null,
+      scenarioType: scenario.type ?? 'single_file',
+      submittedDiff: null,
     };
 
     this.store.create(session);
@@ -112,9 +118,20 @@ export class SessionService {
 
     // Readiness gate: Sandbox must be created and verified before session transitions to ACTIVE
     if (this.sandboxAdapter) {
-      await this.sandboxAdapter.createAndVerify(session.id, {
-        [session.scenario.filePath]: session.workingContent,
-      });
+      if (
+        session.scenarioType === 'multi_file' ||
+        session.scenario.type === 'multi_file'
+      ) {
+        await this.sandboxAdapter.createAndVerify(session.id, {
+          imageName:
+            session.scenario.imageName ?? 'delimit-scenario-001:latest',
+          scenarioType: 'multi_file',
+        });
+      } else {
+        await this.sandboxAdapter.createAndVerify(session.id, {
+          [session.scenario.filePath]: session.workingContent,
+        });
+      }
     }
 
     // Only after readiness succeeds, transition to ACTIVE and record activatedAt
@@ -224,6 +241,59 @@ export class SessionService {
     return result;
   }
 
+  async listWorkspaceFiles(candidateToken: string) {
+    const session = this.getCandidateSession(candidateToken);
+    if (session.status !== 'ACTIVE') {
+      throw new SessionError(
+        'SESSION_NOT_ACTIVE',
+        'Workspace files are only available for active sessions.',
+      );
+    }
+    if (!this.sandboxAdapter) {
+      return [];
+    }
+    return this.sandboxAdapter.listFiles(session.id);
+  }
+
+  async readWorkspaceFile(candidateToken: string, filePath: string) {
+    const session = this.getCandidateSession(candidateToken);
+    if (session.status !== 'ACTIVE') {
+      throw new SessionError(
+        'SESSION_NOT_ACTIVE',
+        'Workspace files are only available for active sessions.',
+      );
+    }
+    if (!this.sandboxAdapter) {
+      return '';
+    }
+    return this.sandboxAdapter.readFile(session.id, filePath);
+  }
+
+  async saveWorkspaceFile(
+    candidateToken: string,
+    filePath: string,
+    content: string,
+  ) {
+    if (content.length > maximumContentLength) {
+      throw new SessionError(
+        'CONTENT_TOO_LARGE',
+        'The file exceeds the 100 KB limit for this scenario.',
+      );
+    }
+    const session = this.getCandidateSession(candidateToken);
+    if (session.status !== 'ACTIVE') {
+      throw new SessionError(
+        'SESSION_NOT_ACTIVE',
+        'Workspace files can only be edited during active sessions.',
+      );
+    }
+    const normalized = normalizeLineEndings(content);
+    if (this.sandboxAdapter) {
+      await this.sandboxAdapter.writeFile(session.id, filePath, normalized);
+    }
+    return { ok: true, path: filePath };
+  }
+
   async submit(candidateToken: string) {
     const tokenHash = hashCandidateToken(candidateToken);
     const session = this.store.findByCandidateTokenHash(tokenHash);
@@ -235,7 +305,31 @@ export class SessionService {
       );
     }
 
-    const submitted = this.store.submit(tokenHash, this.now());
+    if (session.status === 'SUBMITTED') {
+      return session;
+    }
+
+    if (session.status !== 'ACTIVE') {
+      throw new SessionError(
+        'SESSION_NOT_ACTIVE',
+        'The session must be active before it can be submitted.',
+      );
+    }
+
+    let submittedDiff: string | null = null;
+    const isMultiFile =
+      session.scenarioType === 'multi_file' ||
+      session.scenario.type === 'multi_file';
+
+    if (this.sandboxAdapter && isMultiFile) {
+      try {
+        submittedDiff = await this.sandboxAdapter.captureDiff(session.id);
+      } catch (err) {
+        console.warn('Error capturing diff before teardown', err);
+      }
+    }
+
+    const submitted = this.store.submit(tokenHash, this.now(), submittedDiff);
 
     // Deterministic sandbox teardown on submission
     if (this.sandboxAdapter) {
@@ -259,17 +353,30 @@ export class SessionService {
     const submitted = requireSubmittedSession(session);
     const events = this.eventStore ? this.eventStore.getEvents(sessionId) : [];
 
+    const isMultiFile =
+      submitted.scenarioType === 'multi_file' ||
+      submitted.scenario.type === 'multi_file';
+
+    const diff =
+      isMultiFile &&
+      submitted.submittedDiff !== null &&
+      submitted.submittedDiff !== undefined
+        ? submitted.submittedDiff
+        : createSubmittedDiff(
+            submitted.scenario.filePath,
+            submitted.scenario.originalContent,
+            submitted.submittedContent,
+          );
+
     return {
       sessionId: submitted.id,
       scenario: submitted.scenario,
+      scenarioType:
+        submitted.scenarioType ?? submitted.scenario.type ?? 'single_file',
       submittedAt: submitted.submittedAt,
       originalContent: submitted.scenario.originalContent,
       submittedContent: submitted.submittedContent,
-      diff: createSubmittedDiff(
-        submitted.scenario.filePath,
-        submitted.scenario.originalContent,
-        submitted.submittedContent,
-      ),
+      diff,
       events,
     };
   }

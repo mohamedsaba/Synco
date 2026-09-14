@@ -8,14 +8,18 @@ export const CreateSessionButton = () => {
   const [error, setError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  const createSession = async () => {
+  const createSession = async (scenarioId?: string) => {
     setIsCreating(true);
     setError(null);
 
     try {
-      const response = await fetch('/api/sessions', { method: 'POST' });
+      const response = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenarioId }),
+      });
       if (!response.ok) {
-        throw new Error('The demo session could not be created.');
+        throw new Error('The assessment session could not be created.');
       }
 
       const result = (await response.json()) as { candidatePath: string };
@@ -24,7 +28,7 @@ export const CreateSessionButton = () => {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : 'The demo session could not be created.',
+          : 'The assessment session could not be created.',
       );
       setIsCreating(false);
     }
@@ -35,10 +39,19 @@ export const CreateSessionButton = () => {
       <button
         className="button button-primary"
         disabled={isCreating}
-        onClick={createSession}
+        onClick={() => createSession('scenario-001-cache-staleness')}
         type="button"
       >
-        {isCreating ? 'Creating session…' : 'Create candidate session'}
+        {isCreating ? 'Creating session…' : 'Start Scenario 001 incident'}
+      </button>
+      <button
+        className="button button-secondary"
+        disabled={isCreating}
+        onClick={() => createSession('slice-1-greeting-format')}
+        type="button"
+        style={{ fontSize: '0.72rem', padding: '0.4rem 0.8rem' }}
+      >
+        Start single-file fixture
       </button>
       {error ? <p className="form-error">{error}</p> : null}
     </div>

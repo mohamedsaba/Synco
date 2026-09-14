@@ -8,4 +8,5 @@ export const toCandidateSessionView = (session: AssessmentSession) => ({
   createdAt: session.createdAt,
   activatedAt: session.activatedAt,
   submittedAt: session.submittedAt,
+  scenarioType: session.scenarioType ?? session.scenario.type ?? 'single_file',
 });

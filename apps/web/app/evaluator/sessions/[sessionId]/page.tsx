@@ -109,29 +109,39 @@ const EvidencePage = async ({ params }: EvidencePageProps) => {
         <pre className="diff-block">{evidence.diff}</pre>
       </section>
 
-      <div className="source-grid">
-        <section className="evidence-section" aria-labelledby="original-title">
-          <div className="section-heading compact">
-            <p className="section-number">02</p>
-            <h2 id="original-title">Original file</h2>
-          </div>
-          <p className="code-path">{evidence.scenario.filePath}</p>
-          <pre className="source-block">{evidence.originalContent}</pre>
-        </section>
-        <section className="evidence-section" aria-labelledby="submitted-title">
-          <div className="section-heading compact">
-            <p className="section-number">03</p>
-            <h2 id="submitted-title">Submitted file</h2>
-          </div>
-          <p className="code-path">{evidence.scenario.filePath}</p>
-          <pre className="source-block">{evidence.submittedContent}</pre>
-        </section>
-      </div>
+      {evidence.scenarioType !== 'multi_file' && evidence.scenario.filePath ? (
+        <div className="source-grid">
+          <section
+            className="evidence-section"
+            aria-labelledby="original-title"
+          >
+            <div className="section-heading compact">
+              <p className="section-number">02</p>
+              <h2 id="original-title">Original file</h2>
+            </div>
+            <p className="code-path">{evidence.scenario.filePath}</p>
+            <pre className="source-block">{evidence.originalContent}</pre>
+          </section>
+          <section
+            className="evidence-section"
+            aria-labelledby="submitted-title"
+          >
+            <div className="section-heading compact">
+              <p className="section-number">03</p>
+              <h2 id="submitted-title">Submitted file</h2>
+            </div>
+            <p className="code-path">{evidence.scenario.filePath}</p>
+            <pre className="source-block">{evidence.submittedContent}</pre>
+          </section>
+        </div>
+      ) : null}
 
       {/* Chronological raw command evidence */}
       <section className="evidence-section" aria-labelledby="events-title">
         <div className="section-heading">
-          <p className="section-number">04</p>
+          <p className="section-number">
+            {evidence.scenarioType === 'multi_file' ? '02' : '04'}
+          </p>
           <div>
             <h2 id="events-title">Chronological raw command evidence</h2>
             <p>

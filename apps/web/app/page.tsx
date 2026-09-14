@@ -6,11 +6,12 @@ const HomePage = () => (
   <main className="home-shell">
     <section className="home-intro" aria-labelledby="page-title">
       <div>
-        <p className="eyebrow">Synco / Delimit · Vertical Slice 1</p>
-        <h1 id="page-title">The smallest complete evidence loop.</h1>
+        <p className="eyebrow">Synco / Delimit · Vertical Slice 3</p>
+        <h1 id="page-title">Realistic incident. Authoritative evidence.</h1>
         <p className="summary">
-          Issue one fixed scenario, persist one candidate edit, freeze it at
-          submission, and review the exact server-generated diff.
+          Host realistic multi-file engineering incidents in isolated containers
+          with local services. Capture workspace mutations and authoritative
+          command events for human evaluation without scoring or AI judging.
         </p>
       </div>
       <div className="home-actions">

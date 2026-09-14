@@ -7,6 +7,11 @@ import {
   EvaluatorAccessError,
   getAuthorizedEvidence,
 } from '../../../../src/access/evaluator-evidence';
+import type {
+  CommandFinishedPayload,
+  CommandStartedPayload,
+  SessionEvent,
+} from '../../../../src/events/session-event';
 import { SessionError } from '../../../../src/sessions/session';
 
 export const dynamic = 'force-dynamic';
@@ -58,6 +63,8 @@ const EvidencePage = async ({ params }: EvidencePageProps) => {
     );
   }
 
+  const events = (evidence.events ?? []) as readonly SessionEvent[];
+
   return (
     <main className="evidence-shell">
       <header className="evidence-header">
@@ -84,6 +91,10 @@ const EvidencePage = async ({ params }: EvidencePageProps) => {
         <div>
           <dt>Submitted</dt>
           <dd>{new Date(evidence.submittedAt).toLocaleString()}</dd>
+        </div>
+        <div>
+          <dt>Raw events</dt>
+          <dd>{events.length} captured</dd>
         </div>
       </dl>
 
@@ -116,6 +127,109 @@ const EvidencePage = async ({ params }: EvidencePageProps) => {
           <pre className="source-block">{evidence.submittedContent}</pre>
         </section>
       </div>
+
+      {/* Chronological raw command evidence */}
+      <section className="evidence-section" aria-labelledby="events-title">
+        <div className="section-heading">
+          <p className="section-number">04</p>
+          <div>
+            <h2 id="events-title">Chronological raw command evidence</h2>
+            <p>
+              Authoritative append-only events captured by the server runtime.
+            </p>
+          </div>
+        </div>
+
+        {events.length === 0 ? (
+          <div className="capture-note" style={{ margin: '1.5rem' }}>
+            No terminal commands were executed during this session.
+          </div>
+        ) : (
+          <div className="raw-events-list">
+            {events.map((event) => {
+              if (event.type === 'COMMAND_STARTED') {
+                const payload = event.payload as CommandStartedPayload;
+                return (
+                  <article className="event-card" key={event.id}>
+                    <div className="event-card-header">
+                      <div className="event-card-title">
+                        <span className="event-seq">#{event.sequence}</span>
+                        <span className="event-type">COMMAND_STARTED</span>
+                        <span className="file-kicker">cwd: {payload.cwd}</span>
+                      </div>
+                      <time className="event-time" dateTime={event.timestamp}>
+                        {new Date(event.timestamp).toLocaleTimeString()}
+                      </time>
+                    </div>
+                    <div className="command-meta">
+                      <span className="command-text">$ {payload.command}</span>
+                      <span className="file-kicker">
+                        id: {payload.commandId}
+                      </span>
+                    </div>
+                  </article>
+                );
+              }
+
+              if (event.type === 'COMMAND_FINISHED') {
+                const payload = event.payload as CommandFinishedPayload;
+                return (
+                  <article className="event-card" key={event.id}>
+                    <div className="event-card-header">
+                      <div className="event-card-title">
+                        <span className="event-seq">#{event.sequence}</span>
+                        <span className="event-type">COMMAND_FINISHED</span>
+                        {payload.timedOut ? (
+                          <span className="badge badge-timeout">Timed out</span>
+                        ) : payload.exitCode === 0 ? (
+                          <span className="badge badge-success">
+                            Exit {payload.exitCode}
+                          </span>
+                        ) : (
+                          <span className="badge badge-error">
+                            Exit {payload.exitCode}
+                          </span>
+                        )}
+                        <span>{payload.durationMs}ms</span>
+                        {payload.stdoutTruncated ? (
+                          <span className="badge badge-truncated">
+                            stdout truncated ({payload.stdoutBytes} B total)
+                          </span>
+                        ) : null}
+                        {payload.stderrTruncated ? (
+                          <span className="badge badge-truncated">
+                            stderr truncated ({payload.stderrBytes} B total)
+                          </span>
+                        ) : null}
+                      </div>
+                      <time className="event-time" dateTime={event.timestamp}>
+                        {new Date(event.timestamp).toLocaleTimeString()}
+                      </time>
+                    </div>
+                    <div className="command-meta">
+                      <span className="file-kicker">
+                        id: {payload.commandId}
+                      </span>
+                    </div>
+                    {payload.stdoutPreview ? (
+                      <pre className="command-output">
+                        {payload.stdoutPreview}
+                      </pre>
+                    ) : null}
+                    {payload.stderrPreview ? (
+                      <pre className="command-output stderr">
+                        {payload.stderrPreview}
+                      </pre>
+                    ) : null}
+                  </article>
+                );
+              }
+
+              return null;
+            })}
+          </div>
+        )}
+      </section>
     </main>
   );
 };

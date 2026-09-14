@@ -173,7 +173,7 @@ export class SqliteSessionStore {
         return updated;
       });
 
-      return transaction();
+      return transaction.immediate();
     });
   }
 

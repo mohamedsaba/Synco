@@ -24,19 +24,27 @@ Delimit (by Synco) is an engineering-assessment platform designed to observe rea
 ## Implemented today
 
 - **Baseline infrastructure:** Next.js application scaffold, health endpoint (`GET /api/health`), Prettier, ESLint, TypeScript configuration, Vitest test runner, and GitHub Actions CI workflow.
-- **Vertical Slice 1 (working tree):**
+- **Vertical Slice 1 (committed in `4f8d709`):**
   - Fixture scenario `slice-1-greeting-format` (name trimming in `src/format-greeting.ts`).
   - Session domain model (`session.ts`) enforcing `CREATED → ACTIVE → SUBMITTED` transitions and immutable submission.
   - SQLite persistence layer (`SqliteSessionStore`) with WAL mode.
   - Candidate session API routes (`activate`, `file`, `submit`) and workspace UI (`/candidate/[token]`).
   - Evaluator authentication (`isEvaluatorCredentialValid`, `evaluatorCookieName`) and diff review UI (`/evaluator`, `/evaluator/sessions/[sessionId]`).
   - Unit and integration tests covering diff generation, lifecycle transitions, persistence reload, and authorization.
+- **Vertical Slice 2 (working tree):**
+  - **Hardened session-scoped Docker sandbox (`DockerSandboxAdapter`):** Alpine 3.20 base container, unprivileged non-root user (`1000:1000`), network isolation (`--network none`), read-only root filesystem, tmpfs for `/workspace` and `/tmp`, strict resource limits (1 CPU, 512MB RAM, 64 PIDs), deterministic container naming (`delimit-sandbox-${sessionId}`).
+  - **Readiness-gated activation:** Transition `CREATED → ACTIVE` and assessment timer initialization only occur after sandbox creation and readiness check pass. If sandbox startup fails, session remains `CREATED` and timer does not start.
+  - **Memory-bounded stream accumulation (`BoundedStreamAccumulator`):** Cap live buffers at 64 KB preview while tracking exact total byte counts and explicit truncation flags, preventing host memory exhaustion.
+  - **Authoritative append-only event store (`SqliteEventStore`):** Logs `COMMAND_STARTED` and `COMMAND_FINISHED` events with server provenance, monotonic sequence numbers, timestamps, exit codes, durations, truncated output previews, byte counts, and correlated `commandId`. SQLite schema constraint `UNIQUE(session_id, sequence)` and `BEGIN IMMEDIATE` guarantee strict sequence allocation.
+  - **Process-group timeout termination:** Commands timed out at 30s have their process groups and orphaned child processes terminated, recording `timedOut: true, exitCode: null`.
+  - **Candidate command console (`/candidate/[token]`):** Interactive command console allowing command execution, real-time command feedback, file content synchronization into `/workspace`, and submission.
+  - **Evaluator raw command evidence (`/evaluator/sessions/[sessionId]`):** Chronological raw command evidence view displaying command lines, durations, exit statuses, stdout/stderr previews, and truncation notices alongside the final unified diff.
+  - **Comprehensive test suite:** Unit tests for bounded accumulator, event store sequence monotonicity, activation failure isolation; integration tests for Docker sandbox multi-command persistence, process group timeout kill, and end-to-end command execution.
 
 ## Explicitly not implemented
 
-- Terminal execution, interactive shells, and sandbox process isolation.
-- Raw event stream ingestion, storage, and sequence ordering (`EventStore`).
-- Automated in-sandbox test execution and test event capture.
+- Full interactive PTY / WebSocket terminal streaming (FR-015 is partially advanced via HTTP command console; interactive terminal is deferred).
+- Automated test run heuristics (`TEST_RUN` event inference).
 - Candidate AI assistant chat and AI interaction logging.
 - AI reconstruction service and evidence citation generation.
 - Production Scenario 001 (PostgreSQL/Redis cache-staleness incident).
@@ -44,13 +52,13 @@ Delimit (by Synco) is an engineering-assessment platform designed to observe rea
 
 ## Current active plan
 
-None. The initial plan `001-first-vertical-slice.md` was completed and moved to `docs/plans/completed/001-first-vertical-slice.md`. Before commencing the next phase of work (Vertical Slice 2), a new plan must be authored under `docs/plans/active/`.
+None. Vertical Slice 2 implementation is complete; plan preserved in `docs/plans/completed/002-terminal-and-event-capture.md`.
 
 ## Current Git state
 
 - Branch: `main`
-- Commit: `feat: complete first vertical slice` (following baseline `3c5c2ff`)
-- Status: Clean working tree at completion of Vertical Slice 1.
+- Commit: `feat: complete first vertical slice` (`4f8d709`)
+- Status: Uncommitted changes in working tree representing Vertical Slice 2 implementation.
 - Remotes: None configured.
 
 ## Verification commands
@@ -58,7 +66,7 @@ None. The initial plan `001-first-vertical-slice.md` was completed and moved to 
 - `npm run format:check` — Prettier formatting check
 - `npm run lint` — ESLint validation
 - `npm run typecheck` — Next route typegen + TypeScript typecheck (`tsc --noEmit`)
-- `npm run test` — Vitest unit and integration test suite
+- `npm run test` — Vitest unit and integration test suite (9 test suites, 17 tests)
 - `npm run build` — Next.js production build
 - `npm run verify` — Full pipeline verification (all checks above)
 
@@ -71,20 +79,14 @@ None. The initial plan `001-first-vertical-slice.md` was completed and moved to 
 - `docs/scenarios/constitution.md` (precedence 5)
 - `docs/architecture/` (`system-overview.md`, `event-model.md`, `sandbox.md`, `reconstruction.md`, `ai-boundaries.md`) (precedence 6)
 - `docs/plans/completed/001-first-vertical-slice.md` (precedence 7)
+- `docs/plans/completed/002-terminal-and-event-capture.md` (precedence 8)
 - `AGENTS.md` (operating guide and agent rules)
 
 ## Known risks
 
-- **Working tree uncommitted:** Vertical Slice 1 changes are in the working tree and not yet committed to Git history.
-- **Scenario quality risk:** The current fixture is a minimal interaction test; production assessment validity rests heavily on realistic, deep scenarios like Scenario 001.
-- **Sandbox security boundary:** Future candidate execution requires a genuine, isolated execution boundary (resource limits, network constraints, filesystem sandboxing) before untrusted code is executed.
-- **Evaluator cognitive load:** Chronological reconstructions must compress events effectively without discarding crucial evidence or substituting AI judgment for human review.
-
-## Genuine unresolved decisions
-
-1. **Working tree commit:** Whether to commit the completed Vertical Slice 1 implementation and full SRS expansion before drafting the next active plan.
-2. **Next slice definition:** Prioritization for Vertical Slice 2—specifically whether to introduce containerized sandbox execution and terminal capture next, or candidate AI interaction and event streaming.
+- **Scenario depth:** The test fixture uses a simple shell and node script; scenario 001 with background services (PostgreSQL/Redis) will require multi-container orchestrations when tackled.
+- **Docker socket availability in CI:** Docker daemon must be available in environments running integration tests that instantiate real containers (e.g. GitHub Actions runner). Fast mock adapter is available for environments without Docker.
 
 ## Next safe action
 
-Confirm with the user whether to commit the working tree containing the Vertical Slice 1 implementation, then draft the next active plan (`docs/plans/active/002-*.md`) for the agreed vertical slice before writing any new code.
+Present the completed Slice 2 state to the user, run full verification, and confirm whether to commit the Slice 2 implementation to Git history.

@@ -36,15 +36,15 @@ describe('persisted session flow', () => {
     rmSync(directory, { recursive: true, force: true });
   });
 
-  it('loads the fixed scenario and restores persisted edits after reload', () => {
+  it('loads the fixed scenario and restores persisted edits after reload', async () => {
     const service = createService();
     const { candidateToken, session } = service.createSession();
 
     expect(session.scenario).toEqual(sliceOneScenario);
     expect(session.status).toBe('CREATED');
 
-    service.activate(candidateToken);
-    service.save(candidateToken, 'candidate edit\r\n');
+    await service.activate(candidateToken);
+    await service.save(candidateToken, 'candidate edit\r\n');
 
     const reloadedService = createService();
     expect(reloadedService.getCandidateSession(candidateToken)).toMatchObject({
@@ -53,19 +53,19 @@ describe('persisted session flow', () => {
     });
   });
 
-  it('preserves immutable evidence and defines repeated submission as idempotent', () => {
+  it('preserves immutable evidence and defines repeated submission as idempotent', async () => {
     const service = createService();
     const { candidateToken, session } = service.createSession();
-    service.activate(candidateToken);
-    service.save(candidateToken, 'candidate submission\n');
+    await service.activate(candidateToken);
+    await service.save(candidateToken, 'candidate submission\n');
 
-    const firstSubmission = service.submit(candidateToken);
-    const secondSubmission = service.submit(candidateToken);
+    const firstSubmission = await service.submit(candidateToken);
+    const secondSubmission = await service.submit(candidateToken);
 
     expect(secondSubmission).toEqual(firstSubmission);
-    expect(() => service.save(candidateToken, 'later mutation')).toThrowError(
-      SessionError,
-    );
+    await expect(
+      service.save(candidateToken, 'later mutation'),
+    ).rejects.toThrowError(SessionError);
 
     const evidence = service.getSubmittedEvidence(session.id);
     expect(evidence.originalContent).toBe(sliceOneScenario.originalContent);
@@ -76,7 +76,7 @@ describe('persisted session flow', () => {
     expect(evidence).not.toHaveProperty('decision');
   });
 
-  it('keeps candidate sessions separate and evaluator evidence independently authorized', () => {
+  it('keeps candidate sessions separate and evaluator evidence independently authorized', async () => {
     const service = createService();
     const first = service.createSession();
     const second = service.createSession();
@@ -91,8 +91,8 @@ describe('persisted session flow', () => {
       service.getCandidateSession('not-a-session-token'),
     ).toThrowError(SessionError);
 
-    service.activate(first.candidateToken);
-    service.submit(first.candidateToken);
+    await service.activate(first.candidateToken);
+    await service.submit(first.candidateToken);
 
     expect(() =>
       getAuthorizedEvidence(first.session.id, first.candidateToken, {

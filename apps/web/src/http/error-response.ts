@@ -1,4 +1,5 @@
 import { EvaluatorAccessError } from '../access/evaluator-evidence';
+import { SandboxError } from '../sandbox/sandbox';
 import { SessionError } from '../sessions/session';
 
 const sessionStatus: Record<SessionError['code'], number> = {
@@ -13,6 +14,13 @@ export const errorResponse = (error: unknown) => {
     return Response.json(
       { error: { code: error.code, message: error.message } },
       { status: sessionStatus[error.code] },
+    );
+  }
+
+  if (error instanceof SandboxError) {
+    return Response.json(
+      { error: { code: error.code, message: error.message } },
+      { status: 503 },
     );
   }
 

@@ -42,6 +42,7 @@ export class MockSandboxAdapter implements SandboxAdapter {
   public defaultTimeoutMs = 30_000;
   public failCaptureTree = false;
   public failCaptureDiff = false;
+  public failTeardown = false;
 
   private computeTreeHash(files: Map<string, string>): string {
     const sortedEntries = Array.from(files.entries()).sort(([a], [b]) =>
@@ -250,20 +251,6 @@ export class MockSandboxAdapter implements SandboxAdapter {
     };
   }
 
-  async captureDiff(sessionId: string): Promise<string> {
-    const sandbox = this.activeSandboxes.get(sessionId);
-    if (!sandbox) {
-      return '';
-    }
-    const currentTree = await this.captureWorkspaceTree(sessionId);
-    const diff = await this.captureTreeDiff(
-      sessionId,
-      sandbox.baselineTree,
-      currentTree,
-    );
-    return diff.rawDiff;
-  }
-
   async exec(
     sessionId: string,
     commandId: string,
@@ -376,6 +363,12 @@ export class MockSandboxAdapter implements SandboxAdapter {
   }
 
   async teardown(sessionId: string): Promise<void> {
+    if (this.failTeardown) {
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        `Simulated teardown failure for session ${sessionId}`,
+      );
+    }
     this.activeSandboxes.delete(sessionId);
   }
 

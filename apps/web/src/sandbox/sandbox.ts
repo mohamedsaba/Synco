@@ -71,8 +71,6 @@ export interface SandboxAdapter {
 
   listFiles(sessionId: string): Promise<readonly WorkspaceFileInfo[]>;
 
-  captureDiff(sessionId: string): Promise<string>;
-
   captureWorkspaceTree(sessionId: string): Promise<string>;
 
   captureTreeDiff(

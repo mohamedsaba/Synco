@@ -524,38 +524,9 @@ export class DockerSandboxAdapter implements SandboxAdapter {
     }
   }
 
-  async captureDiff(sessionId: string): Promise<string> {
-    try {
-      const baseline = await this.getBaselineTree(sessionId);
-      const current = await this.captureWorkspaceTree(sessionId);
-      const diffRes = await this.captureTreeDiff(sessionId, baseline, current);
-      return diffRes.rawDiff;
-    } catch {
-      const containerName = this.getContainerName(sessionId);
-      try {
-        const res = await this.runProcess('docker', [
-          'exec',
-          containerName,
-          'sh',
-          '-c',
-          'if git -C /workspace rev-parse --is-inside-work-tree >/dev/null 2>&1; then git -C /workspace add -N . && git -C /workspace diff HEAD; fi',
-        ]);
-        return res.stdout;
-      } catch (error) {
-        throw new SandboxError(
-          'SANDBOX_EXECUTION_FAILED',
-          `Failed to capture diff: ${error instanceof Error ? error.message : String(error)}`,
-          error,
-        );
-      }
-    }
-  }
-
   async teardown(sessionId: string): Promise<void> {
     const containerName = this.getContainerName(sessionId);
-    await this.runProcess('docker', ['rm', '-f', containerName]).catch(
-      () => {},
-    );
+    await this.runProcess('docker', ['rm', '-f', containerName]);
   }
 
   private runProcess(

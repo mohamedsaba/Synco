@@ -608,3 +608,12 @@ At each checkpoint, the dev server remains running on `http://localhost:3000` wi
 ---
 
 SLICE 4 PLAN STATUS: IMPLEMENTED AND VERIFIED (AWAITING HUMAN ACCEPTANCE)
+
+## Post-commit baseline reconciliation
+
+The committed baseline originally logged submitted-tree inconsistency as a warning and treated sandbox teardown as an implicitly successful part of submission. The subsequent baseline reconciliation tightened those semantics without adding a product capability:
+
+- after drift reconciliation, a submitted tree that does not match the last authoritative workspace state records `WORKSPACE_CAPTURE_FAILED` and leaves the session `ACTIVE`;
+- `SUBMITTED` is the durable evidence-freeze boundary, while sandbox destruction is subsequent infrastructure cleanup;
+- teardown failure records `SANDBOX_CLEANUP_FAILED` without reopening or changing submitted evidence; and
+- the unused candidate-Git `captureDiff` fallback was removed from the sandbox contract and adapters.

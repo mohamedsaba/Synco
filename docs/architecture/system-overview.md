@@ -38,8 +38,20 @@ Sessions snapshot the fixed fixture version, brief, acceptance criteria, permitt
 
 Candidate edits are normalized from CRLF or bare CR to LF before persistence. Submission atomically freezes the current working content. The evaluator's unified diff is generated server-side from immutable original and submitted content; no client-produced diff is accepted as evidence.
 
-## Delivery strategy
+## Delivery state
 
-Build vertically: final-diff flow, terminal and events, candidate AI and explicit insertion, reconstruction, then the real cache-staleness scenario. Each slice must be demoable and must not pre-build later infrastructure.
+Completed vertical slices:
 
-No production-scale orchestration, distributed event bus, analytics warehouse, or service split is justified at this stage.
+- **Slice 1 — Final-state evidence:** session lifecycle, browser editing, immutable submission, evaluator access, and deterministic final diff.
+- **Slice 2 — Command evidence:** readiness-gated sandbox execution and authoritative command lifecycle events.
+- **Slice 3 — Realistic Scenario 001:** a multi-file Flask, PostgreSQL, Redis, and pytest incident environment.
+- **Slice 4 — Deterministic workspace/evidence reconstruction:** trusted workspace tree transitions, explicit evidence gaps, out-of-band drift reconciliation, and one chronological evaluator history.
+
+Not yet implemented:
+
+- HR-readable AI-assisted evidence reconstruction;
+- candidate AI and explicit insertion evidence;
+- a full interactive PTY;
+- other later MVP capabilities that have not earned a focused vertical slice.
+
+Future work must continue vertically and must not pre-build later infrastructure. No production-scale orchestration, distributed event bus, analytics warehouse, or service split is justified at this stage.

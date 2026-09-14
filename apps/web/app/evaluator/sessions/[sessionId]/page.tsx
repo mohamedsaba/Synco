@@ -388,6 +388,46 @@ const EvidencePage = async ({ params }: EvidencePageProps) => {
                 );
               }
 
+              if (item.kind === 'SANDBOX_CLEANUP_FAILURE') {
+                return (
+                  <article
+                    className="timeline-item-card gap-card"
+                    key={`cleanup_${item.rawEventId}_${item.sequence}`}
+                  >
+                    <div className="timeline-item-header">
+                      <div className="timeline-item-title">
+                        <span className="event-seq">#{item.sequence}</span>
+                        <span className="event-badge badge-gap">
+                          SANDBOX_CLEANUP_FAILED
+                        </span>
+                      </div>
+                      <time className="event-time" dateTime={item.timestamp}>
+                        {new Date(item.timestamp).toLocaleTimeString()}
+                      </time>
+                    </div>
+                    <div className="gap-body">
+                      <p className="gap-alert-text">
+                        Final evidence was frozen and the session was submitted,
+                        but sandbox resource cleanup failed.
+                      </p>
+                      <p className="gap-error-message">
+                        Error: {item.errorMessage}
+                      </p>
+                    </div>
+                    <details className="raw-evidence-disclosure">
+                      <summary>
+                        Raw evidence envelope ({item.rawEventId})
+                      </summary>
+                      <div className="raw-envelope-body">
+                        <pre className="raw-json-block">
+                          {JSON.stringify(item.rawEvent, null, 2)}
+                        </pre>
+                      </div>
+                    </details>
+                  </article>
+                );
+              }
+
               return null;
             })}
           </div>

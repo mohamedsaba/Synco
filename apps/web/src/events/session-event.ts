@@ -2,7 +2,8 @@ export type SessionEventType =
   | 'COMMAND_STARTED'
   | 'COMMAND_FINISHED'
   | 'WORKSPACE_CHANGED'
-  | 'WORKSPACE_CAPTURE_FAILED';
+  | 'WORKSPACE_CAPTURE_FAILED'
+  | 'SANDBOX_CLEANUP_FAILED';
 
 export type CommandStartedPayload = Readonly<{
   commandId: string;
@@ -52,11 +53,17 @@ export type WorkspaceCaptureFailedPayload = Readonly<{
   errorMessage: string;
 }>;
 
+export type SandboxCleanupFailedPayload = Readonly<{
+  phase: 'submission';
+  errorMessage: string;
+}>;
+
 export type SessionEventPayload =
   | CommandStartedPayload
   | CommandFinishedPayload
   | WorkspaceChangedPayload
-  | WorkspaceCaptureFailedPayload;
+  | WorkspaceCaptureFailedPayload
+  | SandboxCleanupFailedPayload;
 
 export type SessionEvent = Readonly<{
   id: string;

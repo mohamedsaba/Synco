@@ -614,6 +614,7 @@ export class SessionService {
       }
 
       let submittedDiff: string | null = null;
+      let submittedTree: string | null = null;
       const isMultiFile =
         current.scenarioType === 'multi_file' ||
         current.scenario.type === 'multi_file';
@@ -621,7 +622,7 @@ export class SessionService {
       if (this.sandboxAdapter && isMultiFile) {
         try {
           const driftResult = await this.detectAndRecordDrift(current.id);
-          const submittedTree = driftResult.currentTree;
+          submittedTree = driftResult.currentTree;
           const baselineTree = await this.sandboxAdapter.getBaselineTree(
             current.id,
           );
@@ -632,7 +633,6 @@ export class SessionService {
           );
           submittedDiff = diffResult.rawDiff;
 
-          // Tree consistency verification
           if (this.eventStore) {
             const events = this.eventStore.getEvents(current.id);
             const workspaceEvents = events.filter(
@@ -647,13 +647,13 @@ export class SessionService {
                 lastWorkspaceEvent.payload as { afterTree?: string }
               ).afterTree;
               if (expectedTree && submittedTree !== expectedTree) {
-                console.warn(
-                  `Tree consistency warning: submittedTree (${submittedTree}) does not match lastWorkspaceEvent.afterTree (${expectedTree})`,
+                throw new Error(
+                  `Submitted tree ${submittedTree} does not match the last authoritative workspace tree ${expectedTree}.`,
                 );
               }
             } else if (submittedTree !== baselineTree) {
-              console.warn(
-                `Tree consistency warning: submittedTree (${submittedTree}) differs from baseline (${baselineTree}) without WORKSPACE_CHANGED events.`,
+              throw new Error(
+                `Submitted tree ${submittedTree} differs from baseline ${baselineTree} without an authoritative workspace transition.`,
               );
             }
           }
@@ -671,7 +671,7 @@ export class SessionService {
               source: 'server',
               payload: {
                 phase: 'submission',
-                beforeTree: null,
+                beforeTree: submittedTree,
                 errorMessage:
                   error instanceof Error ? error.message : String(error),
               },
@@ -686,11 +686,27 @@ export class SessionService {
 
       const submitted = this.store.submit(tokenHash, this.now(), submittedDiff);
 
-      // Deterministic sandbox teardown on submission
       if (this.sandboxAdapter) {
-        await this.sandboxAdapter.teardown(current.id).catch((err) => {
-          console.warn('Error during sandbox teardown on submission', err);
-        });
+        try {
+          await this.sandboxAdapter.teardown(current.id);
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          console.error('Sandbox cleanup failed after submission', error);
+          if (this.eventStore) {
+            this.eventStore.append({
+              id: `evt_${this.createId()}`,
+              sessionId: current.id,
+              type: 'SANDBOX_CLEANUP_FAILED',
+              timestamp: this.now(),
+              source: 'server',
+              payload: {
+                phase: 'submission',
+                errorMessage,
+              },
+            });
+          }
+        }
       }
 
       return submitted;

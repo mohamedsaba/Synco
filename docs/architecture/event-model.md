@@ -21,6 +21,10 @@ AI_CONTENT_INSERTED
 
 SESSION_SUBMITTED
 SESSION_EXPIRED
+
+WORKSPACE_CHANGED
+WORKSPACE_CAPTURE_FAILED
+SANDBOX_CLEANUP_FAILED
 ```
 
 The taxonomy should grow only when a current scenario needs a distinct observable fact. Event names describe observations, not interpretations.
@@ -52,3 +56,5 @@ payload
 Sequence is the deterministic source of chronology. Client clocks and arrival timestamps may be retained as payload metadata but cannot decide order. Event acceptance should be idempotent where producers can retry. Large command output may eventually use referenced immutable storage, but the event must preserve its identity and integrity.
 
 Sensitive values and secrets must be excluded or redacted at capture boundaries. Redaction itself must not create evaluative claims.
+
+`SANDBOX_CLEANUP_FAILED` is a platform event emitted only after final evidence has been durably submitted. It reports failed infrastructure cleanup and does not reopen candidate mutation or weaken the immutable submission boundary.

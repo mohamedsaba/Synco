@@ -9,7 +9,9 @@ Each active session receives one isolated environment with:
 - network access denied by default and explicitly allowlisted only when the scenario requires it;
 - no platform credentials or unrelated environment variables;
 - a maximum session lifetime and command timeouts;
-- deterministic teardown after submission, expiration, failure, or cancellation.
+- deterministic teardown attempts after submission, expiration, failure, or cancellation.
+
+For submission, evidence durability and resource cleanup are deliberately separate. `SUBMITTED` closes candidate mutation after final evidence is captured. Container removal follows as infrastructure cleanup; failure is recorded as `SANDBOX_CLEANUP_FAILED` and never reopens submitted evidence.
 
 Scenario images and fixtures should be versioned so a session can be explained and reproduced. The control plane must treat all sandbox output as untrusted data and bound output size.
 

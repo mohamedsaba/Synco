@@ -1,6 +1,7 @@
 import type {
   CommandFinishedPayload,
   CommandStartedPayload,
+  SandboxCleanupFailedPayload,
   SessionEvent,
   WorkspaceCaptureFailedPayload,
   WorkspaceChangedPayload,
@@ -64,12 +65,22 @@ export type SessionSubmittedItem = Readonly<{
   submittedDiff: string;
 }>;
 
+export type SandboxCleanupFailureItem = Readonly<{
+  kind: 'SANDBOX_CLEANUP_FAILURE';
+  timestamp: string;
+  errorMessage: string;
+  rawEventId: string;
+  sequence: number;
+  rawEvent: SessionEvent;
+}>;
+
 export type ReconstructionItem =
   | SessionActivationItem
   | CommandExecutionItem
   | WorkspaceChangeItem
   | WorkspaceGapItem
-  | SessionSubmittedItem;
+  | SessionSubmittedItem
+  | SandboxCleanupFailureItem;
 
 export type SessionReconstructionInput = Readonly<{
   activatedAt: string | null;
@@ -95,6 +106,7 @@ export function buildChronologicalReconstruction(
     sequence: number;
     item: CommandExecutionItem | WorkspaceChangeItem | WorkspaceGapItem;
   }> = [];
+  const cleanupFailures: SandboxCleanupFailureItem[] = [];
 
   for (const event of events) {
     if (event.type === 'COMMAND_STARTED') {
@@ -163,6 +175,16 @@ export function buildChronologicalReconstruction(
           rawEvent: event,
         },
       });
+    } else if (event.type === 'SANDBOX_CLEANUP_FAILED') {
+      const payload = event.payload as SandboxCleanupFailedPayload;
+      cleanupFailures.push({
+        kind: 'SANDBOX_CLEANUP_FAILURE',
+        timestamp: event.timestamp,
+        errorMessage: payload.errorMessage,
+        rawEventId: event.id,
+        sequence: event.sequence,
+        rawEvent: event,
+      });
     }
   }
 
@@ -178,6 +200,9 @@ export function buildChronologicalReconstruction(
       submittedDiff: session.submittedDiff ?? '',
     });
   }
+
+  cleanupFailures.sort((a, b) => a.sequence - b.sequence);
+  items.push(...cleanupFailures);
 
   return items;
 }

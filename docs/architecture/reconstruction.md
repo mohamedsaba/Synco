@@ -29,3 +29,9 @@ Workspace file modifications are captured through deterministic Git tree transit
 
 3. **Out-of-Band Mutations (`origin: 'out_of_band'`)**:
    Delimit compares the workspace state before every serialized operation against the last known authoritative tree. When candidate background processes or daemons mutate files outside of an active command or save window, Delimit detects the drift and records an out-of-band `WORKSPACE_CHANGED` event before processing the new operation. Evaluator presentation factually states: _"Workspace changed between recorded actions"_ without speculating on the causal process.
+
+## Submission and Cleanup Invariants
+
+Submission first reconciles out-of-band drift and captures a fresh final tree and complete baseline diff. The final tree must equal the `afterTree` of the last authoritative workspace transition, or the immutable baseline when no transition exists. A mismatch is an unexplained evidence-chain failure: Delimit records `WORKSPACE_CAPTURE_FAILED`, keeps the session `ACTIVE`, preserves the sandbox, and does not freeze an inconsistent chronology.
+
+After evidence capture succeeds, the durable transition to `SUBMITTED` freezes that evidence and closes all candidate mutation APIs. Sandbox destruction is subsequent infrastructure cleanup rather than part of the SQLite state transition. If cleanup fails, the session remains `SUBMITTED`, its evidence remains immutable, and `SANDBOX_CLEANUP_FAILED` makes the operational failure visible after the submission boundary.

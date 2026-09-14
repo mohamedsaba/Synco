@@ -3,11 +3,44 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import type { WorkspaceCaptureFailedPayload } from '../../apps/web/src/events/session-event';
+import type {
+  SessionEvent,
+  WorkspaceCaptureFailedPayload,
+  WorkspaceChangedPayload,
+} from '../../apps/web/src/events/session-event';
 import { SqliteEventStore } from '../../apps/web/src/events/sqlite-event-store';
 import { MockSandboxAdapter } from '../../apps/web/src/sandbox/mock-sandbox-adapter';
 import { SessionService } from '../../apps/web/src/sessions/session-service';
 import { SqliteSessionStore } from '../../apps/web/src/sessions/sqlite-session-store';
+
+class InconsistentSubmissionEventStore extends SqliteEventStore {
+  private readCount = 0;
+
+  override getEvents(sessionId: string): readonly SessionEvent[] {
+    const events = super.getEvents(sessionId);
+    this.readCount += 1;
+    if (this.readCount !== 3) {
+      return events;
+    }
+
+    const lastWorkspaceEventIndex = events.findLastIndex(
+      (event) => event.type === 'WORKSPACE_CHANGED',
+    );
+    return events.map((event, index) => {
+      if (index !== lastWorkspaceEventIndex) {
+        return event;
+      }
+
+      return {
+        ...event,
+        payload: {
+          ...(event.payload as WorkspaceChangedPayload),
+          afterTree: '0000000000000000000000000000000000000000',
+        },
+      };
+    });
+  }
+}
 
 describe('Workspace Evidence Lifecycle & Edge Cases (Mock)', () => {
   let tempDir: string;
@@ -197,6 +230,74 @@ describe('Workspace Evidence Lifecycle & Edge Cases (Mock)', () => {
     expect(
       (submissionFailedEvent!.payload as WorkspaceCaptureFailedPayload).phase,
     ).toBe('submission');
+  });
+
+  it('rejects submission when the final tree does not match the last authoritative workspace state', async () => {
+    const store = new SqliteSessionStore(dbPath);
+    const eventStore = new InconsistentSubmissionEventStore(dbPath);
+    const mockSandbox = new MockSandboxAdapter();
+    const service = new SessionService(store, {
+      eventStore,
+      sandboxAdapter: mockSandbox,
+    });
+
+    const { candidateToken, session } = service.createSession({
+      scenarioId: 'scenario-001',
+    });
+    await service.activate(candidateToken);
+    await service.saveWorkspaceFile(
+      candidateToken,
+      'inventory/service.py',
+      '# captured change\n',
+    );
+
+    await expect(service.submit(candidateToken)).rejects.toThrow(
+      /does not match the last authoritative workspace tree/,
+    );
+
+    expect(service.getCandidateSession(candidateToken).status).toBe('ACTIVE');
+    expect(mockSandbox.hasSandbox(session.id)).toBe(true);
+    const events = eventStore.getEvents(session.id);
+    expect(events.at(-1)?.type).toBe('WORKSPACE_CAPTURE_FAILED');
+    expect(events.at(-1)?.payload).toMatchObject({
+      phase: 'submission',
+    });
+  });
+
+  it('keeps submitted evidence frozen and records sandbox teardown failure', async () => {
+    const store = new SqliteSessionStore(dbPath);
+    const eventStore = new SqliteEventStore(dbPath);
+    const mockSandbox = new MockSandboxAdapter();
+    const service = new SessionService(store, {
+      eventStore,
+      sandboxAdapter: mockSandbox,
+    });
+
+    const { candidateToken, session } = service.createSession({
+      scenarioId: 'scenario-001',
+    });
+    await service.activate(candidateToken);
+    mockSandbox.failTeardown = true;
+
+    const submitted = await service.submit(candidateToken);
+
+    expect(submitted.status).toBe('SUBMITTED');
+    expect(service.getCandidateSession(candidateToken).status).toBe(
+      'SUBMITTED',
+    );
+    expect(mockSandbox.hasSandbox(session.id)).toBe(true);
+    expect(eventStore.getEvents(session.id).at(-1)).toMatchObject({
+      type: 'SANDBOX_CLEANUP_FAILED',
+      payload: {
+        phase: 'submission',
+      },
+    });
+    await expect(service.executeCommand(candidateToken, 'pwd')).rejects.toThrow(
+      /only while the session is active/,
+    );
+    await expect(
+      service.saveWorkspaceFile(candidateToken, 'app.py', 'forbidden'),
+    ).rejects.toThrow(/only be edited during active sessions/);
   });
 
   it('handles universal serialization: serializes save and command concurrently', async () => {

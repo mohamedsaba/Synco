@@ -27,6 +27,7 @@ Delimit (by Synco) is an engineering-assessment platform designed to observe rea
   - `COMMAND_STARTED` and `COMMAND_FINISHED` with correlated `commandId`, execution duration, exit code, and bounded output accumulator.
   - `WORKSPACE_CHANGED` capturing deterministic snapshot diffs across browser saves (`origin: 'browser_save'`), command executions (`origin: 'command_execution'`), or background processes (`origin: 'out_of_band'`).
   - `WORKSPACE_CAPTURE_FAILED` preserving chronological awareness if capture fails during pre-command, post-command, browser-save, or submission phases without corrupting subsequent events.
+  - `SANDBOX_CLEANUP_FAILED` recording infrastructure cleanup failure after submitted evidence has already been durably frozen.
 - Evaluator experience is a unified, chronological timeline reconstructing candidate actions from activation to submission, with expandable per-step diffs and a complete final submission diff.
 
 ## Implemented today
@@ -62,9 +63,11 @@ Delimit (by Synco) is an engineering-assessment platform designed to observe rea
     - If background processes (e.g. `python3 ... &`) mutate files outside active requests, an out-of-band `WORKSPACE_CHANGED` (`origin: 'out_of_band'`) event is recorded before the next operation, preventing false causal attribution.
     - Presented neutrally in the Evaluator UI as _"Workspace changed between recorded actions"_.
   - **Strict Concurrency Serialization:** In-memory per-session lock serializes saves, command runs, and submissions.
+  - **Submission Evidence Boundary:** Submission reconciles drift, captures the final tree and diff, and requires the captured tree to match the last authoritative workspace transition. A mismatch records an evidence gap and leaves the session `ACTIVE` for recovery.
+  - **Cleanup Semantics:** `SUBMITTED` means final evidence is durable and candidate mutation APIs are closed. Sandbox teardown follows as infrastructure cleanup; a failure is recorded without reopening or changing submitted evidence.
   - **Bounded Intermediate Evidence & Full Final Diff:** Intermediate change patches are capped at 64 KB with explicit truncation indicators (`isTruncated: true`, `totalBytes`), while the final submission diff remains complete.
   - **Evaluator UI Reconstruction View:** Chronological narrative with step counters, duration badges, execution status, and expandable unified diffs with line-level change summaries.
-  - **Full Automated Verification:** 14 test suites, 38 passing tests, clean lint, format, and Next.js build.
+  - **Full Automated Verification:** The committed Slice 4 baseline passed 14 test suites / 38 tests. The reconciliation adds three focused regressions and passes 14 suites / 41 tests, plus format, lint, typecheck, and the Next.js production build.
 
 ## Product question evaluated by Slice 4
 
@@ -88,9 +91,10 @@ None. Vertical Slice 4 implementation is complete; plan preserved in `docs/plans
 ## Current Git state
 
 - Branch: `main`
-- Baseline: `14961716d99d7e59366496cd47b55ec7717ab692`
-- Commit pending: `feat: add deterministic evidence reconstruction`
-- Status: Ready for commit.
+- Committed Slice 4 baseline: `b9dc54d66084c608dd688bb71a3e37f197cfc211`
+- Commit: `feat: add deterministic evidence reconstruction`
+- Committed verification state: 14 test files / 38 tests, with formatting, lint, typecheck, and production build passing.
+- A focused Slice 4 baseline reconciliation is awaiting human review before any Slice 5 planning.
 - Remotes: None configured.
 
 ## Verification commands
@@ -98,7 +102,7 @@ None. Vertical Slice 4 implementation is complete; plan preserved in `docs/plans
 - `npm run format:check` — Prettier formatting check
 - `npm run lint` — ESLint validation
 - `npm run typecheck` — Next route typegen + TypeScript typecheck (`tsc --noEmit`)
-- `npm run test` — Vitest unit and integration test suite (14 test suites, 38 tests)
+- `npm run test` — Vitest unit and integration test suite (currently 14 test suites, 41 tests)
 - `npm run build` — Next.js production build
 - `npm run verify` — Full pipeline verification (all checks above)
 
@@ -123,4 +127,4 @@ None. Vertical Slice 4 implementation is complete; plan preserved in `docs/plans
 
 ## Next safe action
 
-Commit Vertical Slice 4 with `feat: add deterministic evidence reconstruction`.
+Review and commit the Slice 4 baseline reconciliation. Do not begin Slice 5 until the reconciled baseline is accepted.

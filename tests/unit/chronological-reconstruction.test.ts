@@ -133,4 +133,34 @@ describe('buildChronologicalReconstruction', () => {
     expect(gap.phase).toBe('post_command');
     expect(gap.errorMessage).toBe('Disk error during post-capture');
   });
+
+  it('places sandbox cleanup failure after the durable submission boundary', () => {
+    const items = buildChronologicalReconstruction(
+      {
+        activatedAt: '2026-09-14T10:00:00.000Z',
+        submittedAt: '2026-09-14T10:05:00.000Z',
+        submittedDiff: '',
+      },
+      [
+        {
+          id: 'evt_cleanup',
+          sessionId: 'sess_1',
+          sequence: 1,
+          type: 'SANDBOX_CLEANUP_FAILED',
+          timestamp: '2026-09-14T10:05:01.000Z',
+          source: 'server',
+          payload: {
+            phase: 'submission',
+            errorMessage: 'Docker daemon unavailable',
+          },
+        },
+      ],
+    );
+
+    expect(items.map((item) => item.kind)).toEqual([
+      'SESSION_ACTIVATED',
+      'SESSION_SUBMITTED',
+      'SANDBOX_CLEANUP_FAILURE',
+    ]);
+  });
 });

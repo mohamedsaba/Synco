@@ -28,7 +28,15 @@ Browser
                   └── isolated candidate environment
 ```
 
-The web application may contain these modules without turning them into independent services. The API owns authorization and lifecycle rules; the browser cannot authoritatively assign event order or sandbox state. PostgreSQL is the likely system of record when persistence is introduced. Ordinary HTTP is preferred, with WebSockets only for interactions that genuinely need streaming, such as terminal I/O or AI output.
+The web application may contain these modules without turning them into independent services. The API owns authorization and lifecycle rules; the browser cannot authoritatively assign event order or sandbox state. Ordinary HTTP is preferred, with WebSockets only for interactions that genuinely need streaming, such as terminal I/O or AI output.
+
+## Implemented Slice 1 boundary
+
+Slice 1 uses a file-backed SQLite database because one local transactional store satisfies reload/restart persistence and shared candidate/evaluator authority without a separately operated database. It is an implementation choice for the prototype slice, not a permanent production database decision.
+
+Sessions snapshot the fixed fixture version, brief, acceptance criteria, permitted path, and original content. The only lifecycle states are `CREATED`, `ACTIVE`, and `SUBMITTED`. A random candidate token is stored only as a hash and resolves exactly one session. Evaluator pages and evidence APIs require a separate HTTP-only credential cookie derived from `DELIMIT_EVALUATOR_KEY`.
+
+Candidate edits are normalized from CRLF or bare CR to LF before persistence. Submission atomically freezes the current working content. The evaluator's unified diff is generated server-side from immutable original and submitted content; no client-produced diff is accepted as evidence.
 
 ## Delivery strategy
 

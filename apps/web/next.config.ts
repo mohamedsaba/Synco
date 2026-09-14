@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     useTypeScriptCli: false,
   },
   poweredByHeader: false,
+  serverExternalPackages: ['better-sqlite3'],
 };
 
 export default nextConfig;

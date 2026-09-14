@@ -43,13 +43,15 @@ The repository contains a Next.js TypeScript shell, health endpoint, documentati
 
 ## Proposed implementation
 
-1. Define the smallest domain vocabulary: scenario version, session state, editable file snapshot, submission, and final diff.
-2. Choose a simple persistence mechanism after confirming local/deployment constraints; PostgreSQL plus a small ORM is the default, but an in-process adapter may be used only for isolated domain tests.
-3. Add server-side use cases for creating a session, loading its scenario, saving permitted file content, and submitting once.
-4. Add thin HTTP boundaries and two focused pages: candidate workspace and evaluator reconstruction placeholder containing the final diff.
-5. Use a maintained editor component only if a plain text area cannot validate the interaction; avoid configuring Monaco beyond the slice's needs.
-6. Record enough provenance to reproduce the diff: scenario version, original content, submitted content, session identity, and submission time.
-7. Test invariants at the domain level and the complete API/persistence path at the integration level.
+1. Define the smallest domain vocabulary: scenario version, `CREATED → ACTIVE → SUBMITTED`, editable file snapshot, immutable submission, and final diff.
+2. Persist sessions in a local SQLite database. SQLite gives candidate and evaluator requests one durable server-owned state without adding a database service or ORM for this slice.
+3. Store only a hash of each random candidate token. Candidate routes resolve a session exclusively through that token; evaluator routes require a separate HTTP-only credential cookie derived from `DELIMIT_EVALUATOR_KEY`.
+4. Add server-side use cases for creating a session, activating it, saving its one permitted file while active, and submitting idempotently.
+5. Add thin HTTP boundaries and two focused pages: a candidate workspace and an evaluator evidence-review page containing source and submitted content plus the final diff.
+6. Use a plain textarea for the editor. Monaco would add weight without proving anything more in this slice.
+7. Record enough provenance to reproduce the diff: scenario version, original content, submitted content, session identity, and submission time.
+8. Normalize CRLF and bare CR line endings to LF before persistence and diff generation. Generate the unified diff on the server from immutable original and submitted content.
+9. Test invariants at the domain level and the complete API/persistence path at the integration level.
 
 No general event framework should be introduced merely to describe this slice. If submission events are required by a concrete reconstruction need, update this plan and the event-model document first.
 
@@ -79,4 +81,8 @@ No general event framework should be introduced merely to describe this slice. I
 
 ## Open questions
 
-No product decision currently blocks planning. Persistence and editor library selection should be resolved during implementation from deployment constraints and the smallest demonstrable need.
+No product decision blocks implementation. SQLite, a plain textarea, idempotent repeated submission, and token/cookie access separation are selected for this slice.
+
+## Completion
+
+Completed on 2026-09-14. Domain and SQLite integration tests pass, `npm run verify` passes, and the browser flow was manually validated from issuance through evaluator evidence review. Negative checks confirmed that post-submission mutation is rejected and evidence access requires the evaluator credential.

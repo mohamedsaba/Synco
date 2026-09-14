@@ -16,3 +16,16 @@ AI prose is compression and connective tissue. Every generated annotation should
 An evaluator must be able to expand an item to inspect its source evidence. Unsupported annotations are rejected or omitted. Regeneration should retain provenance, model/configuration metadata where relevant, and the underlying events so prose changes cannot rewrite history.
 
 Reconstruction may state observable outcomes such as a test passing or a file changing. It must not score, rank, declare competence, infer hidden mental states, or automatically pass or reject a candidate. A separately recorded human decision is not a derived task outcome.
+
+## Workspace Mutation Capture Boundaries & Out-Of-Band Drift
+
+Workspace file modifications are captured through deterministic Git tree transitions (`beforeTree` → `afterTree`):
+
+1. **Browser Saves (`origin: 'browser_save'`)**:
+   Occurs when a candidate saves a file through the browser editor. The transition captures the specific diff across that save operation.
+
+2. **Command Boundaries (`origin: 'command_execution'`)**:
+   Reflects the delta between the pre-command tree and the post-command tree. The associated `commandId` indicates temporal correlation across the command boundary, not an exclusive causal assertion. If candidate processes were active simultaneously, Delimit reports the net observable change across that execution window without speculating on which process produced which byte.
+
+3. **Out-of-Band Mutations (`origin: 'out_of_band'`)**:
+   Delimit compares the workspace state before every serialized operation against the last known authoritative tree. When candidate background processes or daemons mutate files outside of an active command or save window, Delimit detects the drift and records an out-of-band `WORKSPACE_CHANGED` event before processing the new operation. Evaluator presentation factually states: _"Workspace changed between recorded actions"_ without speculating on the causal process.

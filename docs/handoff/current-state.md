@@ -16,10 +16,18 @@ Delimit (by Synco) is an engineering-assessment platform designed to observe rea
 ## Current architecture
 
 - Modular monolith built on Next.js 16 (App Router), React 19, and TypeScript.
-- SQLite via `better-sqlite3` is used as the local transactional session store (`.data/delimit.sqlite`), satisfying reload persistence without external database services.
+- SQLite via `better-sqlite3` is used as the local transactional session store and append-only event store (`.data/delimit.sqlite`), satisfying reload persistence without external database services.
 - Sessions follow an explicit lifecycle (`CREATED → ACTIVE → SUBMITTED`) with SHA-256 hashed candidate access tokens and separate HTTP-only evaluator credential cookies derived from `DELIMIT_EVALUATOR_KEY`.
-- Line endings are normalized to LF (`\n`) before storage and server-side unified diff generation via `diff`.
-- Evaluator diffs are generated on the server directly from immutable original and submitted snapshots; client-submitted diffs are never accepted.
+- In-memory per-session async mutex (`SessionService.withSessionLock`) serializes all candidate browser saves, terminal command executions, and submissions to guarantee strict chronological event sequencing and prevent race conditions.
+- Evidence boundary is completely independent of candidate-controlled Git:
+  - **Immutable baseline:** Read-only baseline commit and tree stored in `/opt/delimit/repo-template/.git` outside the candidate-writable workspace.
+  - **Protected evidence object store:** In-container dedicated scratch directory `/run/delimit-evidence` (with alternate object database `/run/delimit-evidence/objects`) owned by Delimit.
+  - Candidate modifications to `/workspace/.git`, `.gitignore`, or candidate Git config have zero effect on platform tree capture or diff calculation.
+- Evidence events:
+  - `COMMAND_STARTED` and `COMMAND_FINISHED` with correlated `commandId`, execution duration, exit code, and bounded output accumulator.
+  - `WORKSPACE_CHANGED` capturing deterministic snapshot diffs across browser saves (`origin: 'browser_save'`), command executions (`origin: 'command_execution'`), or background processes (`origin: 'out_of_band'`).
+  - `WORKSPACE_CAPTURE_FAILED` preserving chronological awareness if capture fails during pre-command, post-command, browser-save, or submission phases without corrupting subsequent events.
+- Evaluator experience is a unified, chronological timeline reconstructing candidate actions from activation to submission, with expandable per-step diffs and a complete final submission diff.
 
 ## Implemented today
 
@@ -31,39 +39,58 @@ Delimit (by Synco) is an engineering-assessment platform designed to observe rea
   - Candidate session API routes (`activate`, `file`, `submit`) and workspace UI (`/candidate/[token]`).
   - Evaluator authentication (`isEvaluatorCredentialValid`, `evaluatorCookieName`) and diff review UI (`/evaluator`, `/evaluator/sessions/[sessionId]`).
   - Unit and integration tests covering diff generation, lifecycle transitions, persistence reload, and authorization.
-- Vertical Slice 2 (committed in `fd841c6`):
-  - Hardened session-scoped Docker sandbox (`DockerSandboxAdapter`): Alpine 3.20 base container, unprivileged non-root user (`1000:1000`), network isolation (`--network none`), read-only root filesystem, tmpfs for `/workspace` and `/tmp`, strict resource limits (1 CPU, 512MB RAM, 64 PIDs).
+- **Vertical Slice 2 (committed in `fd841c6`):**
+  - Hardened session-scoped Docker sandbox (`DockerSandboxAdapter`): Alpine base container, unprivileged non-root user (`1000:1000`), network isolation (`--network none`), read-only root filesystem, tmpfs for `/workspace` and `/tmp`, strict resource limits (1 CPU, 512MB RAM, 64 PIDs).
   - Readiness-gated activation: Transition `CREATED → ACTIVE` and assessment timer initialization only occur after sandbox creation and readiness check pass.
   - Memory-bounded stream accumulation (`BoundedStreamAccumulator`): Cap live buffers at 64 KB preview while tracking exact total byte counts and explicit truncation flags.
   - Authoritative append-only event store (`SqliteEventStore`): Monotonic sequence numbers, timestamps, exit codes, durations, truncated output previews, and correlated `commandId`.
   - Process-group timeout termination: Commands timed out at 30s have their process groups and orphaned child processes terminated.
   - Candidate command console and evaluator raw command evidence.
-- **Vertical Slice 3 (working tree):**
-  - **Hardened Scenario 001 multi-service image (`delimit-scenario-001:latest`):** Ubuntu 24.04-based container packaging Python 3.12, PostgreSQL 16, Redis 7, and Flask storefront inventory service. Runs under `--network none`, `--read-only`, unprivileged non-root user `1000:1000`, tmpfs for `/workspace` (512MB) and `/tmp` (256MB). Startup script backgrounds PostgreSQL and Redis, seeds initial incident data deterministically, marks `/tmp/scenario_ready`, and maintains a clean Git baseline in `/workspace`.
-  - **Multi-service readiness probing & daemon protection:** `DockerSandboxAdapter` polls for `/tmp/scenario_ready`, `pg_isready`, and `redis-cli ping` before declaring the sandbox ready and transitioning `CREATED → ACTIVE`. Protects in-container daemons (`postgres`, `redis-server`) from command timeout kills.
-  - **Multi-file workspace APIs & candidate UI:** Endpoints `workspace/tree` and `workspace/file` (GET/PUT) allow candidates to browse files, switch editor tabs with auto-save, and edit repository files in the container filesystem.
-  - **Authoritative in-container Git diff capture:** On submission, the server executes `git -C /workspace add -N . && git -C /workspace diff HEAD` inside the container before teardown, capturing a deterministic multi-file unified diff.
-  - **Evaluator multi-file evidence view:** Displays the multi-file unified diff alongside factual chronological command execution cards, conditionally suppressing single-file source panels for multi-file incident environments.
-  - **Comprehensive automated regression & integration tests:** `tests/integration/scenario-001.test.ts` validates the end-to-end incident lifecycle: seed data verification, incident reproduction (`pytest` fails with stale storefront stock), candidate two-file behavioral fix + cache key invalidation, verification (`pytest` passes all 3 tests), submission, container teardown, and evaluator diff capture.
+- **Vertical Slice 3 (committed in `1496171`):**
+  - Hardened Scenario 001 multi-service image (`delimit-scenario-001:latest`): Ubuntu 24.04-based container packaging Python 3.12, PostgreSQL 16, Redis 7, and Flask storefront inventory service. Runs under `--network none`, `--read-only`, unprivileged non-root user `1000:1000`, tmpfs for `/workspace` (512MB) and `/tmp` (256MB).
+  - Multi-service readiness probing & daemon protection: `DockerSandboxAdapter` polls for `/tmp/scenario_ready`, `pg_isready`, and `redis-cli ping` before activation.
+  - Multi-file workspace APIs & candidate UI: Endpoints `workspace/tree` and `workspace/file` (GET/PUT) allow candidates to browse files, switch editor tabs with auto-save, and edit repository files in the container filesystem.
+  - Authoritative in-container Git diff capture on submission.
+- **Vertical Slice 4 (completed):**
+  - **Deterministic Chronological Evidence Reconstruction:** Replaces fragmented evidence views with a single, ordered chronological timeline (`chronological-reconstruction.ts`) unifying activation, command executions, file saves, out-of-band changes, capture failures, and final submission.
+  - **Platform-Owned Evidence Boundary:** Evidence tree capture (`delimit-capture-tree.sh`, `delimit-diff-trees.sh`, `delimit-baseline-tree.sh`) uses immutable baseline `/opt/delimit/repo-template/.git` and alternate object database `/run/delimit-evidence/objects`. Candidate `.git` tampering, branch switching, index manipulation, or `.gitignore` entries cannot obscure candidate edits or disrupt evidence capture.
+  - **`WORKSPACE_CHANGED` & `WORKSPACE_CAPTURE_FAILED` Events:**
+    - Recorded across browser saves (`origin: 'browser_save'`) and command boundaries (`origin: 'command_execution'`, with temporal `commandId` correlation).
+    - If capture fails, `WORKSPACE_CAPTURE_FAILED` is recorded into the audit trail, maintaining chronological transparency without corrupting session state.
+  - **Out-of-Band Workspace Drift Detection:**
+    - Before every command, browser save, or submission, `SessionService` compares `currentTree` against `lastKnownTree`.
+    - If background processes (e.g. `python3 ... &`) mutate files outside active requests, an out-of-band `WORKSPACE_CHANGED` (`origin: 'out_of_band'`) event is recorded before the next operation, preventing false causal attribution.
+    - Presented neutrally in the Evaluator UI as _"Workspace changed between recorded actions"_.
+  - **Strict Concurrency Serialization:** In-memory per-session lock serializes saves, command runs, and submissions.
+  - **Bounded Intermediate Evidence & Full Final Diff:** Intermediate change patches are capped at 64 KB with explicit truncation indicators (`isTruncated: true`, `totalBytes`), while the final submission diff remains complete.
+  - **Evaluator UI Reconstruction View:** Chronological narrative with step counters, duration badges, execution status, and expandable unified diffs with line-level change summaries.
+  - **Full Automated Verification:** 14 test suites, 38 passing tests, clean lint, format, and Next.js build.
+
+## Product question evaluated by Slice 4
+
+> Can a human evaluator understand how candidate work evolved from factual chronological evidence without AI interpretation?
+
+_(The product value of this question will be observed through real evaluator usage rather than speculative assumption.)_
 
 ## Explicitly not implemented
 
-- Full interactive PTY / WebSocket terminal streaming (FR-015 is partially advanced via HTTP command console; interactive terminal is deferred).
-- Automated test run heuristics (`TEST_RUN` event inference).
 - Candidate AI assistant chat and AI interaction logging.
-- AI reconstruction service and evidence citation generation.
-- Generic scenario plugin / marketplace architectures (kept scenario loading minimal and specific to Scenario 001).
+- Platform AI reconstruction service, automated summaries, or evidence citation generation.
+- Full interactive PTY / WebSocket terminal streaming (commands remain discrete HTTP execs).
+- Automated test run heuristics (`TEST_RUN` event inference).
+- Generic scenario plugin / marketplace architectures.
 - Candidate scoring, ranking, ATS integrations, or multi-tenant SaaS features.
 
 ## Current active plan
 
-None. Vertical Slice 3 implementation is complete; plan preserved in `docs/plans/completed/003-scenario-001-multifile-incident.md`.
+None. Vertical Slice 4 implementation is complete; plan preserved in `docs/plans/completed/004-deterministic-evidence-reconstruction.md`.
 
 ## Current Git state
 
 - Branch: `main`
-- Commit: `feat: add Scenario 001 multi-file incident environment`
-- Status: Working tree is clean.
+- Baseline: `14961716d99d7e59366496cd47b55ec7717ab692`
+- Commit pending: `feat: add deterministic evidence reconstruction`
+- Status: Ready for commit.
 - Remotes: None configured.
 
 ## Verification commands
@@ -71,7 +98,7 @@ None. Vertical Slice 3 implementation is complete; plan preserved in `docs/plans
 - `npm run format:check` — Prettier formatting check
 - `npm run lint` — ESLint validation
 - `npm run typecheck` — Next route typegen + TypeScript typecheck (`tsc --noEmit`)
-- `npm run test` — Vitest unit and integration test suite (11 test suites, 25 tests)
+- `npm run test` — Vitest unit and integration test suite (14 test suites, 38 tests)
 - `npm run build` — Next.js production build
 - `npm run verify` — Full pipeline verification (all checks above)
 
@@ -85,14 +112,15 @@ None. Vertical Slice 3 implementation is complete; plan preserved in `docs/plans
 - `docs/architecture/` (`system-overview.md`, `event-model.md`, `sandbox.md`, `reconstruction.md`, `ai-boundaries.md`) (precedence 6)
 - `docs/plans/completed/001-first-vertical-slice.md` (precedence 7)
 - `docs/plans/completed/002-terminal-and-event-capture.md` (precedence 8)
-- `docs/plans/active/003-scenario-001-multifile-incident.md` (precedence 9)
+- `docs/plans/completed/003-scenario-001-multifile-incident.md` (precedence 9)
+- `docs/plans/completed/004-deterministic-evidence-reconstruction.md` (precedence 10)
 - `AGENTS.md` (operating guide and agent rules)
 
 ## Known risks
 
 - **Docker socket availability in CI:** Docker daemon must be available in environments running integration tests that instantiate real containers (e.g. GitHub Actions runner). Fast mock adapter is available for environments without Docker.
-- **Image pre-requisite:** Running Scenario 001 with the real Docker adapter requires the pre-built `delimit-scenario-001:latest` image (`docker build -t delimit-scenario-001:latest scenarios/001-stale-storefront-inventory`).
+- **Image pre-requisite:** Running Scenario 001 with the real Docker adapter requires the pre-built `delimit-scenario-001:latest` image (`docker build -t delimit-scenario-001:latest scenarios/001-cache-staleness`).
 
 ## Next safe action
 
-Present the completed 6-checkpoint walkthrough of Vertical Slice 3 to the user and wait for human approval before committing.
+Commit Vertical Slice 4 with `feat: add deterministic evidence reconstruction`.

@@ -1,10 +1,12 @@
 import { spawn } from 'node:child_process';
 
+import type { WorkspaceFileChange } from '../events/session-event';
 import { BoundedStreamAccumulator } from './bounded-stream-accumulator';
 import {
   type CommandExecResult,
   type SandboxAdapter,
   type SandboxCreateOptions,
+  type TreeDiffResult,
   type WorkspaceFileInfo,
   SandboxError,
 } from './sandbox';
@@ -71,6 +73,8 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           '/tmp:rw,exec,nosuid,size=256m,uid=1000,gid=1000',
           '--tmpfs',
           '/workspace:rw,exec,nosuid,size=512m,uid=1000,gid=1000',
+          '--tmpfs',
+          '/run/delimit-evidence:rw,noexec,nosuid,size=64m,mode=0700,uid=0,gid=0',
           '--network',
           'none',
           '--memory=1024m',
@@ -454,23 +458,96 @@ export class DockerSandboxAdapter implements SandboxAdapter {
     }
   }
 
-  async captureDiff(sessionId: string): Promise<string> {
+  async getBaselineTree(sessionId: string): Promise<string> {
     const containerName = this.getContainerName(sessionId);
     try {
       const res = await this.runProcess('docker', [
         'exec',
+        '-u',
+        '0:0',
         containerName,
-        'sh',
-        '-c',
-        'if git -C /workspace rev-parse --is-inside-work-tree >/dev/null 2>&1; then git -C /workspace add -N . && git -C /workspace diff HEAD; fi',
+        '/usr/local/bin/delimit-baseline-tree.sh',
       ]);
-      return res.stdout;
+      return res.stdout.trim();
     } catch (error) {
       throw new SandboxError(
         'SANDBOX_EXECUTION_FAILED',
-        `Failed to capture diff: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to get baseline tree: ${error instanceof Error ? error.message : String(error)}`,
         error,
       );
+    }
+  }
+
+  async captureWorkspaceTree(sessionId: string): Promise<string> {
+    const containerName = this.getContainerName(sessionId);
+    try {
+      const res = await this.runProcess('docker', [
+        'exec',
+        '-u',
+        '0:0',
+        containerName,
+        '/usr/local/bin/delimit-capture-tree.sh',
+      ]);
+      return res.stdout.trim();
+    } catch (error) {
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        `Failed to capture workspace tree: ${error instanceof Error ? error.message : String(error)}`,
+        error,
+      );
+    }
+  }
+
+  async captureTreeDiff(
+    sessionId: string,
+    beforeTree: string,
+    afterTree: string,
+  ): Promise<TreeDiffResult> {
+    const containerName = this.getContainerName(sessionId);
+    try {
+      const res = await this.runProcess('docker', [
+        'exec',
+        '-u',
+        '0:0',
+        containerName,
+        '/usr/local/bin/delimit-diff-trees.sh',
+        beforeTree,
+        afterTree,
+      ]);
+      return parseTreeDiffOutput(res.stdout);
+    } catch (error) {
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        `Failed to capture tree diff: ${error instanceof Error ? error.message : String(error)}`,
+        error,
+      );
+    }
+  }
+
+  async captureDiff(sessionId: string): Promise<string> {
+    try {
+      const baseline = await this.getBaselineTree(sessionId);
+      const current = await this.captureWorkspaceTree(sessionId);
+      const diffRes = await this.captureTreeDiff(sessionId, baseline, current);
+      return diffRes.rawDiff;
+    } catch {
+      const containerName = this.getContainerName(sessionId);
+      try {
+        const res = await this.runProcess('docker', [
+          'exec',
+          containerName,
+          'sh',
+          '-c',
+          'if git -C /workspace rev-parse --is-inside-work-tree >/dev/null 2>&1; then git -C /workspace add -N . && git -C /workspace diff HEAD; fi',
+        ]);
+        return res.stdout;
+      } catch (error) {
+        throw new SandboxError(
+          'SANDBOX_EXECUTION_FAILED',
+          `Failed to capture diff: ${error instanceof Error ? error.message : String(error)}`,
+          error,
+        );
+      }
     }
   }
 
@@ -550,4 +627,101 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       child.stdin.end();
     });
   }
+}
+
+export function parseTreeDiffOutput(stdout: string): TreeDiffResult {
+  const boundary = '---DELIMIT_DIFF_BOUNDARY---';
+  const boundaryIndex = stdout.indexOf(boundary);
+  const numstatPart =
+    boundaryIndex !== -1 ? stdout.slice(0, boundaryIndex) : '';
+  const rawDiff =
+    boundaryIndex !== -1
+      ? stdout.slice(boundaryIndex + boundary.length).replace(/^\r?\n/, '')
+      : stdout;
+
+  const numstatLines = numstatPart.trim().split('\n').filter(Boolean);
+  const numstatMap = new Map<
+    string,
+    { additions: number; deletions: number }
+  >();
+  for (const line of numstatLines) {
+    const parts = line.split('\t');
+    if (parts.length >= 3) {
+      const adds = parseInt(parts[0], 10) || 0;
+      const dels = parseInt(parts[1], 10) || 0;
+      const filePath = parts.slice(2).join('\t').trim();
+      numstatMap.set(filePath, { additions: adds, deletions: dels });
+    }
+  }
+
+  // Split rawDiff by "diff --git "
+  const diffChunks = rawDiff
+    .split(/(?=^diff --git )/m)
+    .filter((chunk) => chunk.trim().length > 0);
+  const files: WorkspaceFileChange[] = [];
+  let totalAdditions = 0;
+  let totalDeletions = 0;
+
+  const MAX_PREVIEW_BYTES = 65536; // 64 KB
+
+  for (const chunk of diffChunks) {
+    const headerMatch = chunk.match(/^diff --git a\/(.+?) b\/(.+?)$/m);
+    const filePath = headerMatch ? headerMatch[2] : '';
+    if (!filePath) continue;
+
+    const numstat = numstatMap.get(filePath) ?? { additions: 0, deletions: 0 };
+    totalAdditions += numstat.additions;
+    totalDeletions += numstat.deletions;
+
+    let status: 'modified' | 'added' | 'deleted' = 'modified';
+    if (chunk.includes('new file mode')) {
+      status = 'added';
+    } else if (chunk.includes('deleted file mode')) {
+      status = 'deleted';
+    }
+
+    const patchBytes = Buffer.byteLength(chunk, 'utf8');
+    const patchTruncated = patchBytes > MAX_PREVIEW_BYTES;
+    const patchPreview = patchTruncated
+      ? Buffer.from(chunk, 'utf8')
+          .subarray(0, MAX_PREVIEW_BYTES)
+          .toString('utf8')
+      : chunk;
+    const patchPreviewBytes = Buffer.byteLength(patchPreview, 'utf8');
+
+    files.push({
+      path: filePath,
+      status,
+      additions: numstat.additions,
+      deletions: numstat.deletions,
+      patchPreview,
+      patchPreviewBytes,
+      patchBytes,
+      patchTruncated,
+    });
+  }
+
+  for (const [filePath, stats] of numstatMap.entries()) {
+    if (!files.some((f) => f.path === filePath)) {
+      totalAdditions += stats.additions;
+      totalDeletions += stats.deletions;
+      files.push({
+        path: filePath,
+        status: 'modified',
+        additions: stats.additions,
+        deletions: stats.deletions,
+        patchPreview: '',
+        patchPreviewBytes: 0,
+        patchBytes: 0,
+        patchTruncated: false,
+      });
+    }
+  }
+
+  return {
+    files,
+    totalAdditions,
+    totalDeletions,
+    rawDiff,
+  };
 }

@@ -38,6 +38,15 @@ export type SandboxCreateOptions = Readonly<{
   scenarioType?: 'single_file' | 'multi_file';
 }>;
 
+import type { WorkspaceFileChange } from '../events/session-event';
+
+export type TreeDiffResult = Readonly<{
+  files: readonly WorkspaceFileChange[];
+  totalAdditions: number;
+  totalDeletions: number;
+  rawDiff: string;
+}>;
+
 export interface SandboxAdapter {
   createAndVerify(
     sessionId: string,
@@ -63,6 +72,16 @@ export interface SandboxAdapter {
   listFiles(sessionId: string): Promise<readonly WorkspaceFileInfo[]>;
 
   captureDiff(sessionId: string): Promise<string>;
+
+  captureWorkspaceTree(sessionId: string): Promise<string>;
+
+  captureTreeDiff(
+    sessionId: string,
+    beforeTree: string,
+    afterTree: string,
+  ): Promise<TreeDiffResult>;
+
+  getBaselineTree(sessionId: string): Promise<string>;
 
   teardown(sessionId: string): Promise<void>;
 }

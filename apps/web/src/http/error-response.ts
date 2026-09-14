@@ -7,6 +7,7 @@ const sessionStatus: Record<SessionError['code'], number> = {
   SESSION_NOT_ACTIVE: 409,
   EVIDENCE_NOT_READY: 409,
   CONTENT_TOO_LARGE: 413,
+  PLATFORM_CAPTURE_FAILED: 500,
 };
 
 export const errorResponse = (error: unknown) => {

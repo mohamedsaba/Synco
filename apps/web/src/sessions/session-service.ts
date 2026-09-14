@@ -5,6 +5,7 @@ import {
   createSubmittedDiff,
   normalizeLineEndings,
 } from '../evidence/unified-diff';
+import type { WorkspaceChangedPayload } from '../events/session-event';
 import { SqliteEventStore } from '../events/sqlite-event-store';
 import { DockerSandboxAdapter } from '../sandbox/docker-sandbox-adapter';
 import {
@@ -40,6 +41,89 @@ export class SessionService {
   private readonly createToken: () => string;
   private readonly eventStore?: SqliteEventStore;
   private readonly sandboxAdapter?: SandboxAdapter;
+  private readonly sessionQueues = new Map<string, Promise<void>>();
+
+  private async withSessionLock<T>(
+    sessionId: string,
+    fn: () => Promise<T>,
+  ): Promise<T> {
+    const prev = this.sessionQueues.get(sessionId) ?? Promise.resolve();
+    let release: () => void;
+    const next = new Promise<void>((res) => {
+      release = res;
+    });
+    this.sessionQueues.set(sessionId, next);
+
+    await prev;
+    try {
+      return await fn();
+    } finally {
+      release!();
+      if (this.sessionQueues.get(sessionId) === next) {
+        this.sessionQueues.delete(sessionId);
+      }
+    }
+  }
+
+  private async detectAndRecordDrift(
+    sessionId: string,
+    source: 'server' = 'server',
+  ): Promise<{ currentTree: string; driftDetected: boolean }> {
+    if (!this.sandboxAdapter) {
+      return { currentTree: '', driftDetected: false };
+    }
+
+    const currentTree =
+      await this.sandboxAdapter.captureWorkspaceTree(sessionId);
+
+    let lastKnownTree: string;
+    if (this.eventStore) {
+      const events = this.eventStore.getEvents(sessionId);
+      const workspaceEvents = events.filter(
+        (e) => e.type === 'WORKSPACE_CHANGED',
+      );
+      if (workspaceEvents.length > 0) {
+        lastKnownTree = (
+          workspaceEvents[workspaceEvents.length - 1]
+            .payload as WorkspaceChangedPayload
+        ).afterTree;
+      } else {
+        lastKnownTree = await this.sandboxAdapter.getBaselineTree(sessionId);
+      }
+    } else {
+      lastKnownTree = await this.sandboxAdapter.getBaselineTree(sessionId);
+    }
+
+    if (currentTree !== lastKnownTree) {
+      const diffResult = await this.sandboxAdapter.captureTreeDiff(
+        sessionId,
+        lastKnownTree,
+        currentTree,
+      );
+
+      if (this.eventStore) {
+        this.eventStore.append({
+          id: `evt_${this.createId()}`,
+          sessionId,
+          type: 'WORKSPACE_CHANGED',
+          timestamp: this.now(),
+          source,
+          payload: {
+            changeId: `chg_${this.createId()}`,
+            origin: 'out_of_band',
+            beforeTree: lastKnownTree,
+            afterTree: currentTree,
+            files: diffResult.files,
+            totalAdditions: diffResult.totalAdditions,
+            totalDeletions: diffResult.totalDeletions,
+          },
+        });
+      }
+      return { currentTree, driftDetected: true };
+    }
+
+    return { currentTree, driftDetected: false };
+  }
 
   constructor(
     private readonly store: SqliteSessionStore,
@@ -175,70 +259,151 @@ export class SessionService {
       );
     }
 
-    if (session.status !== 'ACTIVE') {
-      throw new SessionError(
-        'SESSION_NOT_ACTIVE',
-        'Commands can be executed only while the session is active.',
+    return this.withSessionLock(session.id, async () => {
+      const current = this.store.findByCandidateTokenHash(tokenHash);
+      if (!current) {
+        throw new SessionError(
+          'SESSION_NOT_FOUND',
+          'The candidate session was not found.',
+        );
+      }
+
+      if (current.status !== 'ACTIVE') {
+        throw new SessionError(
+          'SESSION_NOT_ACTIVE',
+          'Commands can be executed only while the session is active.',
+        );
+      }
+
+      if (!this.sandboxAdapter) {
+        throw new SandboxError(
+          'SANDBOX_NOT_FOUND',
+          'No sandbox runtime is configured for this environment.',
+        );
+      }
+
+      const isMultiFile =
+        current.scenarioType === 'multi_file' ||
+        current.scenario.type === 'multi_file';
+
+      let beforeTree: string | null = null;
+      if (isMultiFile) {
+        try {
+          const driftResult = await this.detectAndRecordDrift(current.id);
+          beforeTree = driftResult.currentTree;
+        } catch (error) {
+          throw new SessionError(
+            'PLATFORM_CAPTURE_FAILED',
+            `Pre-command workspace capture failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      }
+
+      const commandId = `cmd_${this.createId()}`;
+
+      // 1. Authoritatively record COMMAND_STARTED
+      if (this.eventStore) {
+        this.eventStore.append({
+          id: `evt_${this.createId()}`,
+          sessionId: current.id,
+          type: 'COMMAND_STARTED',
+          timestamp: this.now(),
+          source: 'server',
+          payload: {
+            commandId,
+            command,
+            cwd: '/workspace',
+          },
+        });
+      }
+
+      // 2. Execute command in sandbox
+      const result = await this.sandboxAdapter.exec(
+        current.id,
+        commandId,
+        command,
+        '/workspace',
       );
-    }
 
-    if (!this.sandboxAdapter) {
-      throw new SandboxError(
-        'SANDBOX_NOT_FOUND',
-        'No sandbox runtime is configured for this environment.',
-      );
-    }
+      // 3. Authoritatively record COMMAND_FINISHED
+      if (this.eventStore) {
+        this.eventStore.append({
+          id: `evt_${this.createId()}`,
+          sessionId: current.id,
+          type: 'COMMAND_FINISHED',
+          timestamp: this.now(),
+          source: 'server',
+          payload: {
+            commandId,
+            exitCode: result.exitCode,
+            timedOut: result.timedOut,
+            durationMs: result.durationMs,
+            stdoutPreview: result.stdoutPreview,
+            stdoutBytes: result.stdoutBytes,
+            stdoutTruncated: result.stdoutTruncated,
+            stderrPreview: result.stderrPreview,
+            stderrBytes: result.stderrBytes,
+            stderrTruncated: result.stderrTruncated,
+          },
+        });
+      }
 
-    const commandId = `cmd_${randomUUID()}`;
+      // 4. Post-command tree capture
+      if (isMultiFile && beforeTree !== null) {
+        try {
+          const afterTree = await this.sandboxAdapter.captureWorkspaceTree(
+            current.id,
+          );
 
-    // 1. Authoritatively record COMMAND_STARTED
-    if (this.eventStore) {
-      this.eventStore.append({
-        id: `evt_${randomUUID()}`,
-        sessionId: session.id,
-        type: 'COMMAND_STARTED',
-        timestamp: this.now(),
-        source: 'server',
-        payload: {
-          commandId,
-          command,
-          cwd: '/workspace',
-        },
-      });
-    }
+          if (beforeTree !== afterTree) {
+            const diffResult = await this.sandboxAdapter.captureTreeDiff(
+              current.id,
+              beforeTree,
+              afterTree,
+            );
 
-    // 2. Execute command in sandbox
-    const result = await this.sandboxAdapter.exec(
-      session.id,
-      commandId,
-      command,
-      '/workspace',
-    );
+            if (this.eventStore) {
+              this.eventStore.append({
+                id: `evt_${this.createId()}`,
+                sessionId: current.id,
+                type: 'WORKSPACE_CHANGED',
+                timestamp: this.now(),
+                source: 'server',
+                payload: {
+                  changeId: `chg_${this.createId()}`,
+                  origin: 'command_execution',
+                  commandId,
+                  beforeTree,
+                  afterTree,
+                  files: diffResult.files,
+                  totalAdditions: diffResult.totalAdditions,
+                  totalDeletions: diffResult.totalDeletions,
+                },
+              });
+            }
+          }
+        } catch (error) {
+          if (this.eventStore) {
+            this.eventStore.append({
+              id: `evt_${this.createId()}`,
+              sessionId: current.id,
+              type: 'WORKSPACE_CAPTURE_FAILED',
+              timestamp: this.now(),
+              source: 'server',
+              payload: {
+                commandId,
+                phase: 'post_command',
+                beforeTree,
+                errorMessage:
+                  error instanceof Error ? error.message : String(error),
+              },
+            });
+          }
+        }
+      }
 
-    // 3. Authoritatively record COMMAND_FINISHED
-    if (this.eventStore) {
-      this.eventStore.append({
-        id: `evt_${randomUUID()}`,
-        sessionId: session.id,
-        type: 'COMMAND_FINISHED',
-        timestamp: this.now(),
-        source: 'server',
-        payload: {
-          commandId,
-          exitCode: result.exitCode,
-          timedOut: result.timedOut,
-          durationMs: result.durationMs,
-          stdoutPreview: result.stdoutPreview,
-          stdoutBytes: result.stdoutBytes,
-          stdoutTruncated: result.stdoutTruncated,
-          stderrPreview: result.stderrPreview,
-          stderrBytes: result.stderrBytes,
-          stderrTruncated: result.stderrTruncated,
-        },
-      });
-    }
-
-    return result;
+      return result;
+    });
   }
 
   async listWorkspaceFiles(candidateToken: string) {
@@ -280,18 +445,141 @@ export class SessionService {
         'The file exceeds the 100 KB limit for this scenario.',
       );
     }
-    const session = this.getCandidateSession(candidateToken);
-    if (session.status !== 'ACTIVE') {
+    const tokenHash = hashCandidateToken(candidateToken);
+    const session = this.store.findByCandidateTokenHash(tokenHash);
+
+    if (!session) {
       throw new SessionError(
-        'SESSION_NOT_ACTIVE',
-        'Workspace files can only be edited during active sessions.',
+        'SESSION_NOT_FOUND',
+        'The candidate session was not found.',
       );
     }
-    const normalized = normalizeLineEndings(content);
-    if (this.sandboxAdapter) {
-      await this.sandboxAdapter.writeFile(session.id, filePath, normalized);
-    }
-    return { ok: true, path: filePath };
+
+    return this.withSessionLock(session.id, async () => {
+      const current = this.store.findByCandidateTokenHash(tokenHash);
+      if (!current) {
+        throw new SessionError(
+          'SESSION_NOT_FOUND',
+          'The candidate session was not found.',
+        );
+      }
+
+      if (current.status !== 'ACTIVE') {
+        throw new SessionError(
+          'SESSION_NOT_ACTIVE',
+          'Workspace files can only be edited during active sessions.',
+        );
+      }
+
+      if (!this.sandboxAdapter) {
+        return { ok: true, path: filePath };
+      }
+
+      const isMultiFile =
+        current.scenarioType === 'multi_file' ||
+        current.scenario.type === 'multi_file';
+
+      let beforeTree: string | null = null;
+      if (isMultiFile) {
+        try {
+          const driftResult = await this.detectAndRecordDrift(current.id);
+          beforeTree = driftResult.currentTree;
+        } catch (error) {
+          throw new SessionError(
+            'PLATFORM_CAPTURE_FAILED',
+            `Failed to capture workspace before file save: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      }
+
+      const normalized = normalizeLineEndings(content);
+      await this.sandboxAdapter.writeFile(current.id, filePath, normalized);
+
+      let afterTree: string | null = null;
+      if (isMultiFile) {
+        try {
+          afterTree = await this.sandboxAdapter.captureWorkspaceTree(
+            current.id,
+          );
+        } catch (error) {
+          if (this.eventStore) {
+            this.eventStore.append({
+              id: `evt_${this.createId()}`,
+              sessionId: current.id,
+              type: 'WORKSPACE_CAPTURE_FAILED',
+              timestamp: this.now(),
+              source: 'server',
+              payload: {
+                phase: 'browser_save',
+                beforeTree,
+                errorMessage:
+                  error instanceof Error ? error.message : String(error),
+              },
+            });
+          }
+          throw new SessionError(
+            'PLATFORM_CAPTURE_FAILED',
+            `Workspace file was written, but post-save capture failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      }
+
+      if (
+        isMultiFile &&
+        beforeTree !== null &&
+        afterTree !== null &&
+        beforeTree !== afterTree
+      ) {
+        try {
+          const diffResult = await this.sandboxAdapter.captureTreeDiff(
+            current.id,
+            beforeTree,
+            afterTree,
+          );
+
+          if (this.eventStore) {
+            this.eventStore.append({
+              id: `evt_${this.createId()}`,
+              sessionId: current.id,
+              type: 'WORKSPACE_CHANGED',
+              timestamp: this.now(),
+              source: 'server',
+              payload: {
+                changeId: `chg_${this.createId()}`,
+                origin: 'browser_save',
+                beforeTree,
+                afterTree,
+                files: diffResult.files,
+                totalAdditions: diffResult.totalAdditions,
+                totalDeletions: diffResult.totalDeletions,
+              },
+            });
+          }
+        } catch (error) {
+          if (this.eventStore) {
+            this.eventStore.append({
+              id: `evt_${this.createId()}`,
+              sessionId: current.id,
+              type: 'WORKSPACE_CAPTURE_FAILED',
+              timestamp: this.now(),
+              source: 'server',
+              payload: {
+                phase: 'browser_save',
+                beforeTree,
+                errorMessage:
+                  error instanceof Error ? error.message : String(error),
+              },
+            });
+          }
+          throw new SessionError(
+            'PLATFORM_CAPTURE_FAILED',
+            `Workspace file was saved, but diff capture failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      }
+
+      return { ok: true, path: filePath };
+    });
   }
 
   async submit(candidateToken: string) {
@@ -305,40 +593,108 @@ export class SessionService {
       );
     }
 
-    if (session.status === 'SUBMITTED') {
-      return session;
-    }
-
-    if (session.status !== 'ACTIVE') {
-      throw new SessionError(
-        'SESSION_NOT_ACTIVE',
-        'The session must be active before it can be submitted.',
-      );
-    }
-
-    let submittedDiff: string | null = null;
-    const isMultiFile =
-      session.scenarioType === 'multi_file' ||
-      session.scenario.type === 'multi_file';
-
-    if (this.sandboxAdapter && isMultiFile) {
-      try {
-        submittedDiff = await this.sandboxAdapter.captureDiff(session.id);
-      } catch (err) {
-        console.warn('Error capturing diff before teardown', err);
+    return this.withSessionLock(session.id, async () => {
+      const current = this.store.findByCandidateTokenHash(tokenHash);
+      if (!current) {
+        throw new SessionError(
+          'SESSION_NOT_FOUND',
+          'The candidate session was not found.',
+        );
       }
-    }
 
-    const submitted = this.store.submit(tokenHash, this.now(), submittedDiff);
+      if (current.status === 'SUBMITTED') {
+        return current;
+      }
 
-    // Deterministic sandbox teardown on submission
-    if (this.sandboxAdapter) {
-      await this.sandboxAdapter.teardown(session.id).catch((err) => {
-        console.warn('Error during sandbox teardown on submission', err);
-      });
-    }
+      if (current.status !== 'ACTIVE') {
+        throw new SessionError(
+          'SESSION_NOT_ACTIVE',
+          'The session must be active before it can be submitted.',
+        );
+      }
 
-    return submitted;
+      let submittedDiff: string | null = null;
+      const isMultiFile =
+        current.scenarioType === 'multi_file' ||
+        current.scenario.type === 'multi_file';
+
+      if (this.sandboxAdapter && isMultiFile) {
+        try {
+          const driftResult = await this.detectAndRecordDrift(current.id);
+          const submittedTree = driftResult.currentTree;
+          const baselineTree = await this.sandboxAdapter.getBaselineTree(
+            current.id,
+          );
+          const diffResult = await this.sandboxAdapter.captureTreeDiff(
+            current.id,
+            baselineTree,
+            submittedTree,
+          );
+          submittedDiff = diffResult.rawDiff;
+
+          // Tree consistency verification
+          if (this.eventStore) {
+            const events = this.eventStore.getEvents(current.id);
+            const workspaceEvents = events.filter(
+              (e) => e.type === 'WORKSPACE_CHANGED',
+            );
+            const lastWorkspaceEvent =
+              workspaceEvents.length > 0
+                ? workspaceEvents[workspaceEvents.length - 1]
+                : null;
+            if (lastWorkspaceEvent) {
+              const expectedTree = (
+                lastWorkspaceEvent.payload as { afterTree?: string }
+              ).afterTree;
+              if (expectedTree && submittedTree !== expectedTree) {
+                console.warn(
+                  `Tree consistency warning: submittedTree (${submittedTree}) does not match lastWorkspaceEvent.afterTree (${expectedTree})`,
+                );
+              }
+            } else if (submittedTree !== baselineTree) {
+              console.warn(
+                `Tree consistency warning: submittedTree (${submittedTree}) differs from baseline (${baselineTree}) without WORKSPACE_CHANGED events.`,
+              );
+            }
+          }
+        } catch (error) {
+          // Submission capture failure:
+          // Do NOT transition to SUBMITTED.
+          // Do NOT destroy sandbox.
+          // Append WORKSPACE_CAPTURE_FAILED event.
+          if (this.eventStore) {
+            this.eventStore.append({
+              id: `evt_${this.createId()}`,
+              sessionId: current.id,
+              type: 'WORKSPACE_CAPTURE_FAILED',
+              timestamp: this.now(),
+              source: 'server',
+              payload: {
+                phase: 'submission',
+                beforeTree: null,
+                errorMessage:
+                  error instanceof Error ? error.message : String(error),
+              },
+            });
+          }
+          throw new SessionError(
+            'PLATFORM_CAPTURE_FAILED',
+            `Failed to capture submission evidence: ${error instanceof Error ? error.message : String(error)}. Session remains active.`,
+          );
+        }
+      }
+
+      const submitted = this.store.submit(tokenHash, this.now(), submittedDiff);
+
+      // Deterministic sandbox teardown on submission
+      if (this.sandboxAdapter) {
+        await this.sandboxAdapter.teardown(current.id).catch((err) => {
+          console.warn('Error during sandbox teardown on submission', err);
+        });
+      }
+
+      return submitted;
+    });
   }
 
   getSubmittedEvidence(sessionId: string) {
@@ -373,6 +729,7 @@ export class SessionService {
       scenario: submitted.scenario,
       scenarioType:
         submitted.scenarioType ?? submitted.scenario.type ?? 'single_file',
+      activatedAt: submitted.activatedAt,
       submittedAt: submitted.submittedAt,
       originalContent: submitted.scenario.originalContent,
       submittedContent: submitted.submittedContent,

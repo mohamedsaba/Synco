@@ -29,7 +29,8 @@ export class SessionError extends Error {
       | 'SESSION_NOT_FOUND'
       | 'SESSION_NOT_ACTIVE'
       | 'EVIDENCE_NOT_READY'
-      | 'CONTENT_TOO_LARGE',
+      | 'CONTENT_TOO_LARGE'
+      | 'PLATFORM_CAPTURE_FAILED',
     message: string,
   ) {
     super(message);

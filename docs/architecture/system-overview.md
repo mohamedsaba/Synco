@@ -46,10 +46,10 @@ Completed vertical slices:
 - **Slice 2 — Command evidence:** readiness-gated sandbox execution and authoritative command lifecycle events.
 - **Slice 3 — Realistic Scenario 001:** a multi-file Flask, PostgreSQL, Redis, and pytest incident environment.
 - **Slice 4 — Deterministic workspace/evidence reconstruction:** trusted workspace tree transitions, explicit evidence gaps, out-of-band drift reconciliation, and one chronological evaluator history.
+- **Slice 5 — AI-assisted evidence reconstruction (awaiting live acceptance):** bounded NVIDIA NIM structured output, strict server validation, immutable reconstruction persistence, evaluator-only ensure/retry API, and a primary Candidate Work view with inline evidence drill-down.
 
 Not yet implemented:
 
-- HR-readable AI-assisted evidence reconstruction;
 - candidate AI and explicit insertion evidence;
 - a full interactive PTY;
 - other later MVP capabilities that have not earned a focused vertical slice.

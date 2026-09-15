@@ -1,4 +1,5 @@
 import { EvaluatorAccessError } from '../access/evaluator-evidence';
+import { EvidenceReconstructionError } from '../reconstruction/evidence-reconstruction';
 import { SandboxError } from '../sandbox/sandbox';
 import { SessionError } from '../sessions/session';
 
@@ -29,6 +30,20 @@ export const errorResponse = (error: unknown) => {
     return Response.json(
       { error: { code: 'EVALUATOR_ACCESS_REQUIRED', message: error.message } },
       { status: 401 },
+    );
+  }
+
+  if (error instanceof EvidenceReconstructionError) {
+    const status =
+      error.code === 'PROVIDER_NOT_CONFIGURED' ||
+      error.code === 'PROVIDER_UNAVAILABLE' ||
+      error.code === 'PROVIDER_TIMEOUT' ||
+      error.code === 'PROVIDER_RATE_LIMITED'
+        ? 503
+        : 422;
+    return Response.json(
+      { error: { code: error.code, message: error.message } },
+      { status },
     );
   }
 

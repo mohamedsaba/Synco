@@ -218,7 +218,7 @@ The prototype should remain a single deployable application or modular monolith 
 
 > Priority: MUST \| Verification: Inspection/Test
 
-**FR-003 — Session states.** The system shall support at minimum: CREATED, READY, ACTIVE, SUBMITTED, EXPIRED, FAILED, and COMPLETED_RECONSTRUCTION.
+**FR-003 — Candidate session states.** Candidate-session state shall remain independent of derived reconstruction status. The system shall support at minimum: CREATED, READY, ACTIVE, SUBMITTED, EXPIRED, and FAILED. `SUBMITTED` means authoritative final evidence is durably frozen, candidate mutation is closed, and successful candidate-session submission is complete. Reconstruction shall use a separate derived-artifact lifecycle with PENDING, AVAILABLE, and FAILED persisted statuses; eligibility without a persisted attempt may be presented as NOT_STARTED. Reconstruction failure or retry shall not reopen or change a submitted candidate session.
 
 > Priority: MUST \| Verification: Inspection/Test
 
@@ -813,7 +813,7 @@ The web product may be one application with candidate and evaluator routes. The 
 | AC-003 | The candidate can interact with the integrated AI assistant without being required to use it.                              |
 | AC-004 | The system records supported file, command, test, and AI events with deterministic session ordering.                       |
 | AC-005 | The system preserves a final repository diff/snapshot at submission or timeout.                                            |
-| AC-006 | The system can display one completed session as a chronological reconstruction.                                            |
+| AC-006 | The system can display one submitted candidate session as a chronological reconstruction.                                  |
 | AC-007 | Generated reconstruction annotations can be traced to source events/artifacts.                                             |
 | AC-008 | An evaluator can inspect the underlying AI exchange, command output, diff, or raw event for a reconstruction item.         |
 | AC-009 | The product does not automatically convert test success into a candidate pass/advance decision.                            |

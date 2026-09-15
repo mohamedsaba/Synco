@@ -68,6 +68,14 @@ Delimit (by Synco) is an engineering-assessment platform designed to observe rea
   - **Bounded Intermediate Evidence & Full Final Diff:** Intermediate change patches are capped at 64 KB with explicit truncation indicators (`isTruncated: true`, `totalBytes`), while the final submission diff remains complete.
   - **Evaluator UI Reconstruction View:** Chronological narrative with step counters, duration badges, execution status, and expandable unified diffs with line-level change summaries.
   - **Full Automated Verification:** The committed Slice 4 baseline passed 14 test suites / 38 tests. The reconciliation adds three focused regressions and passes 14 suites / 41 tests, plus format, lint, typecheck, and the Next.js production build.
+- **Vertical Slice 5 (implemented, uncommitted, awaiting live acceptance):**
+  - Bounded evidence packets, session-scoped citations, deterministic coverage anchors, strict structured-output validation, and server-derived statement ordering.
+  - One server-only NVIDIA NIM hosted inference adapter using `nvidia/nemotron-3.5-lightning-30b-a3b`, structured JSON Schema, no tools/grounding, and bounded provider failures.
+  - Separate SQLite reconstruction lifecycle (`NOT_STARTED` derived; `PENDING`, `AVAILABLE`, and `FAILED` persisted), transactional claims, explicit failed retry, stale recovery, and immutable successful output.
+  - Post-response submission opportunity plus an evaluator-only ensure/retry API. Submission and authoritative evidence remain independent from provider availability.
+  - Candidate Work appears first for evaluators with inline citations; deterministic integrity notices, technical chronology, raw envelopes, and final diff remain available.
+  - Current free-tier operation is restricted to synthetic/test Scenario 001 evidence. Real applicant data requires a separate privacy/provider review.
+  - Automated verification passes format, lint, typecheck, build, authenticated synthetic SSR for both unavailable and persisted-available UI states, and zero leaked Delimit containers. Real NVIDIA NIM live smoke and acceptance histories A–D run against hosted inference.
 
 ## Product question evaluated by Slice 4
 
@@ -86,15 +94,14 @@ _(The product value of this question will be observed through real evaluator usa
 
 ## Current active plan
 
-None. Vertical Slice 4 implementation is complete; plan preserved in `docs/plans/completed/004-deterministic-evidence-reconstruction.md`.
+`docs/plans/active/005-ai-assisted-evidence-reconstruction.md` is implemented and awaiting automated verification, human review, and the credential-gated synthetic live acceptance experiment.
 
 ## Current Git state
 
 - Branch: `main`
-- Committed Slice 4 baseline: `b9dc54d66084c608dd688bb71a3e37f197cfc211`
-- Commit: `feat: add deterministic evidence reconstruction`
-- Committed verification state: 14 test files / 38 tests, with formatting, lint, typecheck, and production build passing.
-- A focused Slice 4 baseline reconciliation is awaiting human review before any Slice 5 planning.
+- Committed Slice 4 reconciliation baseline: `25ebb3f9982e81ef0e12175a8a8f337f6a06a33d`
+- Commit: `fix: reconcile Slice 4 evidence lifecycle invariants`
+- Slice 5 changes are intentionally uncommitted and awaiting human review.
 - Remotes: None configured.
 
 ## Verification commands
@@ -127,4 +134,4 @@ None. Vertical Slice 4 implementation is complete; plan preserved in `docs/plans
 
 ## Next safe action
 
-Review and commit the Slice 4 baseline reconciliation. Do not begin Slice 5 until the reconciled baseline is accepted.
+Run the full Slice 5 verification gate, then configure `NVIDIA_API_KEY` and run synthetic Scenario 001 smoke/acceptance sessions. Do not commit until human review.

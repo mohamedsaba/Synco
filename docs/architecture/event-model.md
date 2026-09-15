@@ -2,6 +2,8 @@
 
 Events are the primary record of observable session activity. Reconstruction and generated annotations are derived views. Events should be append-only after acceptance; corrections require explicit follow-up records rather than silent mutation.
 
+AI-assisted evaluator reconstruction is stored separately as a versioned derived artifact with provider/model and source-packet provenance. It is not appended to the candidate event stream and does not alter session state, event ordering, or authoritative evidence.
+
 ## Initial taxonomy
 
 ```text

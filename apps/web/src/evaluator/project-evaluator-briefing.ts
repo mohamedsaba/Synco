@@ -248,3 +248,5 @@ export const projectBriefing = (
       : [],
   };
 };
+
+export type ProjectedBriefing = ReturnType<typeof projectBriefing>;

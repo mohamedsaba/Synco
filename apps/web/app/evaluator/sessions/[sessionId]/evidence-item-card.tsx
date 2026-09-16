@@ -1,189 +1,175 @@
+import type { CommandFinishedPayload } from '../../../../src/events/session-event';
 import type { ReconstructionItem } from '../../../../src/evidence/chronological-reconstruction';
+
+type EvidenceItemCardProps = Readonly<{
+  item: ReconstructionItem;
+  elapsedLabel?: string | null;
+  compact?: boolean;
+}>;
+
+const EvidenceTime = ({
+  elapsedLabel,
+  timestamp,
+}: Readonly<{ elapsedLabel?: string | null; timestamp: string }>) => (
+  <time className="evidence-time" dateTime={timestamp}>
+    {elapsedLabel ?? new Date(timestamp).toLocaleTimeString()}
+  </time>
+);
 
 export const EvidenceItemCard = ({
   item,
-}: Readonly<{ item: ReconstructionItem }>) => {
+  elapsedLabel,
+  compact = false,
+}: EvidenceItemCardProps) => {
   if (item.kind === 'SESSION_ACTIVATED' || item.kind === 'SESSION_SUBMITTED') {
     const submitted = item.kind === 'SESSION_SUBMITTED';
     return (
-      <div
-        className={`timeline-marker-card ${submitted ? 'submission-marker' : 'activation-marker'}`}
-      >
-        <div className="marker-content">
-          <div className={`marker-dot${submitted ? ' submitted-dot' : ''}`} />
-          <span className="marker-title">
-            Session {submitted ? 'Submitted' : 'Activated'}
-          </span>
-          <span className="marker-desc">
+      <article className="activity-card activity-boundary-card">
+        <div>
+          <p className="activity-label">
+            {submitted ? 'Session submitted' : 'Session started'}
+          </p>
+          <p className="activity-copy">
             {submitted
-              ? 'Final workspace evidence frozen; sandbox cleanup follows independently.'
-              : 'Candidate workspace provisioned and ready.'}
-          </span>
+              ? 'The submitted workspace state was frozen for evaluator review.'
+              : 'The candidate workspace became available.'}
+          </p>
         </div>
-        <time className="event-time" dateTime={item.timestamp}>
-          {new Date(item.timestamp).toLocaleTimeString()}
-        </time>
-      </div>
+        <EvidenceTime elapsedLabel={elapsedLabel} timestamp={item.timestamp} />
+      </article>
     );
   }
 
   if (item.kind === 'COMMAND_EXECUTION') {
+    const output = item.rawFinishedEvent.payload as CommandFinishedPayload;
+    const result = item.timedOut
+      ? 'Timed out'
+      : item.exitCode === null
+        ? 'No recorded exit status'
+        : `Exit status ${item.exitCode}`;
     return (
-      <article className="timeline-item-card command-card">
-        <div className="timeline-item-header">
-          <div className="timeline-item-title">
-            <span className="event-seq">#{item.sequence}</span>
-            <span className="event-badge badge-command">COMMAND</span>
-            <span className="command-text">$ {item.command}</span>
-            <span
-              className={`badge ${item.timedOut ? 'badge-timeout' : item.exitCode === 0 ? 'badge-success' : 'badge-error'}`}
-            >
-              {item.timedOut ? 'Timed out' : `Exit ${item.exitCode}`}
-            </span>
-            <span className="duration-pill">{item.durationMs}ms</span>
+      <article className="activity-card command-activity-card">
+        <header className="activity-card-header">
+          <div>
+            <p className="activity-label">Terminal activity</p>
+            <code className="activity-command">$ {item.command}</code>
           </div>
-          <time className="event-time" dateTime={item.finishedAt}>
-            {new Date(item.finishedAt).toLocaleTimeString()}
-          </time>
+          <EvidenceTime
+            elapsedLabel={elapsedLabel}
+            timestamp={item.finishedAt}
+          />
+        </header>
+        <div className="activity-result" aria-label={`Command ${result}`}>
+          <span>{result}</span>
+          <span>{item.durationMs} ms</span>
+          <span>{item.cwd}</span>
         </div>
-        <div className="command-context-meta">
-          <span className="file-kicker">cwd: {item.cwd}</span>
-          <span className="file-kicker">id: {item.commandId}</span>
-        </div>
-        {item.stdoutPreview ? (
-          <div className="output-container">
-            <pre className="command-output">{item.stdoutPreview}</pre>
+        {output.stdoutTruncated ? (
+          <p className="activity-limitation">
+            Standard output is a captured preview. Additional output was
+            omitted.
+          </p>
+        ) : null}
+        {output.stderrTruncated ? (
+          <p className="activity-limitation">
+            Standard error is a captured preview. Additional output was omitted.
+          </p>
+        ) : null}
+        {!compact && item.stdoutPreview ? (
+          <div className="activity-output">
+            <p>Standard output</p>
+            <pre>{item.stdoutPreview}</pre>
           </div>
         ) : null}
-        {item.stderrPreview ? (
-          <div className="output-container">
-            <pre className="command-output stderr">{item.stderrPreview}</pre>
+        {!compact && item.stderrPreview ? (
+          <div className="activity-output">
+            <p>Standard error</p>
+            <pre>{item.stderrPreview}</pre>
           </div>
         ) : null}
-        <details className="raw-evidence-disclosure">
-          <summary>
-            Raw evidence envelope ({item.rawStartedEventId} ·{' '}
-            {item.rawFinishedEventId})
-          </summary>
-          <div className="raw-envelope-body">
-            {item.rawStartedEvent ? (
-              <pre className="raw-json-block">
-                {JSON.stringify(item.rawStartedEvent, null, 2)}
-              </pre>
-            ) : null}
-            <pre className="raw-json-block">
-              {JSON.stringify(item.rawFinishedEvent, null, 2)}
-            </pre>
-          </div>
-        </details>
       </article>
     );
   }
 
   if (item.kind === 'WORKSPACE_CHANGE') {
+    const origin =
+      item.origin === 'browser_save'
+        ? 'Recorded after an editor save'
+        : item.origin === 'command_execution'
+          ? 'Recorded across terminal activity'
+          : 'Recorded between captured actions';
     return (
-      <article className="timeline-item-card change-card">
-        <div className="timeline-item-header">
-          <div className="timeline-item-title">
-            <span className="event-seq">#{item.sequence}</span>
-            <span className="event-badge badge-workspace">
-              WORKSPACE_CHANGED
-            </span>
-            <span
-              className={`origin-badge${item.origin === 'out_of_band' ? ' origin-out-of-band' : ''}`}
-            >
-              {item.origin === 'browser_save'
-                ? 'Browser editor save'
-                : item.origin === 'out_of_band'
-                  ? 'Workspace changed between recorded actions'
-                  : `Observed across command execution (${item.commandId})`}
-            </span>
-            <span className="stat-pill stat-add">+{item.totalAdditions}</span>
-            <span className="stat-pill stat-del">-{item.totalDeletions}</span>
-            <span className="tree-pill">
-              tree: {item.beforeTree.slice(0, 7)} → {item.afterTree.slice(0, 7)}
-            </span>
+      <article className="activity-card workspace-activity-card">
+        <header className="activity-card-header">
+          <div>
+            <p className="activity-label">Workspace change</p>
+            <p className="activity-copy">{origin}</p>
           </div>
-          <time className="event-time" dateTime={item.timestamp}>
-            {new Date(item.timestamp).toLocaleTimeString()}
-          </time>
-        </div>
-        <div className="change-files-list">
+          <EvidenceTime
+            elapsedLabel={elapsedLabel}
+            timestamp={item.timestamp}
+          />
+        </header>
+        <div className="activity-file-list">
           {item.files.map((file) => (
-            <div key={file.path} className="change-file-item">
-              <div className="file-header-strip">
-                <span className={`file-status-tag status-${file.status}`}>
-                  {file.status}
+            <section className="activity-file" key={file.path}>
+              <header>
+                <code>{file.path}</code>
+                <span
+                  aria-label={`${file.additions} additions and ${file.deletions} deletions`}
+                >
+                  <span className="diff-addition-count">+{file.additions}</span>{' '}
+                  <span className="diff-deletion-count">−{file.deletions}</span>
                 </span>
-                <span className="file-path-text">{file.path}</span>
-                <span className="file-diff-numbers">
-                  +{file.additions} / -{file.deletions}
-                </span>
-              </div>
+              </header>
               {file.patchTruncated ? (
-                <div className="truncation-alert">
-                  Patch preview truncated — {file.patchPreviewBytes} of{' '}
-                  {file.patchBytes} bytes retained.
-                </div>
+                <p className="activity-limitation">
+                  The displayed patch is partial. {file.patchPreviewBytes} of{' '}
+                  {file.patchBytes} bytes are shown.
+                </p>
               ) : null}
-              {file.patchPreview ? (
-                <pre className="file-patch-block">{file.patchPreview}</pre>
+              {!compact && file.patchPreview ? (
+                <pre className="activity-patch">{file.patchPreview}</pre>
               ) : null}
-            </div>
+            </section>
           ))}
         </div>
-        <details className="raw-evidence-disclosure">
-          <summary>Raw evidence envelope ({item.rawEventId})</summary>
-          <div className="raw-envelope-body">
-            <pre className="raw-json-block">
-              {JSON.stringify(item.rawEvent, null, 2)}
-            </pre>
-          </div>
-        </details>
       </article>
     );
   }
 
-  if (
-    item.kind === 'WORKSPACE_GAP' ||
-    item.kind === 'SANDBOX_CLEANUP_FAILURE'
-  ) {
-    const gap = item.kind === 'WORKSPACE_GAP';
+  if (item.kind === 'WORKSPACE_GAP') {
     return (
-      <article className="timeline-item-card gap-card">
-        <div className="timeline-item-header">
-          <div className="timeline-item-title">
-            <span className="event-seq">#{item.sequence}</span>
-            <span className="event-badge badge-gap">
-              {gap ? 'WORKSPACE_GAP' : 'SANDBOX_CLEANUP_FAILED'}
-            </span>
-            {gap ? (
-              <span className="gap-phase-tag">Phase: {item.phase}</span>
-            ) : null}
+      <article className="activity-card capture-limitation-card">
+        <header className="activity-card-header">
+          <div>
+            <p className="activity-label">Activity capture incomplete</p>
+            <p className="activity-copy">
+              Delimit could not establish every intermediate workspace change
+              during this interval. Other recorded activity remains available.
+            </p>
           </div>
-          <time className="event-time" dateTime={item.timestamp}>
-            {new Date(item.timestamp).toLocaleTimeString()}
-          </time>
-        </div>
-        <div className="gap-body">
-          <p className="gap-alert-text">
-            {gap
-              ? 'Intermediate workspace mutations during this transition could not be established.'
-              : 'Final evidence was frozen, but sandbox resource cleanup failed.'}
-          </p>
-          <p className="gap-error-message">Error: {item.errorMessage}</p>
-        </div>
-        <details className="raw-evidence-disclosure">
-          <summary>Raw evidence envelope ({item.rawEventId})</summary>
-          <div className="raw-envelope-body">
-            <pre className="raw-json-block">
-              {JSON.stringify(item.rawEvent, null, 2)}
-            </pre>
-          </div>
-        </details>
+          <EvidenceTime
+            elapsedLabel={elapsedLabel}
+            timestamp={item.timestamp}
+          />
+        </header>
       </article>
     );
   }
 
-  return null;
+  return (
+    <article className="activity-card platform-notice-card">
+      <header className="activity-card-header">
+        <div>
+          <p className="activity-label">Platform cleanup notice</p>
+          <p className="activity-copy">
+            The submitted evidence was frozen before sandbox cleanup reported a
+            platform error.
+          </p>
+        </div>
+        <EvidenceTime elapsedLabel={elapsedLabel} timestamp={item.timestamp} />
+      </header>
+    </article>
+  );
 };

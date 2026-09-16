@@ -39,9 +39,36 @@ Scenario-linked process evidence is an experimental decision-support mechanism w
 
 The mechanism organizes inspectable evidence; it is not a validated competency measure. Product research must separately establish whether it improves evaluator decisions beyond final-state review, and any such claim is outside Slice 5.1.
 
-## Evaluator Briefing Foundation
+## Evaluator Briefing Foundation & Visual Experience v2
 
-The [accepted final v2 specification](../product/evaluator-v2-design-specification.md) governs the experience; the [architecture audit](../audits/evaluator-v2-architecture-feasibility.md) governs the new foundation. The [briefing architecture](evaluator-briefing.md) and [decision 0005](../decisions/0005-briefing-semantics-remain-presentation-only.md) add a separately versioned, source-grounded serialized briefing and pure role depth without changing this current visual review. [C/D/F/G review artifacts](../artifacts/evaluator-briefing/README.md) precede authorization for the final UI.
+The [accepted final v2 specification](../product/evaluator-v2-design-specification.md) governs the experience; the [architecture audit](../audits/evaluator-v2-architecture-feasibility.md) governs the briefing foundation and role projections.
+
+The production visual experience implements the complete Evaluator Experience v2 across four audience depth profiles:
+
+- `GENERALIST_RECRUITER`: 10–20s executive summary, plain-English activity grouping, neutral verification progression, and no cryptographic hashes or raw event IDs.
+- `TECHNICAL_RECRUITER`: Technical footprint, verified tooling, chronological progression, and direct evidence disclosures.
+- `ENGINEER`: Full technical workspace, authoritative diff viewer, raw command lines, execution logs, and cryptographic SHA-256 provenance.
+- `ENGINEERING_MANAGER`: High-level synthesis, concise submission scope, platform limitation notices, and evaluation policy guidance.
+
+### UI Data Flow & Epistemic Boundaries
+
+```
+AUTHORITATIVE EVIDENCE -> DETERMINISTIC RECONSTRUCTION -> SEMANTIC BRIEFING -> ROLE PROJECTION -> FINAL UI
+```
+
+The React UI (`apps/web/app/evaluator/sessions/[sessionId]/`) contains zero secondary interpretation engine. All textual summaries, counts, and disclosures are pre-computed in the typed briefing model (`EvaluatorBriefing` and `projectBriefing`).
+
+Key architectural components:
+
+1. `EvaluatorHeader`: Delimit branding, session reference, scenario title, submitted status badge, deterministic elapsed duration, and `RoleLensSwitcher`.
+2. `RoleLensSwitcher`: Accessible ARIA tablist with arrow-key keyboard navigation and query-param synchronization (`?depth=...`).
+3. `PlatformNotice`: Non-alarmist callouts for platform-owned limitations (such as `workspace_capture_gap`).
+4. `TaskBrief`: Immutable scenario brief, system invariants, and verification targets, with graceful fallback for legacy sessions lacking evaluation context.
+5. `VerificationSummary`: Factual progression of recorded test runs without scorecards or verdict badges.
+6. `RecordedActivity`: Factual activity timeline with inline evidence disclosures.
+7. `SubmittedWork`: Authoritative diff viewer with line modification statistics and anchor navigation.
+8. `ReviewGuidance`: Evaluation policy constraints and a non-operational `[ Request engineering review ]` handoff affordance.
+9. `ArtifactAvailabilityCard`: Clean integrity indicators for recruiters and EM; cryptographic SHA-256 and generator versions for engineers.
 
 Scenario semantics enrich presentation only. They do not change evidence truth.
 Evaluator briefings are decision-support artifacts, not candidate-quality judgments.

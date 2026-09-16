@@ -1,3 +1,5 @@
+import type { ScenarioEvaluationContextSnapshot } from './scenario-evaluation-context';
+
 export type ScenarioSnapshot = Readonly<{
   id: string;
   version: string;
@@ -8,6 +10,9 @@ export type ScenarioSnapshot = Readonly<{
   originalContent: string;
   type?: 'single_file' | 'multi_file';
   imageName?: string;
+  evaluationContext?: ScenarioEvaluationContextSnapshot;
+  // Unknown persisted versions are retained for explicit generic fallback.
+  semanticSnapshot?: unknown;
 }>;
 
 export const sliceOneScenario: ScenarioSnapshot = {
@@ -28,4 +33,48 @@ export const sliceOneScenario: ScenarioSnapshot = {
     '};',
     '',
   ].join('\n'),
+  evaluationContext: {
+    schemaVersion: 1,
+    version: '1.0.0',
+    purpose:
+      'Examine how recorded engineering activity relates to a small, bounded formatting change and its verification.',
+    evidenceAreas: [
+      {
+        id: 'formatting-change',
+        title: 'Submitted formatting change',
+        description:
+          'Recorded changes and submitted-state evidence concerning the greeting formatter.',
+        selectors: [
+          {
+            kind: 'workspace_path_prefix',
+            prefixes: ['src/format-greeting.ts'],
+          },
+          {
+            kind: 'submitted_path_prefix',
+            prefixes: ['src/format-greeting.ts'],
+          },
+        ],
+      },
+      {
+        id: 'recorded-verification',
+        title: 'Recorded verification',
+        description:
+          'Authoritative test summaries recorded in the assessment environment.',
+        selectors: [{ kind: 'verification_result' }],
+      },
+    ],
+    systemInvariants: [
+      'The greeting format remains separate from evaluator judgment.',
+    ],
+    verificationTargets: [
+      'Recorded verification may help an evaluator inspect the submitted behavior.',
+    ],
+    interpretationWarnings: [
+      'Related evidence shows only what Delimit recorded in the captured assessment environment.',
+      'An activity that was not observed is not evidence that the candidate lacks the underlying capability.',
+    ],
+    reviewPolicy: [
+      'Final automated verification alone is not a hiring decision for this assessment. Engineering review is required before technical rejection.',
+    ],
+  },
 };

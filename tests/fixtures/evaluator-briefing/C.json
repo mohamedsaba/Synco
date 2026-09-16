@@ -1,0 +1,256 @@
+{
+  "source": {
+    "kind": "preserved_existing_record",
+    "database": "/tmp/delimit-deterministic-acceptance/acceptance.sqlite",
+    "gateCase": "C",
+    "acceptanceHistory": "B",
+    "portableCapture": true
+  },
+  "evidence": {
+    "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
+    "scenario": {
+      "id": "scenario-001-cache-staleness",
+      "version": "1.0.0",
+      "title": "Stale storefront inventory after warehouse restock",
+      "brief": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished.",
+      "acceptanceCriteria": [
+        "Storefront inventory reflects completed restocks immediately.",
+        "Equivalent valid warehouse identifiers return consistent inventory.",
+        "Existing inventory reads continue to work.",
+        "Supplied verification suite passes cleanly."
+      ],
+      "filePath": "inventory/service.py",
+      "originalContent": "",
+      "type": "multi_file",
+      "evaluationContext": {
+        "schemaVersion": 1,
+        "version": "1.0.0",
+        "purpose": "Examine recorded work around a stale storefront inventory incident while keeping investigation path, task outcome, and evaluator judgment separate.",
+        "evidenceAreas": [
+          {
+            "id": "inventory-behavior",
+            "title": "Inventory behavior and submitted changes",
+            "description": "Recorded workspace and submitted-state evidence related to the inventory service and its behavior.",
+            "selectors": [
+              {
+                "kind": "workspace_path_prefix",
+                "prefixes": ["inventory/", "tests/"]
+              },
+              {
+                "kind": "submitted_path_prefix",
+                "prefixes": ["inventory/", "tests/"]
+              }
+            ]
+          },
+          {
+            "id": "recorded-verification",
+            "title": "Recorded verification progression",
+            "description": "Authoritative test summaries recorded at different points in the assessment.",
+            "selectors": [
+              {
+                "kind": "verification_result"
+              }
+            ]
+          }
+        ],
+        "systemInvariants": [
+          "PostgreSQL is the source of truth for inventory quantity.",
+          "Storefront reads may use cached values, so submitted changes should be reviewed in the context of cache behavior."
+        ],
+        "verificationTargets": [
+          "Whether recorded verification addresses recent inventory updates.",
+          "Whether recorded verification includes equivalent valid warehouse identifiers where evidence is available.",
+          "Whether existing inventory reads remain represented in the recorded verification evidence."
+        ],
+        "interpretationWarnings": [
+          "Related evidence identifies recorded activity associated with a scenario area; it does not establish task success or candidate competence.",
+          "A failing test or command can be valid investigative activity and is not a candidate verdict.",
+          "Not observed means Delimit recorded no evidence of that activity in the captured assessment environment. It does not mean the candidate lacks the underlying capability."
+        ],
+        "reviewPolicy": [
+          "Final automated verification alone is not a hiring decision for this assessment. Engineering review is required before technical rejection."
+        ]
+      }
+    },
+    "scenarioType": "multi_file",
+    "activatedAt": "2026-09-16T04:34:15.658Z",
+    "submittedAt": "2026-09-16T04:34:17.985Z",
+    "originalContent": "",
+    "submittedContent": "",
+    "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..1ffa60e 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+    invalidate_cached_stock(warehouse_id, product_id)\n",
+    "events": [
+      {
+        "id": "evt_ff602f96-3cf3-4121-a871-a15bba6a19f1",
+        "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
+        "sequence": 1,
+        "type": "COMMAND_STARTED",
+        "timestamp": "2026-09-16T04:34:15.876Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_81cdae66-8c85-4227-8833-f74765da596e",
+          "command": "pytest",
+          "cwd": "/workspace"
+        }
+      },
+      {
+        "id": "evt_7a492a83-d4e0-4fb9-aa0b-e2bcece3e731",
+        "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
+        "sequence": 2,
+        "type": "COMMAND_FINISHED",
+        "timestamp": "2026-09-16T04:34:16.454Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_81cdae66-8c85-4227-8833-f74765da596e",
+          "exitCode": 1,
+          "timedOut": false,
+          "durationMs": 552,
+          "stdoutPreview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.13, pytest-8.2.2, pluggy-1.5.0\nrootdir: /workspace\ncollected 3 items\n\ntests/test_inventory.py FFF                                              [100%]\n\n=================================== FAILURES ===================================\n__________________ test_storefront_reflects_current_inventory __________________\n\nclient = <FlaskClient <Flask 'app'>>\n\n    def test_storefront_reflects_current_inventory(client):\n        \"\"\"\n        Verifies that the storefront endpoint returns the current inventory quantity\n        for an existing item in the catalog.\n        \"\"\"\n        res = client.get(\"/storefront/stock/WH-EAST-01/PROD-1001\")\n        assert res.status_code == 200\n        data = res.get_json()\n>       assert data[\"quantity\"] == 150, f\"Expected 150 units, got {data['quantity']}\"\nE       AssertionError: Expected 150 units, got 0\nE       assert 0 == 150\n\ntests/test_inventory.py:13: AssertionError\n_________________ test_restock_updates_storefront_immediately __________________\n\nclient = <FlaskClient <Flask 'app'>>\n\n    def test_restock_updates_storefront_immediately(client):\n        \"\"\"\n        Verifies that after restocking an item, subsequent storefront reads\n        reflect the updated inventory without returning stale counts.\n        \"\"\"\n        wh = \"WH-WEST-02\"\n        prod = \"PROD-2002\"\n    \n        # Initial restock to establish stock\n        update_stock(wh, prod, 20)\n        res1 = client.get(f\"/storefront/stock/{wh}/{prod}\")\n        assert res1.get_json()[\"quantity\"] == 20\n    \n        # Secondary restock\n        update_stock(wh, prod, 75)\n        res2 = client.get(f\"/storefront/stock/{wh}/{prod}\")\n>       assert res2.get_json()[\"quantity\"] == 75, f\"Expected 75 units, got {res2.get_json()['quantity']}\"\nE       AssertionError: Expected 75 units, got 20\nE       assert 20 == 75\n\ntests/test_inventory.py:31: AssertionError\n______________ test_storefront_stock_for_valid_warehouse_requests ______________\n\nclient = <FlaskClient <Flask 'app'>>\n\n    def test_storefront_stock_for_valid_warehouse_requests(client):\n        \"\"\"\n        Verifies that storefront inventory remains consistent for valid\n        warehouse requests following stock updates.\n        \"\"\"\n        wh_write = \"WH_CENTRAL_03\"\n        wh_read = \"WH-CENTRAL-03\"\n        prod = \"PROD-3003\"\n    \n        update_stock(wh_write, prod, 10)\n        res1 = client.get(f\"/storefront/stock/{wh_read}/{prod}\")\n>       assert res1.get_json()[\"quantity\"] == 10\nE       assert 0 == 10\n\ntests/test_inventory.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_inventory.py::test_storefront_reflects_current_inventory - ...\nFAILED tests/test_inventory.py::test_restock_updates_storefront_immediately\nFAILED tests/test_inventory.py::test_storefront_stock_for_valid_warehouse_requests\n============================== 3 failed in 0.07s ===============================\n",
+          "stdoutBytes": 3027,
+          "stdoutTruncated": false,
+          "stderrPreview": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        }
+      },
+      {
+        "id": "evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1",
+        "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
+        "sequence": 3,
+        "type": "WORKSPACE_CHANGED",
+        "timestamp": "2026-09-16T04:34:17.014Z",
+        "source": "server",
+        "payload": {
+          "changeId": "chg_5347da3e-761b-4297-82db-1e4043cfffe7",
+          "origin": "browser_save",
+          "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+          "afterTree": "e3b5347990fc5e812c04c4799a53f6e447fe57b9",
+          "files": [
+            {
+              "path": "inventory/service.py",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 0,
+              "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..1ffa60e 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+    invalidate_cached_stock(warehouse_id, product_id)\n",
+              "patchPreviewBytes": 366,
+              "patchBytes": 366,
+              "patchTruncated": false
+            }
+          ],
+          "totalAdditions": 1,
+          "totalDeletions": 0
+        }
+      },
+      {
+        "id": "evt_cc4bc3fe-737b-4461-a892-a14cbc138e71",
+        "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
+        "sequence": 4,
+        "type": "COMMAND_STARTED",
+        "timestamp": "2026-09-16T04:34:17.109Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_6c6051ac-050c-472c-adfc-a7f03f723d95",
+          "command": "pytest",
+          "cwd": "/workspace"
+        }
+      },
+      {
+        "id": "evt_a7cbdda1-1089-410c-96f3-fb91fb5e1e3c",
+        "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
+        "sequence": 5,
+        "type": "COMMAND_FINISHED",
+        "timestamp": "2026-09-16T04:34:17.672Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_6c6051ac-050c-472c-adfc-a7f03f723d95",
+          "exitCode": 1,
+          "timedOut": false,
+          "durationMs": 537,
+          "stdoutPreview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.13, pytest-8.2.2, pluggy-1.5.0\nrootdir: /workspace\ncollected 3 items\n\ntests/test_inventory.py FFF                                              [100%]\n\n=================================== FAILURES ===================================\n__________________ test_storefront_reflects_current_inventory __________________\n\nclient = <FlaskClient <Flask 'app'>>\n\n    def test_storefront_reflects_current_inventory(client):\n        \"\"\"\n        Verifies that the storefront endpoint returns the current inventory quantity\n        for an existing item in the catalog.\n        \"\"\"\n        res = client.get(\"/storefront/stock/WH-EAST-01/PROD-1001\")\n        assert res.status_code == 200\n        data = res.get_json()\n>       assert data[\"quantity\"] == 150, f\"Expected 150 units, got {data['quantity']}\"\nE       AssertionError: Expected 150 units, got 0\nE       assert 0 == 150\n\ntests/test_inventory.py:13: AssertionError\n_________________ test_restock_updates_storefront_immediately __________________\n\nclient = <FlaskClient <Flask 'app'>>\n\n    def test_restock_updates_storefront_immediately(client):\n        \"\"\"\n        Verifies that after restocking an item, subsequent storefront reads\n        reflect the updated inventory without returning stale counts.\n        \"\"\"\n        wh = \"WH-WEST-02\"\n        prod = \"PROD-2002\"\n    \n        # Initial restock to establish stock\n        update_stock(wh, prod, 20)\n        res1 = client.get(f\"/storefront/stock/{wh}/{prod}\")\n        assert res1.get_json()[\"quantity\"] == 20\n    \n        # Secondary restock\n        update_stock(wh, prod, 75)\n        res2 = client.get(f\"/storefront/stock/{wh}/{prod}\")\n>       assert res2.get_json()[\"quantity\"] == 75, f\"Expected 75 units, got {res2.get_json()['quantity']}\"\nE       AssertionError: Expected 75 units, got 20\nE       assert 20 == 75\n\ntests/test_inventory.py:31: AssertionError\n______________ test_storefront_stock_for_valid_warehouse_requests ______________\n\nclient = <FlaskClient <Flask 'app'>>\n\n    def test_storefront_stock_for_valid_warehouse_requests(client):\n        \"\"\"\n        Verifies that storefront inventory remains consistent for valid\n        warehouse requests following stock updates.\n        \"\"\"\n        wh_write = \"WH_CENTRAL_03\"\n        wh_read = \"WH-CENTRAL-03\"\n        prod = \"PROD-3003\"\n    \n        update_stock(wh_write, prod, 10)\n        res1 = client.get(f\"/storefront/stock/{wh_read}/{prod}\")\n>       assert res1.get_json()[\"quantity\"] == 10\nE       assert 0 == 10\n\ntests/test_inventory.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_inventory.py::test_storefront_reflects_current_inventory - ...\nFAILED tests/test_inventory.py::test_restock_updates_storefront_immediately\nFAILED tests/test_inventory.py::test_storefront_stock_for_valid_warehouse_requests\n============================== 3 failed in 0.06s ===============================\n",
+          "stdoutBytes": 3027,
+          "stdoutTruncated": false,
+          "stderrPreview": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        }
+      }
+    ]
+  },
+  "reconstruction": {
+    "status": "AVAILABLE",
+    "record": {
+      "id": "3ed9104f-55fc-4526-8265-d6a72aedaee2",
+      "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
+      "status": "AVAILABLE",
+      "schemaVersion": 1,
+      "packetBuilderVersion": "evidence-packet-v1",
+      "providerId": "delimit-deterministic",
+      "modelId": "evaluator-reconstruction-deterministic-v3",
+      "providerRequestId": null,
+      "sourceFirstSequence": 1,
+      "sourceLastSequence": 5,
+      "sourceEventCount": 5,
+      "sourcePacketSha256": "8c4696df8d7be20c1afd0a00cc83bd0556d972668505375b6818c17379995718",
+      "finalDiffSha256": "aa3ef7e4199eab809137b22dcb80117abd72db5d4ceef223dd13f4a1851bc4a8",
+      "finalDiffBytes": 366,
+      "content": {
+        "schemaVersion": 1,
+        "statements": [
+          {
+            "id": "stmt_001",
+            "text": "3 tests failed.",
+            "claimBasis": "chronology",
+            "evidenceRefs": [
+              "command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_81cdae66-8c85-4227-8833-f74765da596e"
+            ],
+            "firstEvidenceOrder": 1
+          },
+          {
+            "id": "stmt_002",
+            "text": "Modified `inventory/service.py`.",
+            "claimBasis": "chronology",
+            "evidenceRefs": [
+              "event:1891b6c6-2441-45ee-96c2-ff737272f682:evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1"
+            ],
+            "firstEvidenceOrder": 2
+          },
+          {
+            "id": "stmt_003",
+            "text": "3 tests failed.",
+            "claimBasis": "chronology",
+            "evidenceRefs": [
+              "command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_6c6051ac-050c-472c-adfc-a7f03f723d95"
+            ],
+            "firstEvidenceOrder": 3
+          },
+          {
+            "id": "stmt_004",
+            "text": "Session submitted.",
+            "claimBasis": "chronology",
+            "evidenceRefs": [
+              "session:1891b6c6-2441-45ee-96c2-ff737272f682:submitted"
+            ],
+            "firstEvidenceOrder": 4
+          },
+          {
+            "id": "stmt_005",
+            "text": "The submitted state includes changes to `inventory/service.py`.",
+            "claimBasis": "final_state",
+            "evidenceRefs": [
+              "session:1891b6c6-2441-45ee-96c2-ff737272f682:final-diff"
+            ],
+            "firstEvidenceOrder": 4
+          }
+        ]
+      },
+      "failureCode": null,
+      "failureMessage": null,
+      "attemptCount": 1,
+      "createdAt": "2026-09-16T04:34:18.128Z",
+      "attemptStartedAt": "2026-09-16T04:34:18.128Z",
+      "completedAt": "2026-09-16T04:34:18.133Z",
+      "updatedAt": "2026-09-16T04:34:18.133Z",
+      "generatorVersion": "evaluator-reconstruction-deterministic-v3"
+    },
+    "legacyArtifacts": []
+  }
+}

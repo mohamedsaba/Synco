@@ -7,5 +7,8 @@ Current decisions:
 - [0001 — No candidate scoring](0001-no-candidate-scoring.md)
 - [0002 — Reconstruction, not dashboard](0002-reconstruction-not-dashboard.md)
 - [0003 — AI does not judge](0003-ai-does-not-judge.md)
+- [0004 — Scenario context joins at presentation](0004-scenario-context-joins-at-presentation.md)
+
+- [0005 — Briefing semantics remain presentation-only](0005-briefing-semantics-remain-presentation-only.md)
 
 New records should state status, context, decision, rationale, and consequences. Product-rule changes require a proposed decision before architecture changes.

@@ -1,0 +1,243 @@
+{
+  "caseId": "G",
+  "evidence": {
+    "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+    "scenario": {
+      "id": "scenario-001-cache-staleness",
+      "version": "1.0.0",
+      "title": "Stale storefront inventory after warehouse restock",
+      "brief": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished.",
+      "acceptanceCriteria": [
+        "Storefront inventory reflects completed restocks immediately.",
+        "Equivalent valid warehouse identifiers return consistent inventory.",
+        "Existing inventory reads continue to work.",
+        "Supplied verification suite passes cleanly."
+      ],
+      "filePath": "inventory/service.py",
+      "originalContent": "",
+      "type": "multi_file"
+    },
+    "scenarioType": "multi_file",
+    "activatedAt": "2026-09-16T17:13:30.566Z",
+    "submittedAt": "2026-09-16T17:13:32.309Z",
+    "originalContent": "",
+    "submittedContent": "",
+    "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+    "events": [
+      {
+        "id": "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "sequence": 1,
+        "type": "COMMAND_STARTED",
+        "timestamp": "2026-09-16T17:13:30.875Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+          "command": "pwd",
+          "cwd": "/workspace"
+        }
+      },
+      {
+        "id": "evt_ac2b3f4c-2f62-4403-8107-21df20217156",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "sequence": 2,
+        "type": "COMMAND_FINISHED",
+        "timestamp": "2026-09-16T17:13:30.999Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+          "exitCode": 0,
+          "timedOut": false,
+          "durationMs": 88,
+          "stdoutPreview": "/workspace\n",
+          "stdoutBytes": 11,
+          "stdoutTruncated": false,
+          "stderrPreview": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        }
+      },
+      {
+        "id": "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "sequence": 3,
+        "type": "COMMAND_STARTED",
+        "timestamp": "2026-09-16T17:13:31.329Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+          "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+          "cwd": "/workspace"
+        }
+      },
+      {
+        "id": "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "sequence": 4,
+        "type": "COMMAND_FINISHED",
+        "timestamp": "2026-09-16T17:13:31.444Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+          "exitCode": 0,
+          "timedOut": false,
+          "durationMs": 84,
+          "stdoutPreview": "",
+          "stdoutBytes": 0,
+          "stdoutTruncated": false,
+          "stderrPreview": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        }
+      },
+      {
+        "id": "evt_52b356c2-7928-4e35-8513-106b70342f4a",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "sequence": 5,
+        "type": "WORKSPACE_CHANGED",
+        "timestamp": "2026-09-16T17:13:31.655Z",
+        "source": "server",
+        "payload": {
+          "changeId": "chg_afc6d6e1-b3fd-4d2f-a869-99a74abaf878",
+          "origin": "command_execution",
+          "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+          "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+          "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+          "files": [
+            {
+              "path": "inventory/service.py",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 0,
+              "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+              "patchPreviewBytes": 342,
+              "patchBytes": 342,
+              "patchTruncated": false
+            }
+          ],
+          "totalAdditions": 1,
+          "totalDeletions": 0
+        }
+      },
+      {
+        "id": "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "sequence": 6,
+        "type": "COMMAND_STARTED",
+        "timestamp": "2026-09-16T17:13:31.780Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+          "command": "cat inventory/service.py",
+          "cwd": "/workspace"
+        }
+      },
+      {
+        "id": "evt_5c259c70-f39d-432f-a6ba-acccef9630f0",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "sequence": 7,
+        "type": "COMMAND_FINISHED",
+        "timestamp": "2026-09-16T17:13:31.897Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+          "exitCode": 0,
+          "timedOut": false,
+          "durationMs": 83,
+          "stdoutPreview": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+          "stdoutBytes": 1206,
+          "stdoutTruncated": false,
+          "stderrPreview": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        }
+      }
+    ]
+  },
+  "record": {
+    "id": "405c1ad8-b260-435f-88b3-f861521d908d",
+    "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+    "status": "AVAILABLE",
+    "schemaVersion": 1,
+    "promptVersion": "evaluator-reconstruction-deterministic-v3",
+    "packetBuilderVersion": "evidence-packet-v1",
+    "providerId": "delimit-deterministic",
+    "modelId": "evaluator-reconstruction-deterministic-v3",
+    "providerRequestId": null,
+    "sourceFirstSequence": 1,
+    "sourceLastSequence": 7,
+    "sourceEventCount": 7,
+    "sourcePacketSha256": "058449d8e1b3b77210dffb36d9eb7e4a292f7e1cdab5fbfeeca04fc389e9a358",
+    "finalDiffSha256": "3e8372f399ce28efd7abab83d50bc9148e44442f85eb6e21fdf13849c2693921",
+    "finalDiffBytes": 342,
+    "content": {
+      "schemaVersion": 1,
+      "statements": [
+        {
+          "id": "stmt_001",
+          "text": "Modified `inventory/service.py`.",
+          "claimBasis": "chronology",
+          "evidenceRefs": [
+            "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a"
+          ],
+          "firstEvidenceOrder": 3
+        },
+        {
+          "id": "stmt_002",
+          "text": "A recorded command exited with status 0.",
+          "claimBasis": "chronology",
+          "evidenceRefs": [
+            "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846"
+          ],
+          "firstEvidenceOrder": 4
+        },
+        {
+          "id": "stmt_003",
+          "text": "Session submitted.",
+          "claimBasis": "chronology",
+          "evidenceRefs": [
+            "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted"
+          ],
+          "firstEvidenceOrder": 5
+        },
+        {
+          "id": "stmt_004",
+          "text": "The submitted state includes changes to `inventory/service.py`.",
+          "claimBasis": "final_state",
+          "evidenceRefs": [
+            "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff"
+          ],
+          "firstEvidenceOrder": 5
+        }
+      ]
+    },
+    "failureCode": null,
+    "failureMessage": null,
+    "attemptCount": 1,
+    "attemptToken": "97232061-444f-4366-a882-d78b61b354af",
+    "createdAt": "2026-09-16T17:13:32.634Z",
+    "attemptStartedAt": "2026-09-16T17:13:32.634Z",
+    "completedAt": "2026-09-16T17:13:32.638Z",
+    "updatedAt": "2026-09-16T17:13:32.638Z"
+  },
+  "sessionRow": {
+    "id": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+    "candidate_token_hash": "79212fa0b33ecde0bdad8b236e521957441c2b5d4413302f0cd17c6f20dc5cbb",
+    "scenario_id": "scenario-001-cache-staleness",
+    "scenario_version": "1.0.0",
+    "scenario_title": "Stale storefront inventory after warehouse restock",
+    "scenario_brief": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished.",
+    "acceptance_criteria": "[\"Storefront inventory reflects completed restocks immediately.\",\"Equivalent valid warehouse identifiers return consistent inventory.\",\"Existing inventory reads continue to work.\",\"Supplied verification suite passes cleanly.\"]",
+    "file_path": "inventory/service.py",
+    "original_content": "",
+    "status": "SUBMITTED",
+    "working_content": "",
+    "submitted_content": "",
+    "created_at": "2026-09-16T17:13:29.819Z",
+    "activated_at": "2026-09-16T17:13:30.566Z",
+    "submitted_at": "2026-09-16T17:13:32.309Z",
+    "scenario_type": "multi_file",
+    "submitted_diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+    "scenario_evaluation_context": null
+  }
+}

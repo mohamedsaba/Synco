@@ -1,3 +1,4 @@
+import { cloneScenarioSemanticSnapshot } from '../scenarios/scenario-semantic-snapshot';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import path from 'node:path';
 
@@ -14,6 +15,7 @@ import {
   SandboxError,
 } from '../sandbox/sandbox';
 import { scenario001 } from '../scenarios/scenario-001';
+import { cloneScenarioEvaluationContext } from '../scenarios/scenario-evaluation-context';
 import { sliceOneScenario } from '../scenarios/slice-one-scenario';
 import {
   type AssessmentSession,
@@ -148,7 +150,16 @@ export class SessionService {
     const session: AssessmentSession = {
       id: this.createId(),
       candidateTokenHash: hashCandidateToken(candidateToken),
-      scenario: { ...scenario, originalContent },
+      scenario: {
+        ...scenario,
+        originalContent,
+        semanticSnapshot: cloneScenarioSemanticSnapshot(
+          scenario.semanticSnapshot,
+        ),
+        evaluationContext: cloneScenarioEvaluationContext(
+          scenario.evaluationContext,
+        ),
+      },
       status: 'CREATED',
       workingContent: originalContent,
       submittedContent: null,

@@ -1,3 +1,7 @@
+import {
+  cloneScenarioSemanticSnapshot,
+  decodeStoredSemanticSnapshot,
+} from '../scenarios/scenario-semantic-snapshot';
 import Database from 'better-sqlite3';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
@@ -29,6 +33,8 @@ type SessionRow = Readonly<{
   submitted_at: string | null;
   scenario_type: 'single_file' | 'multi_file' | null;
   submitted_diff: string | null;
+  scenario_evaluation_context: string | null;
+  scenario_semantic_snapshot: string | null;
 }>;
 
 const schema = `
@@ -49,7 +55,9 @@ const schema = `
     activated_at TEXT,
     submitted_at TEXT,
     scenario_type TEXT DEFAULT 'single_file',
-    submitted_diff TEXT
+    submitted_diff TEXT,
+    scenario_evaluation_context TEXT,
+    scenario_semantic_snapshot TEXT
   );
 `;
 
@@ -64,7 +72,21 @@ const toSession = (row: SessionRow): AssessmentSession => ({
     acceptanceCriteria: JSON.parse(row.acceptance_criteria) as string[],
     filePath: row.file_path,
     originalContent: row.original_content,
+    ...(row.scenario_semantic_snapshot
+      ? {
+          semanticSnapshot: decodeStoredSemanticSnapshot(
+            row.scenario_semantic_snapshot,
+          ),
+        }
+      : {}),
     type: row.scenario_type ?? 'single_file',
+    ...(row.scenario_evaluation_context
+      ? {
+          evaluationContext: JSON.parse(
+            row.scenario_evaluation_context,
+          ) as AssessmentSession['scenario']['evaluationContext'],
+        }
+      : {}),
   },
   status: row.status,
   workingContent: row.working_content,
@@ -87,8 +109,9 @@ export class SqliteSessionStore {
             id, candidate_token_hash, scenario_id, scenario_version,
             scenario_title, scenario_brief, acceptance_criteria, file_path,
             original_content, status, working_content, submitted_content,
-            created_at, activated_at, submitted_at, scenario_type, submitted_diff
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            created_at, activated_at, submitted_at, scenario_type, submitted_diff,
+            scenario_evaluation_context, scenario_semantic_snapshot
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           session.id,
@@ -108,6 +131,16 @@ export class SqliteSessionStore {
           session.submittedAt,
           session.scenarioType ?? session.scenario.type ?? 'single_file',
           session.submittedDiff ?? null,
+          session.scenario.evaluationContext
+            ? JSON.stringify(session.scenario.evaluationContext)
+            : null,
+          session.scenario.semanticSnapshot === undefined
+            ? null
+            : JSON.stringify(
+                cloneScenarioSemanticSnapshot(
+                  session.scenario.semanticSnapshot,
+                ),
+              ),
         );
 
       return session;
@@ -209,20 +242,27 @@ export class SqliteSessionStore {
     const database = new Database(this.databasePath);
     database.pragma('journal_mode = WAL');
     database.pragma('busy_timeout = 5000');
-    database.exec(schema);
-
     try {
-      database.exec(
-        "ALTER TABLE assessment_sessions ADD COLUMN scenario_type TEXT DEFAULT 'single_file'",
-      );
-    } catch {}
-    try {
-      database.exec(
-        'ALTER TABLE assessment_sessions ADD COLUMN submitted_diff TEXT',
-      );
-    } catch {}
-
-    try {
+      const migrate = database.transaction(() => {
+        database.exec(schema);
+        const columns = database
+          .prepare('PRAGMA table_info(assessment_sessions)')
+          .all() as Array<{ name: string }>;
+        const additions = [
+          ['scenario_type', "TEXT DEFAULT 'single_file'"],
+          ['submitted_diff', 'TEXT'],
+          ['scenario_evaluation_context', 'TEXT'],
+          ['scenario_semantic_snapshot', 'TEXT'],
+        ] as const;
+        for (const [name, definition] of additions) {
+          if (!columns.some((column) => column.name === name)) {
+            database.exec(
+              `ALTER TABLE assessment_sessions ADD COLUMN ${name} ${definition}`,
+            );
+          }
+        }
+      });
+      migrate.immediate();
       return operation(database);
     } finally {
       database.close();

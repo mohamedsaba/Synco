@@ -1,0 +1,558 @@
+[
+  {
+    "caseId": "A",
+    "sessionId": "2faecab5-189d-49a0-8e24-4c9a128c3442",
+    "source": "evaluator-gate-fixtures.test.ts: applyCompleteFix/resetAndVerify",
+    "authoritativeEvents": [
+      {
+        "sequence": 1,
+        "id": "evt_db8fdcef-0443-4663-8916-c7fbfdead197",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 2,
+        "id": "evt_cf80ea4e-a3e7-4621-bda0-80b07a52eff4",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 3,
+        "id": "evt_0964edcc-128f-4bbd-8971-262e6a13cda2",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 4,
+        "id": "evt_3e6a9090-0e48-456f-ac92-566302a87afd",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 5,
+        "id": "evt_22dbe1ba-efa2-4302-9a13-45982d7b0b1e",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 6,
+        "id": "evt_42105923-eabc-4ac4-9157-bb0dceeb9275",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 7,
+        "id": "evt_7460fb6f-432d-44cd-b88c-6523180a25c6",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 8,
+        "id": "evt_6808a466-a93a-492c-9f88-d6208707b3f1",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 9,
+        "id": "evt_9fc8a2d5-fbd6-4a8b-b61b-ad2d4bb2d8e6",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 10,
+        "id": "evt_fbe07647-aa50-4ad8-aedf-a45290d73137",
+        "type": "COMMAND_FINISHED"
+      }
+    ],
+    "submittedDiffSha256": "b958bc43b4bbe9fbaa2e5861ab1b630e094c3f4c9465419f6cc0c6e3cbb4e641",
+    "generatorVersion": "evaluator-reconstruction-deterministic-v3",
+    "testSummaries": ["3 passed"],
+    "expectedSections": [
+      "What this scenario examines",
+      "What happened",
+      "Submitted changes",
+      "Recorded activity"
+    ],
+    "limitations": [
+      "Final passing verification follows the existing explicit Redis reset/reseed helper; it does not establish a hiring verdict."
+    ]
+  },
+  {
+    "caseId": "B",
+    "sessionId": "340d4432-e24f-4fc8-ac94-51d3a265a879",
+    "source": "scenario-acceptance-histories.ts: C",
+    "authoritativeEvents": [
+      {
+        "sequence": 1,
+        "id": "evt_952f07a8-0eac-42df-b055-254aa186d082",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 2,
+        "id": "evt_33136d86-3052-4f9a-a556-aecd60970fe2",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 3,
+        "id": "evt_713ffdd8-0014-4b05-b670-5cf500f3297e",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 4,
+        "id": "evt_cf1473b8-c057-4b40-ac3a-119e033e1271",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 5,
+        "id": "evt_0c0f78c6-f03a-4acb-bb21-5a24e24eda86",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 6,
+        "id": "evt_a72fcda3-8742-4122-a67a-0f30d1880f81",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 7,
+        "id": "evt_a61ad4f2-6d02-4d83-8584-909954a2e939",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 8,
+        "id": "evt_5a45fb5c-ccc7-4b21-b971-d31e1df8ca5b",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 9,
+        "id": "evt_d6d4688e-280f-480d-867f-b9b7858daea1",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 10,
+        "id": "evt_f852c786-4300-49f2-bbd8-2a8a723703e4",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 11,
+        "id": "evt_85a9c7b7-82ec-4b6d-bda9-de3a5ef81e5d",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 12,
+        "id": "evt_56e069af-eda0-4047-b185-bb0b926420ff",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 13,
+        "id": "evt_04e0ee1d-de76-4723-af54-bc6f7a0e5ed1",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 14,
+        "id": "evt_31ee59a2-798c-4e9d-9eda-4890fdc663ab",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 15,
+        "id": "evt_417e7e2b-af5d-41f3-bedf-f78c427d6a3d",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 16,
+        "id": "evt_2d844971-d581-4ac4-a803-16074584b18a",
+        "type": "COMMAND_FINISHED"
+      }
+    ],
+    "submittedDiffSha256": "b958bc43b4bbe9fbaa2e5861ab1b630e094c3f4c9465419f6cc0c6e3cbb4e641",
+    "generatorVersion": "evaluator-reconstruction-deterministic-v3",
+    "testSummaries": ["3 failed", "3 passed"],
+    "expectedSections": [
+      "What this scenario examines",
+      "What happened",
+      "Submitted changes",
+      "Recorded activity"
+    ],
+    "limitations": [
+      "Final passing verification follows the existing explicit Redis reset/reseed helper; it does not establish a hiring verdict."
+    ]
+  },
+  {
+    "caseId": "C",
+    "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
+    "source": "scenario-acceptance-histories.ts: B",
+    "authoritativeEvents": [
+      {
+        "sequence": 1,
+        "id": "evt_ff602f96-3cf3-4121-a871-a15bba6a19f1",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 2,
+        "id": "evt_7a492a83-d4e0-4fb9-aa0b-e2bcece3e731",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 3,
+        "id": "evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 4,
+        "id": "evt_cc4bc3fe-737b-4461-a892-a14cbc138e71",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 5,
+        "id": "evt_a7cbdda1-1089-410c-96f3-fb91fb5e1e3c",
+        "type": "COMMAND_FINISHED"
+      }
+    ],
+    "submittedDiffSha256": "aa3ef7e4199eab809137b22dcb80117abd72db5d4ceef223dd13f4a1851bc4a8",
+    "generatorVersion": "evaluator-reconstruction-deterministic-v3",
+    "testSummaries": ["3 failed", "3 failed"],
+    "expectedSections": [
+      "What this scenario examines",
+      "What happened",
+      "Submitted changes",
+      "Recorded activity"
+    ],
+    "limitations": [
+      "No test-count improvement; partial invalidation remains unresolved"
+    ]
+  },
+  {
+    "caseId": "D",
+    "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+    "source": "evaluator-gate-fixtures.test.ts: write-through alternative",
+    "authoritativeEvents": [
+      {
+        "sequence": 1,
+        "id": "evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 2,
+        "id": "evt_f85ce160-755b-4154-8839-a261618ea87f",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 3,
+        "id": "evt_58b4c00d-9ea5-4fa5-954d-db375d42e2bc",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 4,
+        "id": "evt_1d479d99-255e-4554-9532-f213edd82bbc",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 5,
+        "id": "evt_5b623115-cdc5-4b31-872b-eb0821f2a200",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 6,
+        "id": "evt_a3480900-bf9f-468b-b716-25afd4233474",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 7,
+        "id": "evt_65415834-b5a8-4d08-aed8-cd3c9e173451",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 8,
+        "id": "evt_ae037428-c334-4c8d-8b51-2f2351e667a4",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 9,
+        "id": "evt_97d8226e-a1e0-45bf-bd0b-1de06292a6e6",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 10,
+        "id": "evt_3f291422-036a-4bed-99e7-6e79bc9b5aa5",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 11,
+        "id": "evt_c515f94f-d78e-4ed6-bd65-c156fedd8d67",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 12,
+        "id": "evt_99bb107c-a770-487b-a0a1-358bdcaefce0",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 13,
+        "id": "evt_f74ccf49-f0e0-4887-b205-e4e71765ba40",
+        "type": "COMMAND_FINISHED"
+      }
+    ],
+    "submittedDiffSha256": "39772dae7cfa5525ca1397e859f67d41986e0aaace4aa300edd4f92f6fc93668",
+    "generatorVersion": "evaluator-reconstruction-deterministic-v3",
+    "testSummaries": ["3 passed", "3 passed"],
+    "expectedSections": [
+      "What this scenario examines",
+      "What happened",
+      "Submitted changes",
+      "Recorded activity"
+    ],
+    "limitations": [
+      "Write-through assumes available Redis and serial operations; concurrent stale refill and external DB writers not validated"
+    ]
+  },
+  {
+    "caseId": "E",
+    "sessionId": "bcbc722f-7f1e-41eb-b86a-24f7882781ea",
+    "source": "scenario-acceptance-histories.ts: D",
+    "authoritativeEvents": [
+      {
+        "sequence": 1,
+        "id": "evt_3d1d12c6-001b-4adf-ac81-27de3a8634cc",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 2,
+        "id": "evt_1911166b-f0b1-4752-8a76-1880f123d9fe",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 3,
+        "id": "evt_7455a827-4dc6-4a35-a98a-909085e906d8",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 4,
+        "id": "evt_7f2bc27a-097f-4445-9907-c1485897feb0",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 5,
+        "id": "evt_0c14b333-2d05-49b6-ab25-89c95f7b3024",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 6,
+        "id": "evt_0a7917e4-68f8-499a-8143-720489c09c4f",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 7,
+        "id": "evt_668d8aed-d1e9-4af9-b049-a45fbf0dc70e",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 8,
+        "id": "evt_3b8b270f-e0a3-4138-b4cf-59bb7d0b89c4",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 9,
+        "id": "evt_fec6bbfe-d192-411d-b095-e8647acdd87e",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 10,
+        "id": "evt_c6827468-4865-4c25-b5e8-bf7d3076f8cf",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 11,
+        "id": "evt_40e9d2f5-60ce-4a26-8ca7-c93bc9fb6016",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 12,
+        "id": "evt_10ac3041-eee5-4acc-9fee-9ac388649963",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 13,
+        "id": "evt_8bb30875-c14d-4910-a8aa-374a15966686",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 14,
+        "id": "evt_c3f38fa2-eb41-4e87-9e26-9b46fdf02a1e",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 15,
+        "id": "evt_841ff3c3-50ea-4abe-84a3-eb21bda6bfa9",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 16,
+        "id": "evt_b223f4b8-77ce-41a5-bb9a-d6f7a3512231",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 17,
+        "id": "evt_70181bc5-ad0a-4537-97c5-3fb561256f62",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 18,
+        "id": "evt_c5e40df9-9d1d-4eb3-b41a-9fbeb5304c2f",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 19,
+        "id": "evt_1203337d-511c-4289-9091-0a52473ad99c",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 20,
+        "id": "evt_1c353491-c619-4576-8b20-ba634e04d9ae",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 21,
+        "id": "evt_535d5482-34e4-49be-99a9-53f9a3db09d0",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 22,
+        "id": "evt_38dd2d67-2ba5-42a1-99a4-b1f88745db1c",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 23,
+        "id": "evt_2fa4212d-20b1-40e4-bf3d-94a9765df765",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 24,
+        "id": "evt_04c62cc5-291b-4143-9f07-1d728d398454",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 25,
+        "id": "evt_e775fbf9-3a1e-42b6-8a15-d8d71db11f08",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 26,
+        "id": "evt_3dc512cd-d4c7-491a-96a2-0379eff5fe2f",
+        "type": "COMMAND_FINISHED"
+      }
+    ],
+    "submittedDiffSha256": "b958bc43b4bbe9fbaa2e5861ab1b630e094c3f4c9465419f6cc0c6e3cbb4e641",
+    "generatorVersion": "evaluator-reconstruction-deterministic-v3",
+    "testSummaries": ["3 failed", "3 failed", "1 failed, 2 passed", "3 passed"],
+    "expectedSections": [
+      "What this scenario examines",
+      "What happened",
+      "Submitted changes",
+      "Recorded activity"
+    ],
+    "limitations": [
+      "Final passing verification follows the existing explicit Redis reset/reseed helper; it does not establish a hiring verdict."
+    ]
+  },
+  {
+    "caseId": "F",
+    "sessionId": "72b2de14-8035-4df2-a3cc-1457cfe07811",
+    "source": "evaluator-gate-fixtures.test.ts: injected adapter outage",
+    "authoritativeEvents": [
+      {
+        "sequence": 1,
+        "id": "evt_5a801bfe-0fb7-4406-bc89-8263509560ad",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 2,
+        "id": "evt_093ee465-3f78-4e62-8a1e-516cd4b1f0f4",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 3,
+        "id": "evt_e6837c1f-9419-4e6c-b86f-c2926d268c28",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 4,
+        "id": "evt_539e7beb-ba08-4375-9bfc-d0ec9efeaae4",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 5,
+        "id": "evt_a0773275-493b-4e34-a9f6-78bec0eef6ad",
+        "type": "WORKSPACE_CAPTURE_FAILED"
+      },
+      {
+        "sequence": 6,
+        "id": "evt_99e460b1-a0af-4d9d-a59b-6410e6db18e0",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 7,
+        "id": "evt_ffdc53d0-284b-4489-9124-4c18d379d395",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 8,
+        "id": "evt_eb49268c-0d46-481e-bd71-12914fde6394",
+        "type": "COMMAND_FINISHED"
+      }
+    ],
+    "submittedDiffSha256": "3e8372f399ce28efd7abab83d50bc9148e44442f85eb6e21fdf13849c2693921",
+    "generatorVersion": "evaluator-reconstruction-deterministic-v3",
+    "testSummaries": [],
+    "expectedSections": [
+      "What this scenario examines",
+      "What happened",
+      "Submitted changes",
+      "Recorded activity"
+    ],
+    "limitations": [
+      "Explicit test adapter outage; intermediate workspace capture incomplete; no task fix"
+    ]
+  },
+  {
+    "caseId": "G",
+    "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+    "source": "evaluator-gate-fixtures.test.ts: legacy schema migration",
+    "authoritativeEvents": [
+      {
+        "sequence": 1,
+        "id": "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 2,
+        "id": "evt_ac2b3f4c-2f62-4403-8107-21df20217156",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 3,
+        "id": "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 4,
+        "id": "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4",
+        "type": "COMMAND_FINISHED"
+      },
+      {
+        "sequence": 5,
+        "id": "evt_52b356c2-7928-4e35-8513-106b70342f4a",
+        "type": "WORKSPACE_CHANGED"
+      },
+      {
+        "sequence": 6,
+        "id": "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+        "type": "COMMAND_STARTED"
+      },
+      {
+        "sequence": 7,
+        "id": "evt_5c259c70-f39d-432f-a6ba-acccef9630f0",
+        "type": "COMMAND_FINISHED"
+      }
+    ],
+    "submittedDiffSha256": "3e8372f399ce28efd7abab83d50bc9148e44442f85eb6e21fdf13849c2693921",
+    "generatorVersion": "evaluator-reconstruction-deterministic-v3",
+    "testSummaries": [],
+    "expectedSections": [
+      "What this scenario examines",
+      "What happened",
+      "Submitted changes",
+      "Recorded activity"
+    ],
+    "limitations": ["Legacy context intentionally absent; no task fix"]
+  }
+]

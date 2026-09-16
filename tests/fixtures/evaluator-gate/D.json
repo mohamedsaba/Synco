@@ -1,0 +1,399 @@
+{
+  "caseId": "D",
+  "evidence": {
+    "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+    "scenario": {
+      "id": "scenario-001-cache-staleness",
+      "version": "1.0.0",
+      "title": "Stale storefront inventory after warehouse restock",
+      "brief": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished.",
+      "acceptanceCriteria": [
+        "Storefront inventory reflects completed restocks immediately.",
+        "Equivalent valid warehouse identifiers return consistent inventory.",
+        "Existing inventory reads continue to work.",
+        "Supplied verification suite passes cleanly."
+      ],
+      "filePath": "inventory/service.py",
+      "originalContent": "",
+      "type": "multi_file",
+      "evaluationContext": {
+        "schemaVersion": 1,
+        "version": "1.0.0",
+        "purpose": "Examine recorded work around a stale storefront inventory incident while keeping investigation path, task outcome, and evaluator judgment separate.",
+        "evidenceAreas": [
+          {
+            "id": "inventory-behavior",
+            "title": "Inventory behavior and submitted changes",
+            "description": "Recorded workspace and submitted-state evidence related to the inventory service and its behavior.",
+            "selectors": [
+              {
+                "kind": "workspace_path_prefix",
+                "prefixes": ["inventory/", "tests/"]
+              },
+              {
+                "kind": "submitted_path_prefix",
+                "prefixes": ["inventory/", "tests/"]
+              }
+            ]
+          },
+          {
+            "id": "recorded-verification",
+            "title": "Recorded verification progression",
+            "description": "Authoritative test summaries recorded at different points in the assessment.",
+            "selectors": [
+              {
+                "kind": "verification_result"
+              }
+            ]
+          }
+        ],
+        "systemInvariants": [
+          "PostgreSQL is the source of truth for inventory quantity.",
+          "Storefront reads may use cached values, so submitted changes should be reviewed in the context of cache behavior."
+        ],
+        "verificationTargets": [
+          "Whether recorded verification addresses recent inventory updates.",
+          "Whether recorded verification includes equivalent valid warehouse identifiers where evidence is available.",
+          "Whether existing inventory reads remain represented in the recorded verification evidence."
+        ],
+        "interpretationWarnings": [
+          "Related evidence identifies recorded activity associated with a scenario area; it does not establish task success or candidate competence.",
+          "A failing test or command can be valid investigative activity and is not a candidate verdict.",
+          "Not observed means Delimit recorded no evidence of that activity in the captured assessment environment. It does not mean the candidate lacks the underlying capability."
+        ],
+        "reviewPolicy": [
+          "Final automated verification alone is not a hiring decision for this assessment. Engineering review is required before technical rejection."
+        ]
+      }
+    },
+    "scenarioType": "multi_file",
+    "activatedAt": "2026-09-16T17:13:16.989Z",
+    "submittedAt": "2026-09-16T17:13:22.034Z",
+    "originalContent": "",
+    "submittedContent": "",
+    "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..f988329 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -1,27 +1,23 @@\n from inventory.db import query_one, execute\n-from inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n+from inventory.cache import get_cached_stock, set_cached_stock, normalize_storefront_warehouse\n \n def get_stock(warehouse_id: str, product_id: str) -> int:\n-    # 1. Check storefront cache\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     cached = get_cached_stock(warehouse_id, product_id)\n     if cached is not None:\n         return cached\n-\n-    # 2. Cache miss -> query authoritative database\n     row = query_one(\n         \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n         (warehouse_id, product_id)\n     )\n     if not row:\n         return 0\n-\n     quantity = int(row[\"quantity\"])\n-    # 3. Cache for subsequent reads\n     set_cached_stock(warehouse_id, product_id, quantity)\n     return quantity\n \n def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n-    # Update authoritative database record\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     execute(\n         \"\"\"\n         INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n@@ -31,3 +27,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+    set_cached_stock(warehouse_id, product_id, new_quantity)\n",
+    "events": [
+      {
+        "id": "evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 1,
+        "type": "WORKSPACE_CHANGED",
+        "timestamp": "2026-09-16T17:13:17.690Z",
+        "source": "server",
+        "payload": {
+          "changeId": "chg_425730e9-377d-4fd6-afcf-ffad243bc9d9",
+          "origin": "browser_save",
+          "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+          "afterTree": "7493e997b435d39949adf776ddb9a50c5bcea5de",
+          "files": [
+            {
+              "path": "inventory/service.py",
+              "status": "modified",
+              "additions": 4,
+              "deletions": 7,
+              "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..f988329 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -1,27 +1,23 @@\n from inventory.db import query_one, execute\n-from inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n+from inventory.cache import get_cached_stock, set_cached_stock, normalize_storefront_warehouse\n \n def get_stock(warehouse_id: str, product_id: str) -> int:\n-    # 1. Check storefront cache\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     cached = get_cached_stock(warehouse_id, product_id)\n     if cached is not None:\n         return cached\n-\n-    # 2. Cache miss -> query authoritative database\n     row = query_one(\n         \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n         (warehouse_id, product_id)\n     )\n     if not row:\n         return 0\n-\n     quantity = int(row[\"quantity\"])\n-    # 3. Cache for subsequent reads\n     set_cached_stock(warehouse_id, product_id, quantity)\n     return quantity\n \n def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n-    # Update authoritative database record\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     execute(\n         \"\"\"\n         INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n@@ -31,3 +27,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+    set_cached_stock(warehouse_id, product_id, new_quantity)\n",
+              "patchPreviewBytes": 1601,
+              "patchBytes": 1601,
+              "patchTruncated": false
+            }
+          ],
+          "totalAdditions": 4,
+          "totalDeletions": 7
+        }
+      },
+      {
+        "id": "evt_f85ce160-755b-4154-8839-a261618ea87f",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 2,
+        "type": "COMMAND_STARTED",
+        "timestamp": "2026-09-16T17:13:17.821Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_217db507-e43f-4529-97d9-734799ee3e73",
+          "command": "redis-cli flushall",
+          "cwd": "/workspace"
+        }
+      },
+      {
+        "id": "evt_58b4c00d-9ea5-4fa5-954d-db375d42e2bc",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 3,
+        "type": "COMMAND_FINISHED",
+        "timestamp": "2026-09-16T17:13:17.938Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_217db507-e43f-4529-97d9-734799ee3e73",
+          "exitCode": 0,
+          "timedOut": false,
+          "durationMs": 82,
+          "stdoutPreview": "OK\n",
+          "stdoutBytes": 3,
+          "stdoutTruncated": false,
+          "stderrPreview": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        }
+      },
+      {
+        "id": "evt_1d479d99-255e-4554-9532-f213edd82bbc",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 4,
+        "type": "COMMAND_STARTED",
+        "timestamp": "2026-09-16T17:13:18.185Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
+          "command": "python3 /workspace/scripts/seed_data.py",
+          "cwd": "/workspace"
+        }
+      },
+      {
+        "id": "evt_5b623115-cdc5-4b31-872b-eb0821f2a200",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 5,
+        "type": "COMMAND_FINISHED",
+        "timestamp": "2026-09-16T17:13:18.544Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
+          "exitCode": 0,
+          "timedOut": false,
+          "durationMs": 326,
+          "stdoutPreview": "PostgreSQL initialized and seeded: WH-EAST-01 PROD-1001 quantity=150\nRedis seeded: stock:wh-east-01:PROD-1001 -> 0\n",
+          "stdoutBytes": 115,
+          "stdoutTruncated": false,
+          "stderrPreview": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        }
+      },
+      {
+        "id": "evt_a3480900-bf9f-468b-b716-25afd4233474",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 6,
+        "type": "COMMAND_STARTED",
+        "timestamp": "2026-09-16T17:13:18.799Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
+          "command": "redis-cli del \"stock:wh-east-01:PROD-1001\"",
+          "cwd": "/workspace"
+        }
+      },
+      {
+        "id": "evt_65415834-b5a8-4d08-aed8-cd3c9e173451",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 7,
+        "type": "COMMAND_FINISHED",
+        "timestamp": "2026-09-16T17:13:18.916Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
+          "exitCode": 0,
+          "timedOut": false,
+          "durationMs": 84,
+          "stdoutPreview": "1\n",
+          "stdoutBytes": 2,
+          "stdoutTruncated": false,
+          "stderrPreview": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        }
+      },
+      {
+        "id": "evt_ae037428-c334-4c8d-8b51-2f2351e667a4",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 8,
+        "type": "COMMAND_STARTED",
+        "timestamp": "2026-09-16T17:13:19.156Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_3fbd7bc8-e1b7-4eb7-a510-8b3d2cd925e2",
+          "command": "pytest",
+          "cwd": "/workspace"
+        }
+      },
+      {
+        "id": "evt_97d8226e-a1e0-45bf-bd0b-1de06292a6e6",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 9,
+        "type": "COMMAND_FINISHED",
+        "timestamp": "2026-09-16T17:13:19.950Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_3fbd7bc8-e1b7-4eb7-a510-8b3d2cd925e2",
+          "exitCode": 0,
+          "timedOut": false,
+          "durationMs": 765,
+          "stdoutPreview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.13, pytest-8.2.2, pluggy-1.5.0\nrootdir: /workspace\ncollected 3 items\n\ntests/test_inventory.py ...                                              [100%]\n\n============================== 3 passed in 0.07s ===============================\n",
+          "stdoutBytes": 343,
+          "stdoutTruncated": false,
+          "stderrPreview": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        }
+      },
+      {
+        "id": "evt_3f291422-036a-4bed-99e7-6e79bc9b5aa5",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 10,
+        "type": "COMMAND_STARTED",
+        "timestamp": "2026-09-16T17:13:20.201Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_e90a3088-118f-4395-9788-66efb6c80702",
+          "command": "python3 -c 'from inventory.service import get_stock, update_stock; from inventory.cache import get_cached_stock; from inventory.db import query_one; update_stock(\"  wh_gate_01  \", \"GATE-A\", 17); assert get_stock(\"WH-GATE-01\", \"GATE-A\") == 17; update_stock(\"wh-gate-01\", \"GATE-A\", 0); assert get_stock(\"WH_GATE_01\", \"GATE-A\") == 0; assert get_cached_stock(\"WH-GATE-01\", \"GATE-A\") == 0; update_stock(\"WH-GATE-01\", \"GATE-B\", 29); assert get_stock(\"WH-GATE-01\", \"GATE-A\") == 0; assert get_stock(\"WH-GATE-01\", \"GATE-B\") == 29; assert get_stock(\"WH-GATE-01\", \"MISSING\") == 0; assert query_one(\"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\", (\"WH-GATE-01\", \"GATE-B\"))[\"quantity\"] == 29; print(\"Additional invariant checks passed\")'",
+          "cwd": "/workspace"
+        }
+      },
+      {
+        "id": "evt_c515f94f-d78e-4ed6-bd65-c156fedd8d67",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 11,
+        "type": "COMMAND_FINISHED",
+        "timestamp": "2026-09-16T17:13:20.607Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_e90a3088-118f-4395-9788-66efb6c80702",
+          "exitCode": 0,
+          "timedOut": false,
+          "durationMs": 374,
+          "stdoutPreview": "Additional invariant checks passed\n",
+          "stdoutBytes": 35,
+          "stdoutTruncated": false,
+          "stderrPreview": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        }
+      },
+      {
+        "id": "evt_99bb107c-a770-487b-a0a1-358bdcaefce0",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 12,
+        "type": "COMMAND_STARTED",
+        "timestamp": "2026-09-16T17:13:20.851Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252",
+          "command": "pytest",
+          "cwd": "/workspace"
+        }
+      },
+      {
+        "id": "evt_f74ccf49-f0e0-4887-b205-e4e71765ba40",
+        "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+        "sequence": 13,
+        "type": "COMMAND_FINISHED",
+        "timestamp": "2026-09-16T17:13:21.611Z",
+        "source": "server",
+        "payload": {
+          "commandId": "cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252",
+          "exitCode": 0,
+          "timedOut": false,
+          "durationMs": 731,
+          "stdoutPreview": "============================= test session starts ==============================\nplatform linux -- Python 3.12.13, pytest-8.2.2, pluggy-1.5.0\nrootdir: /workspace\ncollected 3 items\n\ntests/test_inventory.py ...                                              [100%]\n\n============================== 3 passed in 0.05s ===============================\n",
+          "stdoutBytes": 343,
+          "stdoutTruncated": false,
+          "stderrPreview": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        }
+      }
+    ]
+  },
+  "record": {
+    "id": "ab356865-9114-4858-b067-c9a990cde7b2",
+    "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+    "status": "AVAILABLE",
+    "schemaVersion": 1,
+    "promptVersion": "evaluator-reconstruction-deterministic-v3",
+    "packetBuilderVersion": "evidence-packet-v1",
+    "providerId": "delimit-deterministic",
+    "modelId": "evaluator-reconstruction-deterministic-v3",
+    "providerRequestId": null,
+    "sourceFirstSequence": 1,
+    "sourceLastSequence": 13,
+    "sourceEventCount": 13,
+    "sourcePacketSha256": "34b8b9a7f9a2039d9b225fa39200ef9c5b98787c96301b496c190fed86047fc5",
+    "finalDiffSha256": "39772dae7cfa5525ca1397e859f67d41986e0aaace4aa300edd4f92f6fc93668",
+    "finalDiffBytes": 1601,
+    "content": {
+      "schemaVersion": 1,
+      "statements": [
+        {
+          "id": "stmt_001",
+          "text": "Modified `inventory/service.py`.",
+          "claimBasis": "chronology",
+          "evidenceRefs": [
+            "event:ddd5ad93-4144-407e-a11f-5934044ebcfa:evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2"
+          ],
+          "firstEvidenceOrder": 1
+        },
+        {
+          "id": "stmt_002",
+          "text": "3 tests passed.",
+          "claimBasis": "chronology",
+          "evidenceRefs": [
+            "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_3fbd7bc8-e1b7-4eb7-a510-8b3d2cd925e2"
+          ],
+          "firstEvidenceOrder": 5
+        },
+        {
+          "id": "stmt_003",
+          "text": "3 tests passed.",
+          "claimBasis": "chronology",
+          "evidenceRefs": [
+            "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252"
+          ],
+          "firstEvidenceOrder": 7
+        },
+        {
+          "id": "stmt_004",
+          "text": "Session submitted.",
+          "claimBasis": "chronology",
+          "evidenceRefs": [
+            "session:ddd5ad93-4144-407e-a11f-5934044ebcfa:submitted"
+          ],
+          "firstEvidenceOrder": 8
+        },
+        {
+          "id": "stmt_005",
+          "text": "The submitted state includes changes to `inventory/service.py`.",
+          "claimBasis": "final_state",
+          "evidenceRefs": [
+            "session:ddd5ad93-4144-407e-a11f-5934044ebcfa:final-diff"
+          ],
+          "firstEvidenceOrder": 8
+        }
+      ]
+    },
+    "failureCode": null,
+    "failureMessage": null,
+    "attemptCount": 1,
+    "attemptToken": "3f5190fa-6cb6-43c9-a418-da494a49fe06",
+    "createdAt": "2026-09-16T17:13:32.593Z",
+    "attemptStartedAt": "2026-09-16T17:13:32.593Z",
+    "completedAt": "2026-09-16T17:13:32.599Z",
+    "updatedAt": "2026-09-16T17:13:32.599Z"
+  },
+  "sessionRow": {
+    "id": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
+    "candidate_token_hash": "f9610e0bf34672b4b75bd2435468b40e74e86537e7bf591984e5ebc79ad4dd0b",
+    "scenario_id": "scenario-001-cache-staleness",
+    "scenario_version": "1.0.0",
+    "scenario_title": "Stale storefront inventory after warehouse restock",
+    "scenario_brief": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished.",
+    "acceptance_criteria": "[\"Storefront inventory reflects completed restocks immediately.\",\"Equivalent valid warehouse identifiers return consistent inventory.\",\"Existing inventory reads continue to work.\",\"Supplied verification suite passes cleanly.\"]",
+    "file_path": "inventory/service.py",
+    "original_content": "",
+    "status": "SUBMITTED",
+    "working_content": "",
+    "submitted_content": "",
+    "created_at": "2026-09-16T17:13:15.932Z",
+    "activated_at": "2026-09-16T17:13:16.989Z",
+    "submitted_at": "2026-09-16T17:13:22.034Z",
+    "scenario_type": "multi_file",
+    "submitted_diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..f988329 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -1,27 +1,23 @@\n from inventory.db import query_one, execute\n-from inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n+from inventory.cache import get_cached_stock, set_cached_stock, normalize_storefront_warehouse\n \n def get_stock(warehouse_id: str, product_id: str) -> int:\n-    # 1. Check storefront cache\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     cached = get_cached_stock(warehouse_id, product_id)\n     if cached is not None:\n         return cached\n-\n-    # 2. Cache miss -> query authoritative database\n     row = query_one(\n         \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n         (warehouse_id, product_id)\n     )\n     if not row:\n         return 0\n-\n     quantity = int(row[\"quantity\"])\n-    # 3. Cache for subsequent reads\n     set_cached_stock(warehouse_id, product_id, quantity)\n     return quantity\n \n def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n-    # Update authoritative database record\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     execute(\n         \"\"\"\n         INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n@@ -31,3 +27,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+    set_cached_stock(warehouse_id, product_id, new_quantity)\n",
+    "scenario_evaluation_context": "{\"schemaVersion\":1,\"version\":\"1.0.0\",\"purpose\":\"Examine recorded work around a stale storefront inventory incident while keeping investigation path, task outcome, and evaluator judgment separate.\",\"evidenceAreas\":[{\"id\":\"inventory-behavior\",\"title\":\"Inventory behavior and submitted changes\",\"description\":\"Recorded workspace and submitted-state evidence related to the inventory service and its behavior.\",\"selectors\":[{\"kind\":\"workspace_path_prefix\",\"prefixes\":[\"inventory/\",\"tests/\"]},{\"kind\":\"submitted_path_prefix\",\"prefixes\":[\"inventory/\",\"tests/\"]}]},{\"id\":\"recorded-verification\",\"title\":\"Recorded verification progression\",\"description\":\"Authoritative test summaries recorded at different points in the assessment.\",\"selectors\":[{\"kind\":\"verification_result\"}]}],\"systemInvariants\":[\"PostgreSQL is the source of truth for inventory quantity.\",\"Storefront reads may use cached values, so submitted changes should be reviewed in the context of cache behavior.\"],\"verificationTargets\":[\"Whether recorded verification addresses recent inventory updates.\",\"Whether recorded verification includes equivalent valid warehouse identifiers where evidence is available.\",\"Whether existing inventory reads remain represented in the recorded verification evidence.\"],\"interpretationWarnings\":[\"Related evidence identifies recorded activity associated with a scenario area; it does not establish task success or candidate competence.\",\"A failing test or command can be valid investigative activity and is not a candidate verdict.\",\"Not observed means Delimit recorded no evidence of that activity in the captured assessment environment. It does not mean the candidate lacks the underlying capability.\"],\"reviewPolicy\":[\"Final automated verification alone is not a hiring decision for this assessment. Engineering review is required before technical rejection.\"]}"
+  }
+}

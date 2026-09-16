@@ -1,0 +1,3198 @@
+{
+  "caseId": "G",
+  "source": "tests/fixtures/evaluator-gate/G.json",
+  "baseBriefing": {
+    "schemaVersion": 1,
+    "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+    "provenance": {
+      "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+      "authoritativeEvidenceSha256": "dbedfffa6e1caecb3e9cf314772c2c671ad9554744e65cdd005124ae84e1ace9",
+      "finalDiffSha256": "3e8372f399ce28efd7abab83d50bc9148e44442f85eb6e21fdf13849c2693921",
+      "reconstruction": {
+        "artifactId": "405c1ad8-b260-435f-88b3-f861521d908d",
+        "generatorVersion": "evaluator-reconstruction-deterministic-v3"
+      },
+      "semanticSnapshot": {
+        "status": "absent",
+        "contentVersion": null,
+        "sha256": null
+      },
+      "scenarioVersion": "1.0.0",
+      "scenarioSnapshotSha256": "e0db2410ae5078ef086ff19cac54d8d4fffac7393d41063c39f747d44e33274b",
+      "evaluationContextSha256": null,
+      "evaluationContextVersion": null,
+      "mapperVersion": "briefing-mapper-v1",
+      "wordingVersion": "briefing-wording-v1",
+      "builderVersion": "evaluator-briefing-v1",
+      "projectionVersion": "briefing-depth-v1"
+    },
+    "taskContext": [
+      {
+        "id": "task-brief",
+        "category": "task_context",
+        "kind": "task_brief",
+        "source": {
+          "authority": "scenario_snapshot",
+          "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:brief",
+          "version": "1.0.0"
+        },
+        "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
+      }
+    ],
+    "observedActivity": [
+      {
+        "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+        "kind": "recorded_command",
+        "basis": "chronology",
+        "evidenceRefs": [
+          "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d"
+        ],
+        "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+        "chronologyOrder": 1,
+        "scope": "recorded_execution",
+        "wording": {
+          "key": "recorded_command"
+        },
+        "text": "A command execution was recorded.",
+        "mapping": {
+          "status": "generic",
+          "ruleId": null,
+          "subjectId": null
+        }
+      },
+      {
+        "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+        "kind": "recorded_command",
+        "basis": "chronology",
+        "evidenceRefs": [
+          "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea"
+        ],
+        "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+        "chronologyOrder": 2,
+        "scope": "recorded_execution",
+        "wording": {
+          "key": "recorded_command"
+        },
+        "text": "A command execution was recorded.",
+        "mapping": {
+          "status": "generic",
+          "ruleId": null,
+          "subjectId": null
+        }
+      },
+      {
+        "id": "observation:event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+        "kind": "recorded_workspace_edit",
+        "basis": "chronology",
+        "evidenceRefs": [
+          "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a"
+        ],
+        "factRef": "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+        "chronologyOrder": 3,
+        "scope": "recorded_workspace_transition",
+        "wording": {
+          "key": "workspace_edit"
+        },
+        "text": "A workspace edit was recorded.",
+        "mapping": {
+          "status": "generic",
+          "ruleId": null,
+          "subjectId": null
+        },
+        "paths": ["inventory/service.py"]
+      },
+      {
+        "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+        "kind": "recorded_command",
+        "basis": "chronology",
+        "evidenceRefs": [
+          "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846"
+        ],
+        "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+        "chronologyOrder": 4,
+        "scope": "recorded_execution",
+        "wording": {
+          "key": "recorded_command"
+        },
+        "text": "A command execution was recorded.",
+        "mapping": {
+          "status": "generic",
+          "ruleId": null,
+          "subjectId": null
+        }
+      },
+      {
+        "id": "observation:session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+        "kind": "recorded_submission",
+        "basis": "chronology",
+        "evidenceRefs": [
+          "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted"
+        ],
+        "factRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+        "chronologyOrder": 5,
+        "scope": "submission_boundary",
+        "wording": {
+          "key": "submission"
+        },
+        "text": "Submission was recorded.",
+        "mapping": {
+          "status": "generic",
+          "ruleId": null,
+          "subjectId": null
+        }
+      }
+    ],
+    "recordedVerification": {
+      "scope": "recognized_recorded_executions_only",
+      "runs": []
+    },
+    "submittedState": {
+      "id": "submitted-state",
+      "basis": "final_state",
+      "evidenceRefs": [
+        "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff"
+      ],
+      "wording": {
+        "key": "submitted_files",
+        "count": 1
+      },
+      "text": "The frozen submission diff contains changes to 1 file.",
+      "changedPaths": ["inventory/service.py"],
+      "fileCount": 1,
+      "additions": 1,
+      "deletions": 0,
+      "parsing": "complete",
+      "classifiedPaths": []
+    },
+    "evidenceLimitations": [
+      {
+        "id": "missing_context",
+        "authority": "metadata",
+        "kind": "missing_context",
+        "wording": {
+          "key": "missing_context"
+        },
+        "text": "Scenario evaluation context is unavailable for this session.",
+        "source": {
+          "authority": "evaluation_context",
+          "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evaluationContext",
+          "version": null
+        }
+      },
+      {
+        "id": "missing_semantics",
+        "authority": "metadata",
+        "kind": "missing_semantics",
+        "wording": {
+          "key": "missing_semantics"
+        },
+        "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+        "source": {
+          "authority": "semantic_snapshot",
+          "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:semanticSnapshot",
+          "version": null
+        }
+      },
+      {
+        "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+        "authority": "evidence",
+        "kind": "unsupported_semantic_mapping",
+        "basis": "chronology",
+        "evidenceRefs": [
+          "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d"
+        ],
+        "wording": {
+          "key": "unsupported_mapping"
+        },
+        "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+      },
+      {
+        "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+        "authority": "evidence",
+        "kind": "unsupported_semantic_mapping",
+        "basis": "chronology",
+        "evidenceRefs": [
+          "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea"
+        ],
+        "wording": {
+          "key": "unsupported_mapping"
+        },
+        "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+      },
+      {
+        "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+        "authority": "evidence",
+        "kind": "unsupported_semantic_mapping",
+        "basis": "chronology",
+        "evidenceRefs": [
+          "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846"
+        ],
+        "wording": {
+          "key": "unsupported_mapping"
+        },
+        "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+      }
+    ],
+    "artifactAvailability": {
+      "reconstruction": "AVAILABLE",
+      "briefing": "available",
+      "submittedDiff": {
+        "status": "available",
+        "evidenceRefs": [
+          "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff"
+        ]
+      },
+      "context": "absent",
+      "semantics": "absent",
+      "source": {
+        "authority": "artifact_status",
+        "fieldRef": "reconstruction:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evaluator-reconstruction-deterministic-v3:status",
+        "version": "evaluator-reconstruction-deterministic-v3"
+      }
+    },
+    "reviewGuidance": [],
+    "evidenceIndex": [
+      {
+        "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:activated",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "basis": "chronology",
+        "kind": "activation",
+        "rawEventIds": [],
+        "chronologyOrder": 0,
+        "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "fact": {
+          "kind": "activation",
+          "timestamp": "2026-09-16T17:13:30.566Z"
+        },
+        "sourceData": {
+          "kind": "chronology",
+          "item": {
+            "kind": "SESSION_ACTIVATED",
+            "timestamp": "2026-09-16T17:13:30.566Z"
+          }
+        }
+      },
+      {
+        "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "basis": "chronology",
+        "kind": "command_execution",
+        "rawEventIds": [
+          "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+          "evt_ac2b3f4c-2f62-4403-8107-21df20217156"
+        ],
+        "chronologyOrder": 1,
+        "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "fact": {
+          "kind": "command_execution",
+          "command": "pwd",
+          "cwd": "/workspace",
+          "exitCode": 0,
+          "timedOut": false,
+          "durationMs": 88,
+          "output": null,
+          "stdoutExcerpt": "/workspace\n",
+          "stdoutBytes": 11,
+          "stdoutTruncated": false,
+          "stderrExcerpt": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        },
+        "sourceData": {
+          "kind": "chronology",
+          "item": {
+            "kind": "COMMAND_EXECUTION",
+            "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "command": "pwd",
+            "cwd": "/workspace",
+            "startedAt": "2026-09-16T17:13:30.875Z",
+            "finishedAt": "2026-09-16T17:13:30.999Z",
+            "durationMs": 88,
+            "exitCode": 0,
+            "timedOut": false,
+            "stdoutPreview": "/workspace\n",
+            "stderrPreview": "",
+            "rawStartedEventId": "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+            "rawFinishedEventId": "evt_ac2b3f4c-2f62-4403-8107-21df20217156",
+            "sequence": 2,
+            "rawStartedEvent": {
+              "id": "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+              "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+              "sequence": 1,
+              "type": "COMMAND_STARTED",
+              "timestamp": "2026-09-16T17:13:30.875Z",
+              "source": "server",
+              "payload": {
+                "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                "command": "pwd",
+                "cwd": "/workspace"
+              }
+            },
+            "rawFinishedEvent": {
+              "id": "evt_ac2b3f4c-2f62-4403-8107-21df20217156",
+              "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+              "sequence": 2,
+              "type": "COMMAND_FINISHED",
+              "timestamp": "2026-09-16T17:13:30.999Z",
+              "source": "server",
+              "payload": {
+                "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                "exitCode": 0,
+                "timedOut": false,
+                "durationMs": 88,
+                "stdoutPreview": "/workspace\n",
+                "stdoutBytes": 11,
+                "stdoutTruncated": false,
+                "stderrPreview": "",
+                "stderrBytes": 0,
+                "stderrTruncated": false
+              }
+            }
+          }
+        }
+      },
+      {
+        "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "basis": "chronology",
+        "kind": "command_execution",
+        "rawEventIds": [
+          "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+          "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4"
+        ],
+        "chronologyOrder": 2,
+        "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "fact": {
+          "kind": "command_execution",
+          "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+          "cwd": "/workspace",
+          "exitCode": 0,
+          "timedOut": false,
+          "durationMs": 84,
+          "output": null,
+          "stdoutExcerpt": "",
+          "stdoutBytes": 0,
+          "stdoutTruncated": false,
+          "stderrExcerpt": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        },
+        "sourceData": {
+          "kind": "chronology",
+          "item": {
+            "kind": "COMMAND_EXECUTION",
+            "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+            "cwd": "/workspace",
+            "startedAt": "2026-09-16T17:13:31.329Z",
+            "finishedAt": "2026-09-16T17:13:31.444Z",
+            "durationMs": 84,
+            "exitCode": 0,
+            "timedOut": false,
+            "stdoutPreview": "",
+            "stderrPreview": "",
+            "rawStartedEventId": "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+            "rawFinishedEventId": "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4",
+            "sequence": 4,
+            "rawStartedEvent": {
+              "id": "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+              "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+              "sequence": 3,
+              "type": "COMMAND_STARTED",
+              "timestamp": "2026-09-16T17:13:31.329Z",
+              "source": "server",
+              "payload": {
+                "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+                "cwd": "/workspace"
+              }
+            },
+            "rawFinishedEvent": {
+              "id": "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4",
+              "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+              "sequence": 4,
+              "type": "COMMAND_FINISHED",
+              "timestamp": "2026-09-16T17:13:31.444Z",
+              "source": "server",
+              "payload": {
+                "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                "exitCode": 0,
+                "timedOut": false,
+                "durationMs": 84,
+                "stdoutPreview": "",
+                "stdoutBytes": 0,
+                "stdoutTruncated": false,
+                "stderrPreview": "",
+                "stderrBytes": 0,
+                "stderrTruncated": false
+              }
+            }
+          }
+        }
+      },
+      {
+        "evidenceRef": "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "basis": "chronology",
+        "kind": "workspace_change",
+        "rawEventIds": ["evt_52b356c2-7928-4e35-8513-106b70342f4a"],
+        "chronologyOrder": 3,
+        "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "fact": {
+          "kind": "workspace_change",
+          "origin": "command_execution",
+          "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+          "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+          "files": [
+            {
+              "path": "inventory/service.py",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 0,
+              "patchExcerpt": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+              "patchBytes": 342,
+              "patchTruncated": false
+            }
+          ]
+        },
+        "sourceData": {
+          "kind": "chronology",
+          "item": {
+            "kind": "WORKSPACE_CHANGE",
+            "changeId": "chg_afc6d6e1-b3fd-4d2f-a869-99a74abaf878",
+            "origin": "command_execution",
+            "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "timestamp": "2026-09-16T17:13:31.655Z",
+            "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+            "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+            "files": [
+              {
+                "path": "inventory/service.py",
+                "status": "modified",
+                "additions": 1,
+                "deletions": 0,
+                "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                "patchPreviewBytes": 342,
+                "patchBytes": 342,
+                "patchTruncated": false
+              }
+            ],
+            "totalAdditions": 1,
+            "totalDeletions": 0,
+            "rawEventId": "evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "sequence": 5,
+            "rawEvent": {
+              "id": "evt_52b356c2-7928-4e35-8513-106b70342f4a",
+              "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+              "sequence": 5,
+              "type": "WORKSPACE_CHANGED",
+              "timestamp": "2026-09-16T17:13:31.655Z",
+              "source": "server",
+              "payload": {
+                "changeId": "chg_afc6d6e1-b3fd-4d2f-a869-99a74abaf878",
+                "origin": "command_execution",
+                "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+                "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+                "files": [
+                  {
+                    "path": "inventory/service.py",
+                    "status": "modified",
+                    "additions": 1,
+                    "deletions": 0,
+                    "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                    "patchPreviewBytes": 342,
+                    "patchBytes": 342,
+                    "patchTruncated": false
+                  }
+                ],
+                "totalAdditions": 1,
+                "totalDeletions": 0
+              }
+            }
+          }
+        }
+      },
+      {
+        "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "basis": "chronology",
+        "kind": "command_execution",
+        "rawEventIds": [
+          "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+          "evt_5c259c70-f39d-432f-a6ba-acccef9630f0"
+        ],
+        "chronologyOrder": 4,
+        "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "fact": {
+          "kind": "command_execution",
+          "command": "cat inventory/service.py",
+          "cwd": "/workspace",
+          "exitCode": 0,
+          "timedOut": false,
+          "durationMs": 83,
+          "output": null,
+          "stdoutExcerpt": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+          "stdoutBytes": 1206,
+          "stdoutTruncated": false,
+          "stderrExcerpt": "",
+          "stderrBytes": 0,
+          "stderrTruncated": false
+        },
+        "sourceData": {
+          "kind": "chronology",
+          "item": {
+            "kind": "COMMAND_EXECUTION",
+            "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "command": "cat inventory/service.py",
+            "cwd": "/workspace",
+            "startedAt": "2026-09-16T17:13:31.780Z",
+            "finishedAt": "2026-09-16T17:13:31.897Z",
+            "durationMs": 83,
+            "exitCode": 0,
+            "timedOut": false,
+            "stdoutPreview": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+            "stderrPreview": "",
+            "rawStartedEventId": "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+            "rawFinishedEventId": "evt_5c259c70-f39d-432f-a6ba-acccef9630f0",
+            "sequence": 7,
+            "rawStartedEvent": {
+              "id": "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+              "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+              "sequence": 6,
+              "type": "COMMAND_STARTED",
+              "timestamp": "2026-09-16T17:13:31.780Z",
+              "source": "server",
+              "payload": {
+                "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                "command": "cat inventory/service.py",
+                "cwd": "/workspace"
+              }
+            },
+            "rawFinishedEvent": {
+              "id": "evt_5c259c70-f39d-432f-a6ba-acccef9630f0",
+              "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+              "sequence": 7,
+              "type": "COMMAND_FINISHED",
+              "timestamp": "2026-09-16T17:13:31.897Z",
+              "source": "server",
+              "payload": {
+                "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                "exitCode": 0,
+                "timedOut": false,
+                "durationMs": 83,
+                "stdoutPreview": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+                "stdoutBytes": 1206,
+                "stdoutTruncated": false,
+                "stderrPreview": "",
+                "stderrBytes": 0,
+                "stderrTruncated": false
+              }
+            }
+          }
+        }
+      },
+      {
+        "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "basis": "chronology",
+        "kind": "submission",
+        "rawEventIds": [],
+        "chronologyOrder": 5,
+        "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "fact": {
+          "kind": "submission",
+          "timestamp": "2026-09-16T17:13:32.309Z"
+        },
+        "sourceData": {
+          "kind": "chronology",
+          "item": {
+            "kind": "SESSION_SUBMITTED",
+            "timestamp": "2026-09-16T17:13:32.309Z",
+            "submittedDiff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
+          }
+        }
+      },
+      {
+        "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff",
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "basis": "final_state",
+        "kind": "final_diff",
+        "rawEventIds": [],
+        "chronologyOrder": null,
+        "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "fact": null,
+        "sourceData": {
+          "kind": "submitted_diff",
+          "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
+        }
+      }
+    ]
+  },
+  "projections": {
+    "GENERALIST_RECRUITER": {
+      "schemaVersion": 1,
+      "projectionVersion": "briefing-depth-v1",
+      "profile": "GENERALIST_RECRUITER",
+      "briefing": {
+        "schemaVersion": 1,
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "provenance": {
+          "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+          "authoritativeEvidenceSha256": "dbedfffa6e1caecb3e9cf314772c2c671ad9554744e65cdd005124ae84e1ace9",
+          "finalDiffSha256": "3e8372f399ce28efd7abab83d50bc9148e44442f85eb6e21fdf13849c2693921",
+          "reconstruction": {
+            "artifactId": "405c1ad8-b260-435f-88b3-f861521d908d",
+            "generatorVersion": "evaluator-reconstruction-deterministic-v3"
+          },
+          "semanticSnapshot": {
+            "status": "absent",
+            "contentVersion": null,
+            "sha256": null
+          },
+          "scenarioVersion": "1.0.0",
+          "scenarioSnapshotSha256": "e0db2410ae5078ef086ff19cac54d8d4fffac7393d41063c39f747d44e33274b",
+          "evaluationContextSha256": null,
+          "evaluationContextVersion": null,
+          "mapperVersion": "briefing-mapper-v1",
+          "wordingVersion": "briefing-wording-v1",
+          "builderVersion": "evaluator-briefing-v1",
+          "projectionVersion": "briefing-depth-v1"
+        },
+        "taskContext": [
+          {
+            "id": "task-brief",
+            "category": "task_context",
+            "kind": "task_brief",
+            "source": {
+              "authority": "scenario_snapshot",
+              "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:brief",
+              "version": "1.0.0"
+            },
+            "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
+          }
+        ],
+        "observedActivity": [
+          {
+            "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "kind": "recorded_command",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d"
+            ],
+            "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "chronologyOrder": 1,
+            "scope": "recorded_execution",
+            "wording": {
+              "key": "recorded_command"
+            },
+            "text": "A command execution was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          },
+          {
+            "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "kind": "recorded_command",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea"
+            ],
+            "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "chronologyOrder": 2,
+            "scope": "recorded_execution",
+            "wording": {
+              "key": "recorded_command"
+            },
+            "text": "A command execution was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          },
+          {
+            "id": "observation:event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "kind": "recorded_workspace_edit",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a"
+            ],
+            "factRef": "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "chronologyOrder": 3,
+            "scope": "recorded_workspace_transition",
+            "wording": {
+              "key": "workspace_edit"
+            },
+            "text": "A workspace edit was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            },
+            "paths": ["inventory/service.py"]
+          },
+          {
+            "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "kind": "recorded_command",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846"
+            ],
+            "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "chronologyOrder": 4,
+            "scope": "recorded_execution",
+            "wording": {
+              "key": "recorded_command"
+            },
+            "text": "A command execution was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          },
+          {
+            "id": "observation:session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+            "kind": "recorded_submission",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted"
+            ],
+            "factRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+            "chronologyOrder": 5,
+            "scope": "submission_boundary",
+            "wording": {
+              "key": "submission"
+            },
+            "text": "Submission was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          }
+        ],
+        "recordedVerification": {
+          "scope": "recognized_recorded_executions_only",
+          "runs": []
+        },
+        "submittedState": {
+          "id": "submitted-state",
+          "basis": "final_state",
+          "evidenceRefs": [
+            "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff"
+          ],
+          "wording": {
+            "key": "submitted_files",
+            "count": 1
+          },
+          "text": "The frozen submission diff contains changes to 1 file.",
+          "changedPaths": ["inventory/service.py"],
+          "fileCount": 1,
+          "additions": 1,
+          "deletions": 0,
+          "parsing": "complete",
+          "classifiedPaths": []
+        },
+        "evidenceLimitations": [
+          {
+            "id": "missing_context",
+            "authority": "metadata",
+            "kind": "missing_context",
+            "wording": {
+              "key": "missing_context"
+            },
+            "text": "Scenario evaluation context is unavailable for this session.",
+            "source": {
+              "authority": "evaluation_context",
+              "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evaluationContext",
+              "version": null
+            }
+          },
+          {
+            "id": "missing_semantics",
+            "authority": "metadata",
+            "kind": "missing_semantics",
+            "wording": {
+              "key": "missing_semantics"
+            },
+            "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+            "source": {
+              "authority": "semantic_snapshot",
+              "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:semanticSnapshot",
+              "version": null
+            }
+          },
+          {
+            "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "authority": "evidence",
+            "kind": "unsupported_semantic_mapping",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d"
+            ],
+            "wording": {
+              "key": "unsupported_mapping"
+            },
+            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+          },
+          {
+            "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "authority": "evidence",
+            "kind": "unsupported_semantic_mapping",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea"
+            ],
+            "wording": {
+              "key": "unsupported_mapping"
+            },
+            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+          },
+          {
+            "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "authority": "evidence",
+            "kind": "unsupported_semantic_mapping",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846"
+            ],
+            "wording": {
+              "key": "unsupported_mapping"
+            },
+            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+          }
+        ],
+        "artifactAvailability": {
+          "reconstruction": "AVAILABLE",
+          "briefing": "available",
+          "submittedDiff": {
+            "status": "available",
+            "evidenceRefs": [
+              "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff"
+            ]
+          },
+          "context": "absent",
+          "semantics": "absent",
+          "source": {
+            "authority": "artifact_status",
+            "fieldRef": "reconstruction:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evaluator-reconstruction-deterministic-v3:status",
+            "version": "evaluator-reconstruction-deterministic-v3"
+          }
+        },
+        "reviewGuidance": [],
+        "evidenceIndex": [
+          {
+            "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:activated",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "activation",
+            "rawEventIds": [],
+            "chronologyOrder": 0,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "activation",
+              "timestamp": "2026-09-16T17:13:30.566Z"
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "SESSION_ACTIVATED",
+                "timestamp": "2026-09-16T17:13:30.566Z"
+              }
+            }
+          },
+          {
+            "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "command_execution",
+            "rawEventIds": [
+              "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+              "evt_ac2b3f4c-2f62-4403-8107-21df20217156"
+            ],
+            "chronologyOrder": 1,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "command_execution",
+              "command": "pwd",
+              "cwd": "/workspace",
+              "exitCode": 0,
+              "timedOut": false,
+              "durationMs": 88,
+              "output": null,
+              "stdoutExcerpt": "/workspace\n",
+              "stdoutBytes": 11,
+              "stdoutTruncated": false,
+              "stderrExcerpt": "",
+              "stderrBytes": 0,
+              "stderrTruncated": false
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "COMMAND_EXECUTION",
+                "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                "command": "pwd",
+                "cwd": "/workspace",
+                "startedAt": "2026-09-16T17:13:30.875Z",
+                "finishedAt": "2026-09-16T17:13:30.999Z",
+                "durationMs": 88,
+                "exitCode": 0,
+                "timedOut": false,
+                "stdoutPreview": "/workspace\n",
+                "stderrPreview": "",
+                "rawStartedEventId": "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+                "rawFinishedEventId": "evt_ac2b3f4c-2f62-4403-8107-21df20217156",
+                "sequence": 2,
+                "rawStartedEvent": {
+                  "id": "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 1,
+                  "type": "COMMAND_STARTED",
+                  "timestamp": "2026-09-16T17:13:30.875Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                    "command": "pwd",
+                    "cwd": "/workspace"
+                  }
+                },
+                "rawFinishedEvent": {
+                  "id": "evt_ac2b3f4c-2f62-4403-8107-21df20217156",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 2,
+                  "type": "COMMAND_FINISHED",
+                  "timestamp": "2026-09-16T17:13:30.999Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                    "exitCode": 0,
+                    "timedOut": false,
+                    "durationMs": 88,
+                    "stdoutPreview": "/workspace\n",
+                    "stdoutBytes": 11,
+                    "stdoutTruncated": false,
+                    "stderrPreview": "",
+                    "stderrBytes": 0,
+                    "stderrTruncated": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "command_execution",
+            "rawEventIds": [
+              "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+              "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4"
+            ],
+            "chronologyOrder": 2,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "command_execution",
+              "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+              "cwd": "/workspace",
+              "exitCode": 0,
+              "timedOut": false,
+              "durationMs": 84,
+              "output": null,
+              "stdoutExcerpt": "",
+              "stdoutBytes": 0,
+              "stdoutTruncated": false,
+              "stderrExcerpt": "",
+              "stderrBytes": 0,
+              "stderrTruncated": false
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "COMMAND_EXECUTION",
+                "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+                "cwd": "/workspace",
+                "startedAt": "2026-09-16T17:13:31.329Z",
+                "finishedAt": "2026-09-16T17:13:31.444Z",
+                "durationMs": 84,
+                "exitCode": 0,
+                "timedOut": false,
+                "stdoutPreview": "",
+                "stderrPreview": "",
+                "rawStartedEventId": "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+                "rawFinishedEventId": "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4",
+                "sequence": 4,
+                "rawStartedEvent": {
+                  "id": "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 3,
+                  "type": "COMMAND_STARTED",
+                  "timestamp": "2026-09-16T17:13:31.329Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                    "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+                    "cwd": "/workspace"
+                  }
+                },
+                "rawFinishedEvent": {
+                  "id": "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 4,
+                  "type": "COMMAND_FINISHED",
+                  "timestamp": "2026-09-16T17:13:31.444Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                    "exitCode": 0,
+                    "timedOut": false,
+                    "durationMs": 84,
+                    "stdoutPreview": "",
+                    "stdoutBytes": 0,
+                    "stdoutTruncated": false,
+                    "stderrPreview": "",
+                    "stderrBytes": 0,
+                    "stderrTruncated": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "workspace_change",
+            "rawEventIds": ["evt_52b356c2-7928-4e35-8513-106b70342f4a"],
+            "chronologyOrder": 3,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "workspace_change",
+              "origin": "command_execution",
+              "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+              "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+              "files": [
+                {
+                  "path": "inventory/service.py",
+                  "status": "modified",
+                  "additions": 1,
+                  "deletions": 0,
+                  "patchExcerpt": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                  "patchBytes": 342,
+                  "patchTruncated": false
+                }
+              ]
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "WORKSPACE_CHANGE",
+                "changeId": "chg_afc6d6e1-b3fd-4d2f-a869-99a74abaf878",
+                "origin": "command_execution",
+                "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                "timestamp": "2026-09-16T17:13:31.655Z",
+                "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+                "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+                "files": [
+                  {
+                    "path": "inventory/service.py",
+                    "status": "modified",
+                    "additions": 1,
+                    "deletions": 0,
+                    "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                    "patchPreviewBytes": 342,
+                    "patchBytes": 342,
+                    "patchTruncated": false
+                  }
+                ],
+                "totalAdditions": 1,
+                "totalDeletions": 0,
+                "rawEventId": "evt_52b356c2-7928-4e35-8513-106b70342f4a",
+                "sequence": 5,
+                "rawEvent": {
+                  "id": "evt_52b356c2-7928-4e35-8513-106b70342f4a",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 5,
+                  "type": "WORKSPACE_CHANGED",
+                  "timestamp": "2026-09-16T17:13:31.655Z",
+                  "source": "server",
+                  "payload": {
+                    "changeId": "chg_afc6d6e1-b3fd-4d2f-a869-99a74abaf878",
+                    "origin": "command_execution",
+                    "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                    "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+                    "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+                    "files": [
+                      {
+                        "path": "inventory/service.py",
+                        "status": "modified",
+                        "additions": 1,
+                        "deletions": 0,
+                        "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                        "patchPreviewBytes": 342,
+                        "patchBytes": 342,
+                        "patchTruncated": false
+                      }
+                    ],
+                    "totalAdditions": 1,
+                    "totalDeletions": 0
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "command_execution",
+            "rawEventIds": [
+              "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+              "evt_5c259c70-f39d-432f-a6ba-acccef9630f0"
+            ],
+            "chronologyOrder": 4,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "command_execution",
+              "command": "cat inventory/service.py",
+              "cwd": "/workspace",
+              "exitCode": 0,
+              "timedOut": false,
+              "durationMs": 83,
+              "output": null,
+              "stdoutExcerpt": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+              "stdoutBytes": 1206,
+              "stdoutTruncated": false,
+              "stderrExcerpt": "",
+              "stderrBytes": 0,
+              "stderrTruncated": false
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "COMMAND_EXECUTION",
+                "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                "command": "cat inventory/service.py",
+                "cwd": "/workspace",
+                "startedAt": "2026-09-16T17:13:31.780Z",
+                "finishedAt": "2026-09-16T17:13:31.897Z",
+                "durationMs": 83,
+                "exitCode": 0,
+                "timedOut": false,
+                "stdoutPreview": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+                "stderrPreview": "",
+                "rawStartedEventId": "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+                "rawFinishedEventId": "evt_5c259c70-f39d-432f-a6ba-acccef9630f0",
+                "sequence": 7,
+                "rawStartedEvent": {
+                  "id": "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 6,
+                  "type": "COMMAND_STARTED",
+                  "timestamp": "2026-09-16T17:13:31.780Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                    "command": "cat inventory/service.py",
+                    "cwd": "/workspace"
+                  }
+                },
+                "rawFinishedEvent": {
+                  "id": "evt_5c259c70-f39d-432f-a6ba-acccef9630f0",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 7,
+                  "type": "COMMAND_FINISHED",
+                  "timestamp": "2026-09-16T17:13:31.897Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                    "exitCode": 0,
+                    "timedOut": false,
+                    "durationMs": 83,
+                    "stdoutPreview": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+                    "stdoutBytes": 1206,
+                    "stdoutTruncated": false,
+                    "stderrPreview": "",
+                    "stderrBytes": 0,
+                    "stderrTruncated": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "submission",
+            "rawEventIds": [],
+            "chronologyOrder": 5,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "submission",
+              "timestamp": "2026-09-16T17:13:32.309Z"
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "SESSION_SUBMITTED",
+                "timestamp": "2026-09-16T17:13:32.309Z",
+                "submittedDiff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
+              }
+            }
+          },
+          {
+            "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "final_state",
+            "kind": "final_diff",
+            "rawEventIds": [],
+            "chronologyOrder": null,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": null,
+            "sourceData": {
+              "kind": "submitted_diff",
+              "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
+            }
+          }
+        ]
+      },
+      "defaultDepth": {
+        "structuredEvidence": false,
+        "technicalRecord": false,
+        "scenarioReference": false
+      },
+      "expandedEvidenceRefs": []
+    },
+    "TECHNICAL_RECRUITER": {
+      "schemaVersion": 1,
+      "projectionVersion": "briefing-depth-v1",
+      "profile": "TECHNICAL_RECRUITER",
+      "briefing": {
+        "schemaVersion": 1,
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "provenance": {
+          "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+          "authoritativeEvidenceSha256": "dbedfffa6e1caecb3e9cf314772c2c671ad9554744e65cdd005124ae84e1ace9",
+          "finalDiffSha256": "3e8372f399ce28efd7abab83d50bc9148e44442f85eb6e21fdf13849c2693921",
+          "reconstruction": {
+            "artifactId": "405c1ad8-b260-435f-88b3-f861521d908d",
+            "generatorVersion": "evaluator-reconstruction-deterministic-v3"
+          },
+          "semanticSnapshot": {
+            "status": "absent",
+            "contentVersion": null,
+            "sha256": null
+          },
+          "scenarioVersion": "1.0.0",
+          "scenarioSnapshotSha256": "e0db2410ae5078ef086ff19cac54d8d4fffac7393d41063c39f747d44e33274b",
+          "evaluationContextSha256": null,
+          "evaluationContextVersion": null,
+          "mapperVersion": "briefing-mapper-v1",
+          "wordingVersion": "briefing-wording-v1",
+          "builderVersion": "evaluator-briefing-v1",
+          "projectionVersion": "briefing-depth-v1"
+        },
+        "taskContext": [
+          {
+            "id": "task-brief",
+            "category": "task_context",
+            "kind": "task_brief",
+            "source": {
+              "authority": "scenario_snapshot",
+              "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:brief",
+              "version": "1.0.0"
+            },
+            "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
+          }
+        ],
+        "observedActivity": [
+          {
+            "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "kind": "recorded_command",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d"
+            ],
+            "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "chronologyOrder": 1,
+            "scope": "recorded_execution",
+            "wording": {
+              "key": "recorded_command"
+            },
+            "text": "A command execution was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          },
+          {
+            "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "kind": "recorded_command",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea"
+            ],
+            "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "chronologyOrder": 2,
+            "scope": "recorded_execution",
+            "wording": {
+              "key": "recorded_command"
+            },
+            "text": "A command execution was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          },
+          {
+            "id": "observation:event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "kind": "recorded_workspace_edit",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a"
+            ],
+            "factRef": "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "chronologyOrder": 3,
+            "scope": "recorded_workspace_transition",
+            "wording": {
+              "key": "workspace_edit"
+            },
+            "text": "A workspace edit was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            },
+            "paths": ["inventory/service.py"]
+          },
+          {
+            "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "kind": "recorded_command",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846"
+            ],
+            "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "chronologyOrder": 4,
+            "scope": "recorded_execution",
+            "wording": {
+              "key": "recorded_command"
+            },
+            "text": "A command execution was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          },
+          {
+            "id": "observation:session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+            "kind": "recorded_submission",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted"
+            ],
+            "factRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+            "chronologyOrder": 5,
+            "scope": "submission_boundary",
+            "wording": {
+              "key": "submission"
+            },
+            "text": "Submission was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          }
+        ],
+        "recordedVerification": {
+          "scope": "recognized_recorded_executions_only",
+          "runs": []
+        },
+        "submittedState": {
+          "id": "submitted-state",
+          "basis": "final_state",
+          "evidenceRefs": [
+            "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff"
+          ],
+          "wording": {
+            "key": "submitted_files",
+            "count": 1
+          },
+          "text": "The frozen submission diff contains changes to 1 file.",
+          "changedPaths": ["inventory/service.py"],
+          "fileCount": 1,
+          "additions": 1,
+          "deletions": 0,
+          "parsing": "complete",
+          "classifiedPaths": []
+        },
+        "evidenceLimitations": [
+          {
+            "id": "missing_context",
+            "authority": "metadata",
+            "kind": "missing_context",
+            "wording": {
+              "key": "missing_context"
+            },
+            "text": "Scenario evaluation context is unavailable for this session.",
+            "source": {
+              "authority": "evaluation_context",
+              "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evaluationContext",
+              "version": null
+            }
+          },
+          {
+            "id": "missing_semantics",
+            "authority": "metadata",
+            "kind": "missing_semantics",
+            "wording": {
+              "key": "missing_semantics"
+            },
+            "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+            "source": {
+              "authority": "semantic_snapshot",
+              "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:semanticSnapshot",
+              "version": null
+            }
+          },
+          {
+            "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "authority": "evidence",
+            "kind": "unsupported_semantic_mapping",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d"
+            ],
+            "wording": {
+              "key": "unsupported_mapping"
+            },
+            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+          },
+          {
+            "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "authority": "evidence",
+            "kind": "unsupported_semantic_mapping",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea"
+            ],
+            "wording": {
+              "key": "unsupported_mapping"
+            },
+            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+          },
+          {
+            "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "authority": "evidence",
+            "kind": "unsupported_semantic_mapping",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846"
+            ],
+            "wording": {
+              "key": "unsupported_mapping"
+            },
+            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+          }
+        ],
+        "artifactAvailability": {
+          "reconstruction": "AVAILABLE",
+          "briefing": "available",
+          "submittedDiff": {
+            "status": "available",
+            "evidenceRefs": [
+              "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff"
+            ]
+          },
+          "context": "absent",
+          "semantics": "absent",
+          "source": {
+            "authority": "artifact_status",
+            "fieldRef": "reconstruction:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evaluator-reconstruction-deterministic-v3:status",
+            "version": "evaluator-reconstruction-deterministic-v3"
+          }
+        },
+        "reviewGuidance": [],
+        "evidenceIndex": [
+          {
+            "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:activated",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "activation",
+            "rawEventIds": [],
+            "chronologyOrder": 0,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "activation",
+              "timestamp": "2026-09-16T17:13:30.566Z"
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "SESSION_ACTIVATED",
+                "timestamp": "2026-09-16T17:13:30.566Z"
+              }
+            }
+          },
+          {
+            "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "command_execution",
+            "rawEventIds": [
+              "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+              "evt_ac2b3f4c-2f62-4403-8107-21df20217156"
+            ],
+            "chronologyOrder": 1,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "command_execution",
+              "command": "pwd",
+              "cwd": "/workspace",
+              "exitCode": 0,
+              "timedOut": false,
+              "durationMs": 88,
+              "output": null,
+              "stdoutExcerpt": "/workspace\n",
+              "stdoutBytes": 11,
+              "stdoutTruncated": false,
+              "stderrExcerpt": "",
+              "stderrBytes": 0,
+              "stderrTruncated": false
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "COMMAND_EXECUTION",
+                "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                "command": "pwd",
+                "cwd": "/workspace",
+                "startedAt": "2026-09-16T17:13:30.875Z",
+                "finishedAt": "2026-09-16T17:13:30.999Z",
+                "durationMs": 88,
+                "exitCode": 0,
+                "timedOut": false,
+                "stdoutPreview": "/workspace\n",
+                "stderrPreview": "",
+                "rawStartedEventId": "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+                "rawFinishedEventId": "evt_ac2b3f4c-2f62-4403-8107-21df20217156",
+                "sequence": 2,
+                "rawStartedEvent": {
+                  "id": "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 1,
+                  "type": "COMMAND_STARTED",
+                  "timestamp": "2026-09-16T17:13:30.875Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                    "command": "pwd",
+                    "cwd": "/workspace"
+                  }
+                },
+                "rawFinishedEvent": {
+                  "id": "evt_ac2b3f4c-2f62-4403-8107-21df20217156",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 2,
+                  "type": "COMMAND_FINISHED",
+                  "timestamp": "2026-09-16T17:13:30.999Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                    "exitCode": 0,
+                    "timedOut": false,
+                    "durationMs": 88,
+                    "stdoutPreview": "/workspace\n",
+                    "stdoutBytes": 11,
+                    "stdoutTruncated": false,
+                    "stderrPreview": "",
+                    "stderrBytes": 0,
+                    "stderrTruncated": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "command_execution",
+            "rawEventIds": [
+              "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+              "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4"
+            ],
+            "chronologyOrder": 2,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "command_execution",
+              "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+              "cwd": "/workspace",
+              "exitCode": 0,
+              "timedOut": false,
+              "durationMs": 84,
+              "output": null,
+              "stdoutExcerpt": "",
+              "stdoutBytes": 0,
+              "stdoutTruncated": false,
+              "stderrExcerpt": "",
+              "stderrBytes": 0,
+              "stderrTruncated": false
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "COMMAND_EXECUTION",
+                "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+                "cwd": "/workspace",
+                "startedAt": "2026-09-16T17:13:31.329Z",
+                "finishedAt": "2026-09-16T17:13:31.444Z",
+                "durationMs": 84,
+                "exitCode": 0,
+                "timedOut": false,
+                "stdoutPreview": "",
+                "stderrPreview": "",
+                "rawStartedEventId": "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+                "rawFinishedEventId": "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4",
+                "sequence": 4,
+                "rawStartedEvent": {
+                  "id": "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 3,
+                  "type": "COMMAND_STARTED",
+                  "timestamp": "2026-09-16T17:13:31.329Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                    "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+                    "cwd": "/workspace"
+                  }
+                },
+                "rawFinishedEvent": {
+                  "id": "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 4,
+                  "type": "COMMAND_FINISHED",
+                  "timestamp": "2026-09-16T17:13:31.444Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                    "exitCode": 0,
+                    "timedOut": false,
+                    "durationMs": 84,
+                    "stdoutPreview": "",
+                    "stdoutBytes": 0,
+                    "stdoutTruncated": false,
+                    "stderrPreview": "",
+                    "stderrBytes": 0,
+                    "stderrTruncated": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "workspace_change",
+            "rawEventIds": ["evt_52b356c2-7928-4e35-8513-106b70342f4a"],
+            "chronologyOrder": 3,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "workspace_change",
+              "origin": "command_execution",
+              "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+              "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+              "files": [
+                {
+                  "path": "inventory/service.py",
+                  "status": "modified",
+                  "additions": 1,
+                  "deletions": 0,
+                  "patchExcerpt": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                  "patchBytes": 342,
+                  "patchTruncated": false
+                }
+              ]
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "WORKSPACE_CHANGE",
+                "changeId": "chg_afc6d6e1-b3fd-4d2f-a869-99a74abaf878",
+                "origin": "command_execution",
+                "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                "timestamp": "2026-09-16T17:13:31.655Z",
+                "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+                "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+                "files": [
+                  {
+                    "path": "inventory/service.py",
+                    "status": "modified",
+                    "additions": 1,
+                    "deletions": 0,
+                    "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                    "patchPreviewBytes": 342,
+                    "patchBytes": 342,
+                    "patchTruncated": false
+                  }
+                ],
+                "totalAdditions": 1,
+                "totalDeletions": 0,
+                "rawEventId": "evt_52b356c2-7928-4e35-8513-106b70342f4a",
+                "sequence": 5,
+                "rawEvent": {
+                  "id": "evt_52b356c2-7928-4e35-8513-106b70342f4a",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 5,
+                  "type": "WORKSPACE_CHANGED",
+                  "timestamp": "2026-09-16T17:13:31.655Z",
+                  "source": "server",
+                  "payload": {
+                    "changeId": "chg_afc6d6e1-b3fd-4d2f-a869-99a74abaf878",
+                    "origin": "command_execution",
+                    "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                    "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+                    "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+                    "files": [
+                      {
+                        "path": "inventory/service.py",
+                        "status": "modified",
+                        "additions": 1,
+                        "deletions": 0,
+                        "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                        "patchPreviewBytes": 342,
+                        "patchBytes": 342,
+                        "patchTruncated": false
+                      }
+                    ],
+                    "totalAdditions": 1,
+                    "totalDeletions": 0
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "command_execution",
+            "rawEventIds": [
+              "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+              "evt_5c259c70-f39d-432f-a6ba-acccef9630f0"
+            ],
+            "chronologyOrder": 4,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "command_execution",
+              "command": "cat inventory/service.py",
+              "cwd": "/workspace",
+              "exitCode": 0,
+              "timedOut": false,
+              "durationMs": 83,
+              "output": null,
+              "stdoutExcerpt": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+              "stdoutBytes": 1206,
+              "stdoutTruncated": false,
+              "stderrExcerpt": "",
+              "stderrBytes": 0,
+              "stderrTruncated": false
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "COMMAND_EXECUTION",
+                "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                "command": "cat inventory/service.py",
+                "cwd": "/workspace",
+                "startedAt": "2026-09-16T17:13:31.780Z",
+                "finishedAt": "2026-09-16T17:13:31.897Z",
+                "durationMs": 83,
+                "exitCode": 0,
+                "timedOut": false,
+                "stdoutPreview": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+                "stderrPreview": "",
+                "rawStartedEventId": "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+                "rawFinishedEventId": "evt_5c259c70-f39d-432f-a6ba-acccef9630f0",
+                "sequence": 7,
+                "rawStartedEvent": {
+                  "id": "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 6,
+                  "type": "COMMAND_STARTED",
+                  "timestamp": "2026-09-16T17:13:31.780Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                    "command": "cat inventory/service.py",
+                    "cwd": "/workspace"
+                  }
+                },
+                "rawFinishedEvent": {
+                  "id": "evt_5c259c70-f39d-432f-a6ba-acccef9630f0",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 7,
+                  "type": "COMMAND_FINISHED",
+                  "timestamp": "2026-09-16T17:13:31.897Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                    "exitCode": 0,
+                    "timedOut": false,
+                    "durationMs": 83,
+                    "stdoutPreview": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+                    "stdoutBytes": 1206,
+                    "stdoutTruncated": false,
+                    "stderrPreview": "",
+                    "stderrBytes": 0,
+                    "stderrTruncated": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "submission",
+            "rawEventIds": [],
+            "chronologyOrder": 5,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "submission",
+              "timestamp": "2026-09-16T17:13:32.309Z"
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "SESSION_SUBMITTED",
+                "timestamp": "2026-09-16T17:13:32.309Z",
+                "submittedDiff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
+              }
+            }
+          },
+          {
+            "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "final_state",
+            "kind": "final_diff",
+            "rawEventIds": [],
+            "chronologyOrder": null,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": null,
+            "sourceData": {
+              "kind": "submitted_diff",
+              "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
+            }
+          }
+        ]
+      },
+      "defaultDepth": {
+        "structuredEvidence": true,
+        "technicalRecord": false,
+        "scenarioReference": true
+      },
+      "expandedEvidenceRefs": []
+    },
+    "ENGINEER": {
+      "schemaVersion": 1,
+      "projectionVersion": "briefing-depth-v1",
+      "profile": "ENGINEER",
+      "briefing": {
+        "schemaVersion": 1,
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "provenance": {
+          "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+          "authoritativeEvidenceSha256": "dbedfffa6e1caecb3e9cf314772c2c671ad9554744e65cdd005124ae84e1ace9",
+          "finalDiffSha256": "3e8372f399ce28efd7abab83d50bc9148e44442f85eb6e21fdf13849c2693921",
+          "reconstruction": {
+            "artifactId": "405c1ad8-b260-435f-88b3-f861521d908d",
+            "generatorVersion": "evaluator-reconstruction-deterministic-v3"
+          },
+          "semanticSnapshot": {
+            "status": "absent",
+            "contentVersion": null,
+            "sha256": null
+          },
+          "scenarioVersion": "1.0.0",
+          "scenarioSnapshotSha256": "e0db2410ae5078ef086ff19cac54d8d4fffac7393d41063c39f747d44e33274b",
+          "evaluationContextSha256": null,
+          "evaluationContextVersion": null,
+          "mapperVersion": "briefing-mapper-v1",
+          "wordingVersion": "briefing-wording-v1",
+          "builderVersion": "evaluator-briefing-v1",
+          "projectionVersion": "briefing-depth-v1"
+        },
+        "taskContext": [
+          {
+            "id": "task-brief",
+            "category": "task_context",
+            "kind": "task_brief",
+            "source": {
+              "authority": "scenario_snapshot",
+              "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:brief",
+              "version": "1.0.0"
+            },
+            "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
+          }
+        ],
+        "observedActivity": [
+          {
+            "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "kind": "recorded_command",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d"
+            ],
+            "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "chronologyOrder": 1,
+            "scope": "recorded_execution",
+            "wording": {
+              "key": "recorded_command"
+            },
+            "text": "A command execution was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          },
+          {
+            "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "kind": "recorded_command",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea"
+            ],
+            "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "chronologyOrder": 2,
+            "scope": "recorded_execution",
+            "wording": {
+              "key": "recorded_command"
+            },
+            "text": "A command execution was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          },
+          {
+            "id": "observation:event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "kind": "recorded_workspace_edit",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a"
+            ],
+            "factRef": "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "chronologyOrder": 3,
+            "scope": "recorded_workspace_transition",
+            "wording": {
+              "key": "workspace_edit"
+            },
+            "text": "A workspace edit was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            },
+            "paths": ["inventory/service.py"]
+          },
+          {
+            "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "kind": "recorded_command",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846"
+            ],
+            "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "chronologyOrder": 4,
+            "scope": "recorded_execution",
+            "wording": {
+              "key": "recorded_command"
+            },
+            "text": "A command execution was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          },
+          {
+            "id": "observation:session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+            "kind": "recorded_submission",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted"
+            ],
+            "factRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+            "chronologyOrder": 5,
+            "scope": "submission_boundary",
+            "wording": {
+              "key": "submission"
+            },
+            "text": "Submission was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          }
+        ],
+        "recordedVerification": {
+          "scope": "recognized_recorded_executions_only",
+          "runs": []
+        },
+        "submittedState": {
+          "id": "submitted-state",
+          "basis": "final_state",
+          "evidenceRefs": [
+            "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff"
+          ],
+          "wording": {
+            "key": "submitted_files",
+            "count": 1
+          },
+          "text": "The frozen submission diff contains changes to 1 file.",
+          "changedPaths": ["inventory/service.py"],
+          "fileCount": 1,
+          "additions": 1,
+          "deletions": 0,
+          "parsing": "complete",
+          "classifiedPaths": []
+        },
+        "evidenceLimitations": [
+          {
+            "id": "missing_context",
+            "authority": "metadata",
+            "kind": "missing_context",
+            "wording": {
+              "key": "missing_context"
+            },
+            "text": "Scenario evaluation context is unavailable for this session.",
+            "source": {
+              "authority": "evaluation_context",
+              "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evaluationContext",
+              "version": null
+            }
+          },
+          {
+            "id": "missing_semantics",
+            "authority": "metadata",
+            "kind": "missing_semantics",
+            "wording": {
+              "key": "missing_semantics"
+            },
+            "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+            "source": {
+              "authority": "semantic_snapshot",
+              "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:semanticSnapshot",
+              "version": null
+            }
+          },
+          {
+            "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "authority": "evidence",
+            "kind": "unsupported_semantic_mapping",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d"
+            ],
+            "wording": {
+              "key": "unsupported_mapping"
+            },
+            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+          },
+          {
+            "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "authority": "evidence",
+            "kind": "unsupported_semantic_mapping",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea"
+            ],
+            "wording": {
+              "key": "unsupported_mapping"
+            },
+            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+          },
+          {
+            "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "authority": "evidence",
+            "kind": "unsupported_semantic_mapping",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846"
+            ],
+            "wording": {
+              "key": "unsupported_mapping"
+            },
+            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+          }
+        ],
+        "artifactAvailability": {
+          "reconstruction": "AVAILABLE",
+          "briefing": "available",
+          "submittedDiff": {
+            "status": "available",
+            "evidenceRefs": [
+              "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff"
+            ]
+          },
+          "context": "absent",
+          "semantics": "absent",
+          "source": {
+            "authority": "artifact_status",
+            "fieldRef": "reconstruction:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evaluator-reconstruction-deterministic-v3:status",
+            "version": "evaluator-reconstruction-deterministic-v3"
+          }
+        },
+        "reviewGuidance": [],
+        "evidenceIndex": [
+          {
+            "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:activated",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "activation",
+            "rawEventIds": [],
+            "chronologyOrder": 0,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "activation",
+              "timestamp": "2026-09-16T17:13:30.566Z"
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "SESSION_ACTIVATED",
+                "timestamp": "2026-09-16T17:13:30.566Z"
+              }
+            }
+          },
+          {
+            "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "command_execution",
+            "rawEventIds": [
+              "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+              "evt_ac2b3f4c-2f62-4403-8107-21df20217156"
+            ],
+            "chronologyOrder": 1,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "command_execution",
+              "command": "pwd",
+              "cwd": "/workspace",
+              "exitCode": 0,
+              "timedOut": false,
+              "durationMs": 88,
+              "output": null,
+              "stdoutExcerpt": "/workspace\n",
+              "stdoutBytes": 11,
+              "stdoutTruncated": false,
+              "stderrExcerpt": "",
+              "stderrBytes": 0,
+              "stderrTruncated": false
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "COMMAND_EXECUTION",
+                "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                "command": "pwd",
+                "cwd": "/workspace",
+                "startedAt": "2026-09-16T17:13:30.875Z",
+                "finishedAt": "2026-09-16T17:13:30.999Z",
+                "durationMs": 88,
+                "exitCode": 0,
+                "timedOut": false,
+                "stdoutPreview": "/workspace\n",
+                "stderrPreview": "",
+                "rawStartedEventId": "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+                "rawFinishedEventId": "evt_ac2b3f4c-2f62-4403-8107-21df20217156",
+                "sequence": 2,
+                "rawStartedEvent": {
+                  "id": "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 1,
+                  "type": "COMMAND_STARTED",
+                  "timestamp": "2026-09-16T17:13:30.875Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                    "command": "pwd",
+                    "cwd": "/workspace"
+                  }
+                },
+                "rawFinishedEvent": {
+                  "id": "evt_ac2b3f4c-2f62-4403-8107-21df20217156",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 2,
+                  "type": "COMMAND_FINISHED",
+                  "timestamp": "2026-09-16T17:13:30.999Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                    "exitCode": 0,
+                    "timedOut": false,
+                    "durationMs": 88,
+                    "stdoutPreview": "/workspace\n",
+                    "stdoutBytes": 11,
+                    "stdoutTruncated": false,
+                    "stderrPreview": "",
+                    "stderrBytes": 0,
+                    "stderrTruncated": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "command_execution",
+            "rawEventIds": [
+              "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+              "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4"
+            ],
+            "chronologyOrder": 2,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "command_execution",
+              "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+              "cwd": "/workspace",
+              "exitCode": 0,
+              "timedOut": false,
+              "durationMs": 84,
+              "output": null,
+              "stdoutExcerpt": "",
+              "stdoutBytes": 0,
+              "stdoutTruncated": false,
+              "stderrExcerpt": "",
+              "stderrBytes": 0,
+              "stderrTruncated": false
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "COMMAND_EXECUTION",
+                "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+                "cwd": "/workspace",
+                "startedAt": "2026-09-16T17:13:31.329Z",
+                "finishedAt": "2026-09-16T17:13:31.444Z",
+                "durationMs": 84,
+                "exitCode": 0,
+                "timedOut": false,
+                "stdoutPreview": "",
+                "stderrPreview": "",
+                "rawStartedEventId": "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+                "rawFinishedEventId": "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4",
+                "sequence": 4,
+                "rawStartedEvent": {
+                  "id": "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 3,
+                  "type": "COMMAND_STARTED",
+                  "timestamp": "2026-09-16T17:13:31.329Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                    "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+                    "cwd": "/workspace"
+                  }
+                },
+                "rawFinishedEvent": {
+                  "id": "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 4,
+                  "type": "COMMAND_FINISHED",
+                  "timestamp": "2026-09-16T17:13:31.444Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                    "exitCode": 0,
+                    "timedOut": false,
+                    "durationMs": 84,
+                    "stdoutPreview": "",
+                    "stdoutBytes": 0,
+                    "stdoutTruncated": false,
+                    "stderrPreview": "",
+                    "stderrBytes": 0,
+                    "stderrTruncated": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "workspace_change",
+            "rawEventIds": ["evt_52b356c2-7928-4e35-8513-106b70342f4a"],
+            "chronologyOrder": 3,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "workspace_change",
+              "origin": "command_execution",
+              "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+              "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+              "files": [
+                {
+                  "path": "inventory/service.py",
+                  "status": "modified",
+                  "additions": 1,
+                  "deletions": 0,
+                  "patchExcerpt": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                  "patchBytes": 342,
+                  "patchTruncated": false
+                }
+              ]
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "WORKSPACE_CHANGE",
+                "changeId": "chg_afc6d6e1-b3fd-4d2f-a869-99a74abaf878",
+                "origin": "command_execution",
+                "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                "timestamp": "2026-09-16T17:13:31.655Z",
+                "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+                "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+                "files": [
+                  {
+                    "path": "inventory/service.py",
+                    "status": "modified",
+                    "additions": 1,
+                    "deletions": 0,
+                    "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                    "patchPreviewBytes": 342,
+                    "patchBytes": 342,
+                    "patchTruncated": false
+                  }
+                ],
+                "totalAdditions": 1,
+                "totalDeletions": 0,
+                "rawEventId": "evt_52b356c2-7928-4e35-8513-106b70342f4a",
+                "sequence": 5,
+                "rawEvent": {
+                  "id": "evt_52b356c2-7928-4e35-8513-106b70342f4a",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 5,
+                  "type": "WORKSPACE_CHANGED",
+                  "timestamp": "2026-09-16T17:13:31.655Z",
+                  "source": "server",
+                  "payload": {
+                    "changeId": "chg_afc6d6e1-b3fd-4d2f-a869-99a74abaf878",
+                    "origin": "command_execution",
+                    "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                    "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+                    "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+                    "files": [
+                      {
+                        "path": "inventory/service.py",
+                        "status": "modified",
+                        "additions": 1,
+                        "deletions": 0,
+                        "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                        "patchPreviewBytes": 342,
+                        "patchBytes": 342,
+                        "patchTruncated": false
+                      }
+                    ],
+                    "totalAdditions": 1,
+                    "totalDeletions": 0
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "command_execution",
+            "rawEventIds": [
+              "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+              "evt_5c259c70-f39d-432f-a6ba-acccef9630f0"
+            ],
+            "chronologyOrder": 4,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "command_execution",
+              "command": "cat inventory/service.py",
+              "cwd": "/workspace",
+              "exitCode": 0,
+              "timedOut": false,
+              "durationMs": 83,
+              "output": null,
+              "stdoutExcerpt": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+              "stdoutBytes": 1206,
+              "stdoutTruncated": false,
+              "stderrExcerpt": "",
+              "stderrBytes": 0,
+              "stderrTruncated": false
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "COMMAND_EXECUTION",
+                "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                "command": "cat inventory/service.py",
+                "cwd": "/workspace",
+                "startedAt": "2026-09-16T17:13:31.780Z",
+                "finishedAt": "2026-09-16T17:13:31.897Z",
+                "durationMs": 83,
+                "exitCode": 0,
+                "timedOut": false,
+                "stdoutPreview": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+                "stderrPreview": "",
+                "rawStartedEventId": "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+                "rawFinishedEventId": "evt_5c259c70-f39d-432f-a6ba-acccef9630f0",
+                "sequence": 7,
+                "rawStartedEvent": {
+                  "id": "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 6,
+                  "type": "COMMAND_STARTED",
+                  "timestamp": "2026-09-16T17:13:31.780Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                    "command": "cat inventory/service.py",
+                    "cwd": "/workspace"
+                  }
+                },
+                "rawFinishedEvent": {
+                  "id": "evt_5c259c70-f39d-432f-a6ba-acccef9630f0",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 7,
+                  "type": "COMMAND_FINISHED",
+                  "timestamp": "2026-09-16T17:13:31.897Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                    "exitCode": 0,
+                    "timedOut": false,
+                    "durationMs": 83,
+                    "stdoutPreview": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+                    "stdoutBytes": 1206,
+                    "stdoutTruncated": false,
+                    "stderrPreview": "",
+                    "stderrBytes": 0,
+                    "stderrTruncated": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "submission",
+            "rawEventIds": [],
+            "chronologyOrder": 5,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "submission",
+              "timestamp": "2026-09-16T17:13:32.309Z"
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "SESSION_SUBMITTED",
+                "timestamp": "2026-09-16T17:13:32.309Z",
+                "submittedDiff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
+              }
+            }
+          },
+          {
+            "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "final_state",
+            "kind": "final_diff",
+            "rawEventIds": [],
+            "chronologyOrder": null,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": null,
+            "sourceData": {
+              "kind": "submitted_diff",
+              "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
+            }
+          }
+        ]
+      },
+      "defaultDepth": {
+        "structuredEvidence": true,
+        "technicalRecord": true,
+        "scenarioReference": true
+      },
+      "expandedEvidenceRefs": [
+        "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:activated",
+        "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+        "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+        "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+        "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+        "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+        "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff"
+      ]
+    },
+    "ENGINEERING_MANAGER": {
+      "schemaVersion": 1,
+      "projectionVersion": "briefing-depth-v1",
+      "profile": "ENGINEERING_MANAGER",
+      "briefing": {
+        "schemaVersion": 1,
+        "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+        "provenance": {
+          "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+          "authoritativeEvidenceSha256": "dbedfffa6e1caecb3e9cf314772c2c671ad9554744e65cdd005124ae84e1ace9",
+          "finalDiffSha256": "3e8372f399ce28efd7abab83d50bc9148e44442f85eb6e21fdf13849c2693921",
+          "reconstruction": {
+            "artifactId": "405c1ad8-b260-435f-88b3-f861521d908d",
+            "generatorVersion": "evaluator-reconstruction-deterministic-v3"
+          },
+          "semanticSnapshot": {
+            "status": "absent",
+            "contentVersion": null,
+            "sha256": null
+          },
+          "scenarioVersion": "1.0.0",
+          "scenarioSnapshotSha256": "e0db2410ae5078ef086ff19cac54d8d4fffac7393d41063c39f747d44e33274b",
+          "evaluationContextSha256": null,
+          "evaluationContextVersion": null,
+          "mapperVersion": "briefing-mapper-v1",
+          "wordingVersion": "briefing-wording-v1",
+          "builderVersion": "evaluator-briefing-v1",
+          "projectionVersion": "briefing-depth-v1"
+        },
+        "taskContext": [
+          {
+            "id": "task-brief",
+            "category": "task_context",
+            "kind": "task_brief",
+            "source": {
+              "authority": "scenario_snapshot",
+              "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:brief",
+              "version": "1.0.0"
+            },
+            "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
+          }
+        ],
+        "observedActivity": [
+          {
+            "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "kind": "recorded_command",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d"
+            ],
+            "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "chronologyOrder": 1,
+            "scope": "recorded_execution",
+            "wording": {
+              "key": "recorded_command"
+            },
+            "text": "A command execution was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          },
+          {
+            "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "kind": "recorded_command",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea"
+            ],
+            "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "chronologyOrder": 2,
+            "scope": "recorded_execution",
+            "wording": {
+              "key": "recorded_command"
+            },
+            "text": "A command execution was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          },
+          {
+            "id": "observation:event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "kind": "recorded_workspace_edit",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a"
+            ],
+            "factRef": "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "chronologyOrder": 3,
+            "scope": "recorded_workspace_transition",
+            "wording": {
+              "key": "workspace_edit"
+            },
+            "text": "A workspace edit was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            },
+            "paths": ["inventory/service.py"]
+          },
+          {
+            "id": "observation:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "kind": "recorded_command",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846"
+            ],
+            "factRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "chronologyOrder": 4,
+            "scope": "recorded_execution",
+            "wording": {
+              "key": "recorded_command"
+            },
+            "text": "A command execution was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          },
+          {
+            "id": "observation:session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+            "kind": "recorded_submission",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted"
+            ],
+            "factRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+            "chronologyOrder": 5,
+            "scope": "submission_boundary",
+            "wording": {
+              "key": "submission"
+            },
+            "text": "Submission was recorded.",
+            "mapping": {
+              "status": "generic",
+              "ruleId": null,
+              "subjectId": null
+            }
+          }
+        ],
+        "recordedVerification": {
+          "scope": "recognized_recorded_executions_only",
+          "runs": []
+        },
+        "submittedState": {
+          "id": "submitted-state",
+          "basis": "final_state",
+          "evidenceRefs": [
+            "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff"
+          ],
+          "wording": {
+            "key": "submitted_files",
+            "count": 1
+          },
+          "text": "The frozen submission diff contains changes to 1 file.",
+          "changedPaths": ["inventory/service.py"],
+          "fileCount": 1,
+          "additions": 1,
+          "deletions": 0,
+          "parsing": "complete",
+          "classifiedPaths": []
+        },
+        "evidenceLimitations": [
+          {
+            "id": "missing_context",
+            "authority": "metadata",
+            "kind": "missing_context",
+            "wording": {
+              "key": "missing_context"
+            },
+            "text": "Scenario evaluation context is unavailable for this session.",
+            "source": {
+              "authority": "evaluation_context",
+              "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evaluationContext",
+              "version": null
+            }
+          },
+          {
+            "id": "missing_semantics",
+            "authority": "metadata",
+            "kind": "missing_semantics",
+            "wording": {
+              "key": "missing_semantics"
+            },
+            "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+            "source": {
+              "authority": "semantic_snapshot",
+              "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:semanticSnapshot",
+              "version": null
+            }
+          },
+          {
+            "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "authority": "evidence",
+            "kind": "unsupported_semantic_mapping",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d"
+            ],
+            "wording": {
+              "key": "unsupported_mapping"
+            },
+            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+          },
+          {
+            "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "authority": "evidence",
+            "kind": "unsupported_semantic_mapping",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea"
+            ],
+            "wording": {
+              "key": "unsupported_mapping"
+            },
+            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+          },
+          {
+            "id": "unsupported_semantic_mapping:command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "authority": "evidence",
+            "kind": "unsupported_semantic_mapping",
+            "basis": "chronology",
+            "evidenceRefs": [
+              "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846"
+            ],
+            "wording": {
+              "key": "unsupported_mapping"
+            },
+            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+          }
+        ],
+        "artifactAvailability": {
+          "reconstruction": "AVAILABLE",
+          "briefing": "available",
+          "submittedDiff": {
+            "status": "available",
+            "evidenceRefs": [
+              "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff"
+            ]
+          },
+          "context": "absent",
+          "semantics": "absent",
+          "source": {
+            "authority": "artifact_status",
+            "fieldRef": "reconstruction:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evaluator-reconstruction-deterministic-v3:status",
+            "version": "evaluator-reconstruction-deterministic-v3"
+          }
+        },
+        "reviewGuidance": [],
+        "evidenceIndex": [
+          {
+            "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:activated",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "activation",
+            "rawEventIds": [],
+            "chronologyOrder": 0,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "activation",
+              "timestamp": "2026-09-16T17:13:30.566Z"
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "SESSION_ACTIVATED",
+                "timestamp": "2026-09-16T17:13:30.566Z"
+              }
+            }
+          },
+          {
+            "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "command_execution",
+            "rawEventIds": [
+              "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+              "evt_ac2b3f4c-2f62-4403-8107-21df20217156"
+            ],
+            "chronologyOrder": 1,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "command_execution",
+              "command": "pwd",
+              "cwd": "/workspace",
+              "exitCode": 0,
+              "timedOut": false,
+              "durationMs": 88,
+              "output": null,
+              "stdoutExcerpt": "/workspace\n",
+              "stdoutBytes": 11,
+              "stdoutTruncated": false,
+              "stderrExcerpt": "",
+              "stderrBytes": 0,
+              "stderrTruncated": false
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "COMMAND_EXECUTION",
+                "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                "command": "pwd",
+                "cwd": "/workspace",
+                "startedAt": "2026-09-16T17:13:30.875Z",
+                "finishedAt": "2026-09-16T17:13:30.999Z",
+                "durationMs": 88,
+                "exitCode": 0,
+                "timedOut": false,
+                "stdoutPreview": "/workspace\n",
+                "stderrPreview": "",
+                "rawStartedEventId": "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+                "rawFinishedEventId": "evt_ac2b3f4c-2f62-4403-8107-21df20217156",
+                "sequence": 2,
+                "rawStartedEvent": {
+                  "id": "evt_4f9787b9-6a77-4313-b938-e0b14eeff4ea",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 1,
+                  "type": "COMMAND_STARTED",
+                  "timestamp": "2026-09-16T17:13:30.875Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                    "command": "pwd",
+                    "cwd": "/workspace"
+                  }
+                },
+                "rawFinishedEvent": {
+                  "id": "evt_ac2b3f4c-2f62-4403-8107-21df20217156",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 2,
+                  "type": "COMMAND_FINISHED",
+                  "timestamp": "2026-09-16T17:13:30.999Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_712eada6-6068-492a-b157-0a7a7e1b2c2d",
+                    "exitCode": 0,
+                    "timedOut": false,
+                    "durationMs": 88,
+                    "stdoutPreview": "/workspace\n",
+                    "stdoutBytes": 11,
+                    "stdoutTruncated": false,
+                    "stderrPreview": "",
+                    "stderrBytes": 0,
+                    "stderrTruncated": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "command_execution",
+            "rawEventIds": [
+              "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+              "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4"
+            ],
+            "chronologyOrder": 2,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "command_execution",
+              "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+              "cwd": "/workspace",
+              "exitCode": 0,
+              "timedOut": false,
+              "durationMs": 84,
+              "output": null,
+              "stdoutExcerpt": "",
+              "stdoutBytes": 0,
+              "stdoutTruncated": false,
+              "stderrExcerpt": "",
+              "stderrBytes": 0,
+              "stderrTruncated": false
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "COMMAND_EXECUTION",
+                "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+                "cwd": "/workspace",
+                "startedAt": "2026-09-16T17:13:31.329Z",
+                "finishedAt": "2026-09-16T17:13:31.444Z",
+                "durationMs": 84,
+                "exitCode": 0,
+                "timedOut": false,
+                "stdoutPreview": "",
+                "stderrPreview": "",
+                "rawStartedEventId": "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+                "rawFinishedEventId": "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4",
+                "sequence": 4,
+                "rawStartedEvent": {
+                  "id": "evt_0bf835f0-c4c4-4760-b5b7-ec627a9c76a8",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 3,
+                  "type": "COMMAND_STARTED",
+                  "timestamp": "2026-09-16T17:13:31.329Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                    "command": "echo \"# evaluator gate fixture note\" >> inventory/service.py",
+                    "cwd": "/workspace"
+                  }
+                },
+                "rawFinishedEvent": {
+                  "id": "evt_db0d87f1-7f72-47b1-aa4e-c17d5bb4a3a4",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 4,
+                  "type": "COMMAND_FINISHED",
+                  "timestamp": "2026-09-16T17:13:31.444Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                    "exitCode": 0,
+                    "timedOut": false,
+                    "durationMs": 84,
+                    "stdoutPreview": "",
+                    "stdoutBytes": 0,
+                    "stdoutTruncated": false,
+                    "stderrPreview": "",
+                    "stderrBytes": 0,
+                    "stderrTruncated": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "event:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:evt_52b356c2-7928-4e35-8513-106b70342f4a",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "workspace_change",
+            "rawEventIds": ["evt_52b356c2-7928-4e35-8513-106b70342f4a"],
+            "chronologyOrder": 3,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "workspace_change",
+              "origin": "command_execution",
+              "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+              "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+              "files": [
+                {
+                  "path": "inventory/service.py",
+                  "status": "modified",
+                  "additions": 1,
+                  "deletions": 0,
+                  "patchExcerpt": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                  "patchBytes": 342,
+                  "patchTruncated": false
+                }
+              ]
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "WORKSPACE_CHANGE",
+                "changeId": "chg_afc6d6e1-b3fd-4d2f-a869-99a74abaf878",
+                "origin": "command_execution",
+                "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                "timestamp": "2026-09-16T17:13:31.655Z",
+                "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+                "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+                "files": [
+                  {
+                    "path": "inventory/service.py",
+                    "status": "modified",
+                    "additions": 1,
+                    "deletions": 0,
+                    "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                    "patchPreviewBytes": 342,
+                    "patchBytes": 342,
+                    "patchTruncated": false
+                  }
+                ],
+                "totalAdditions": 1,
+                "totalDeletions": 0,
+                "rawEventId": "evt_52b356c2-7928-4e35-8513-106b70342f4a",
+                "sequence": 5,
+                "rawEvent": {
+                  "id": "evt_52b356c2-7928-4e35-8513-106b70342f4a",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 5,
+                  "type": "WORKSPACE_CHANGED",
+                  "timestamp": "2026-09-16T17:13:31.655Z",
+                  "source": "server",
+                  "payload": {
+                    "changeId": "chg_afc6d6e1-b3fd-4d2f-a869-99a74abaf878",
+                    "origin": "command_execution",
+                    "commandId": "cmd_5c001d3f-034e-4465-b428-d3eff7399fea",
+                    "beforeTree": "b1161e860343dae267acff278a0da51224aaca38",
+                    "afterTree": "970004fcbed8c3f70d6e79528e6f2dff6b6f46b1",
+                    "files": [
+                      {
+                        "path": "inventory/service.py",
+                        "status": "modified",
+                        "additions": 1,
+                        "deletions": 0,
+                        "patchPreview": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n",
+                        "patchPreviewBytes": 342,
+                        "patchBytes": 342,
+                        "patchTruncated": false
+                      }
+                    ],
+                    "totalAdditions": 1,
+                    "totalDeletions": 0
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "command:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "command_execution",
+            "rawEventIds": [
+              "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+              "evt_5c259c70-f39d-432f-a6ba-acccef9630f0"
+            ],
+            "chronologyOrder": 4,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "command_execution",
+              "command": "cat inventory/service.py",
+              "cwd": "/workspace",
+              "exitCode": 0,
+              "timedOut": false,
+              "durationMs": 83,
+              "output": null,
+              "stdoutExcerpt": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+              "stdoutBytes": 1206,
+              "stdoutTruncated": false,
+              "stderrExcerpt": "",
+              "stderrBytes": 0,
+              "stderrTruncated": false
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "COMMAND_EXECUTION",
+                "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                "command": "cat inventory/service.py",
+                "cwd": "/workspace",
+                "startedAt": "2026-09-16T17:13:31.780Z",
+                "finishedAt": "2026-09-16T17:13:31.897Z",
+                "durationMs": 83,
+                "exitCode": 0,
+                "timedOut": false,
+                "stdoutPreview": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+                "stderrPreview": "",
+                "rawStartedEventId": "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+                "rawFinishedEventId": "evt_5c259c70-f39d-432f-a6ba-acccef9630f0",
+                "sequence": 7,
+                "rawStartedEvent": {
+                  "id": "evt_00aae675-cdac-4d16-86ec-cf26abf86c63",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 6,
+                  "type": "COMMAND_STARTED",
+                  "timestamp": "2026-09-16T17:13:31.780Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                    "command": "cat inventory/service.py",
+                    "cwd": "/workspace"
+                  }
+                },
+                "rawFinishedEvent": {
+                  "id": "evt_5c259c70-f39d-432f-a6ba-acccef9630f0",
+                  "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+                  "sequence": 7,
+                  "type": "COMMAND_FINISHED",
+                  "timestamp": "2026-09-16T17:13:31.897Z",
+                  "source": "server",
+                  "payload": {
+                    "commandId": "cmd_b8ce8da6-91dd-45ab-8f14-3c9955c41846",
+                    "exitCode": 0,
+                    "timedOut": false,
+                    "durationMs": 83,
+                    "stdoutPreview": "from inventory.db import query_one, execute\nfrom inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n\ndef get_stock(warehouse_id: str, product_id: str) -> int:\n    # 1. Check storefront cache\n    cached = get_cached_stock(warehouse_id, product_id)\n    if cached is not None:\n        return cached\n\n    # 2. Cache miss -> query authoritative database\n    row = query_one(\n        \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n        (warehouse_id, product_id)\n    )\n    if not row:\n        return 0\n\n    quantity = int(row[\"quantity\"])\n    # 3. Cache for subsequent reads\n    set_cached_stock(warehouse_id, product_id, quantity)\n    return quantity\n\ndef update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n    # Update authoritative database record\n    execute(\n        \"\"\"\n        INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n        VALUES (%s, %s, %s, NOW())\n        ON CONFLICT (warehouse_id, product_id)\n        DO UPDATE SET quantity = EXCLUDED.quantity, updated_at = EXCLUDED.updated_at\n        \"\"\",\n        (warehouse_id, product_id, new_quantity)\n    )\n# evaluator gate fixture note\n",
+                    "stdoutBytes": 1206,
+                    "stdoutTruncated": false,
+                    "stderrPreview": "",
+                    "stderrBytes": 0,
+                    "stderrTruncated": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:submitted",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "chronology",
+            "kind": "submission",
+            "rawEventIds": [],
+            "chronologyOrder": 5,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": {
+              "kind": "submission",
+              "timestamp": "2026-09-16T17:13:32.309Z"
+            },
+            "sourceData": {
+              "kind": "chronology",
+              "item": {
+                "kind": "SESSION_SUBMITTED",
+                "timestamp": "2026-09-16T17:13:32.309Z",
+                "submittedDiff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
+              }
+            }
+          },
+          {
+            "evidenceRef": "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:final-diff",
+            "sessionId": "a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "basis": "final_state",
+            "kind": "final_diff",
+            "rawEventIds": [],
+            "chronologyOrder": null,
+            "sourceLocator": "/api/evaluator/sessions/a18cdd2c-2374-4f92-8158-95a2fe7fcfdb",
+            "fact": null,
+            "sourceData": {
+              "kind": "submitted_diff",
+              "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
+            }
+          }
+        ]
+      },
+      "defaultDepth": {
+        "structuredEvidence": true,
+        "technicalRecord": false,
+        "scenarioReference": true
+      },
+      "expandedEvidenceRefs": []
+    }
+  }
+}

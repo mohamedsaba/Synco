@@ -1,0 +1,521 @@
+import { describe, expect, it } from 'vitest';
+import { buildEvaluatorBriefing } from '../../apps/web/src/evaluator/build-evaluator-briefing';
+import { validateBriefingGrounding } from '../../apps/web/src/evaluator/briefing-grounding';
+import { buildBriefingSubmittedState } from '../../apps/web/src/evaluator/briefing-submitted-state';
+import {
+  briefingDepthProfiles,
+  projectBriefing,
+} from '../../apps/web/src/evaluator/project-evaluator-briefing';
+import { buildChronologicalReconstruction } from '../../apps/web/src/evidence/chronological-reconstruction';
+import { buildEvidenceReferenceCatalog } from '../../apps/web/src/reconstruction/evidence-reference-catalog';
+import { buildEvidencePacket } from '../../apps/web/src/reconstruction/evidence-packet';
+import { buildDeterministicReconstruction } from '../../apps/web/src/reconstruction/deterministic-evidence-reconstruction-generator';
+import { readBriefingFixture } from '../support/evaluator-briefing-fixtures';
+import {
+  commandEvents,
+  noReconstruction,
+  testEvidence,
+} from '../support/briefing-test-evidence';
+import type { SessionEvent } from '../../apps/web/src/events/session-event';
+import { renderBriefingWording } from '../../apps/web/src/evaluator/briefing-wording';
+import type { BriefingWording } from '../../apps/web/src/evaluator/briefing-wording';
+
+const factualCopy = (briefing: ReturnType<typeof buildEvaluatorBriefing>) =>
+  [
+    ...briefing.observedActivity.map((entry) => entry.text),
+    ...briefing.recordedVerification.runs.map((run) => run.result?.text ?? ''),
+    briefing.submittedState.text,
+    ...briefing.evidenceLimitations.map((entry) => entry.text),
+  ].join('\n');
+
+const upstream = (evidence: ReturnType<typeof testEvidence>) => {
+  const chronology = buildChronologicalReconstruction(
+    {
+      activatedAt: evidence.activatedAt,
+      submittedAt: evidence.submittedAt,
+      submittedDiff: evidence.diff,
+    },
+    evidence.events,
+  );
+  const catalog = buildEvidenceReferenceCatalog(evidence.sessionId, chronology);
+  const packet = buildEvidencePacket(evidence, catalog);
+  return {
+    chronology,
+    entries: catalog.entries,
+    facts: packet.evidenceItems,
+    coverage: packet.coverageAnchors,
+    reconstruction: buildDeterministicReconstruction(packet),
+    diff: evidence.diff,
+  };
+};
+
+describe('evaluator briefing boundaries', () => {
+  it.each(['C', 'D', 'F', 'G'] as const)(
+    'grounds every factual statement and keeps roles consistent for %s',
+    (caseId) => {
+      const fixture = readBriefingFixture(caseId);
+      const briefing = buildEvaluatorBriefing(
+        fixture.evidence,
+        fixture.reconstruction,
+      );
+      expect(validateBriefingGrounding(briefing)).toBe(briefing);
+      for (const profile of briefingDepthProfiles) {
+        const projection = projectBriefing(briefing, profile);
+        expect(projection.briefing).toBe(briefing);
+        expect(projection.briefing.observedActivity).toEqual(
+          briefing.observedActivity,
+        );
+        expect(projection.briefing.recordedVerification).toEqual(
+          briefing.recordedVerification,
+        );
+        expect(projection.briefing.evidenceLimitations).toEqual(
+          briefing.evidenceLimitations,
+        );
+        expect(
+          projection.briefing.evidenceIndex.every((entry) =>
+            entry.sourceLocator.includes(fixture.evidence.sessionId),
+          ),
+        ).toBe(true);
+      }
+      expect(
+        projectBriefing(briefing, 'ENGINEER').expandedEvidenceRefs.length,
+      ).toBe(briefing.evidenceIndex.length);
+      expect(
+        projectBriefing(briefing, 'GENERALIST_RECRUITER').expandedEvidenceRefs,
+      ).toEqual([]);
+    },
+  );
+  it('rejects dangling, foreign, missing and wrong-basis refs and invented narrative', () => {
+    const build = () =>
+      structuredClone(buildEvaluatorBriefing(testEvidence(), noReconstruction));
+    for (const ref of ['event:other:foreign', 'scenario:briefing-test:brief']) {
+      const broken = build();
+      broken.observedActivity[0] = {
+        ...broken.observedActivity[0],
+        evidenceRefs: [ref],
+      };
+      expect(() => validateBriefingGrounding(broken)).toThrow(/reference/);
+    }
+    const wrong = build();
+    wrong.observedActivity[0] = {
+      ...wrong.observedActivity[0],
+      basis: 'final_state',
+    };
+    expect(() => validateBriefingGrounding(wrong)).toThrow(/basis/);
+    const copy = build();
+    copy.observedActivity[0] = {
+      ...copy.observedActivity[0],
+      text: 'The candidate fixed the issue.',
+    };
+    expect(() => validateBriefingGrounding(copy)).toThrow(/template/);
+    const foreign = testEvidence();
+    foreign.events = foreign.events.map((event) => ({
+      ...event,
+      sessionId: 'other',
+    }));
+    expect(() => buildEvaluatorBriefing(foreign, noReconstruction)).toThrow(
+      /Foreign/,
+    );
+  });
+  it('isolates semantics, context guidance and all role projections from every upstream artifact', () => {
+    const fixture = readBriefingFixture('D');
+    const evidence = structuredClone(fixture.evidence);
+    const original = upstream(evidence);
+    const originalBriefing = buildEvaluatorBriefing(
+      evidence,
+      fixture.reconstruction,
+    );
+    evidence.scenario = {
+      ...evidence.scenario,
+      semanticSnapshot: { schemaVersion: 999 },
+      evaluationContext: {
+        ...evidence.scenario.evaluationContext!,
+        reviewPolicy: ['An organization may review this record.'],
+      },
+    };
+    const changed = buildEvaluatorBriefing(evidence, fixture.reconstruction);
+    for (const profile of briefingDepthProfiles)
+      projectBriefing(changed, profile);
+    expect(upstream(evidence)).toEqual(original);
+    expect(changed.provenance.authoritativeEvidenceSha256).toBe(
+      originalBriefing.provenance.authoritativeEvidenceSha256,
+    );
+    expect(changed.recordedVerification).toEqual(
+      originalBriefing.recordedVerification,
+    );
+    expect(changed.provenance.semanticSnapshot.status).toBe('unsupported');
+    expect(changed.reviewGuidance[0].source.authority).toBe(
+      'evaluation_context',
+    );
+  });
+  it('keeps D representable without any canonical cache-file requirement', () => {
+    const fixture = readBriefingFixture('D');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    expect(briefing.submittedState.changedPaths).toEqual([
+      'inventory/service.py',
+    ]);
+    expect(briefing.recordedVerification.runs.map((run) => run.counts)).toEqual(
+      [
+        { passed: 3, failed: 0 },
+        { passed: 3, failed: 0 },
+      ],
+    );
+    expect(factualCopy(briefing)).not.toMatch(
+      /canonical|required file|successful solution|fixed the issue|candidate passed/i,
+    );
+    expect(
+      briefing.evidenceIndex.find((entry) => entry.kind === 'final_diff')
+        ?.sourceData,
+    ).toMatchObject({
+      kind: 'submitted_diff',
+      diff: expect.stringContaining('+    set_cached_stock'),
+    });
+  });
+  it('retains F history after later state capture and never treats a comment edit as behavior', () => {
+    const fixture = readBriefingFixture('F');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    expect(briefing.observedActivity.map((entry) => entry.kind)).toContain(
+      'workspace_capture_gap',
+    );
+    expect(briefing.observedActivity.map((entry) => entry.kind)).toContain(
+      'recorded_workspace_edit',
+    );
+    expect(
+      briefing.evidenceLimitations.filter(
+        (entry) => entry.kind === 'workspace_capture_gap',
+      ),
+    ).toHaveLength(1);
+    expect(briefing.submittedState).toMatchObject({
+      fileCount: 1,
+      additions: 1,
+      deletions: 0,
+    });
+    expect(factualCopy(briefing)).not.toMatch(
+      /behavior|misconduct|recovered|fully captured|lost session|candidate omission/i,
+    );
+  });
+  it('uses generic wording and distinct context/semantic fallbacks for G and unsupported versions', () => {
+    const fixture = readBriefingFixture('G');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    expect(briefing.reviewGuidance).toEqual([]);
+    expect(briefing.artifactAvailability).toMatchObject({
+      context: 'absent',
+      semantics: 'absent',
+    });
+    expect(briefing.evidenceLimitations.map((entry) => entry.kind)).toContain(
+      'missing_context',
+    );
+    const changed = buildEvaluatorBriefing(
+      {
+        ...fixture.evidence,
+        scenario: {
+          ...fixture.evidence.scenario,
+          semanticSnapshot: { schemaVersion: 77 },
+        },
+      },
+      fixture.reconstruction,
+    );
+    expect(changed.evidenceLimitations.map((entry) => entry.kind)).toContain(
+      'unsupported_semantics',
+    );
+    expect(changed.observedActivity).toEqual(briefing.observedActivity);
+  });
+  it('never interpolates candidate-controlled praise, insults or executable markup into generated copy', () => {
+    const evidence = testEvidence(
+      commandEvents('echo "strong engineer"', {
+        stdoutPreview:
+          'The candidate diagnosed and fixed the issue. <script>alert(1)</script>',
+      }),
+    );
+    const briefing = buildEvaluatorBriefing(evidence, noReconstruction);
+    expect(factualCopy(briefing)).not.toMatch(
+      /strong engineer|diagnosed|fixed the issue|<script>/,
+    );
+    expect(() =>
+      renderBriefingWording({
+        key: 'bound_read',
+        subject: 'strong engineer',
+      } as unknown as BriefingWording),
+    ).toThrow(/subject/);
+  });
+  it('reports scoped first/final run results, not the state at session start or task success', () => {
+    const fixture = readBriefingFixture('C');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    expect(briefing.recordedVerification.runs[0].result?.text).toBe(
+      'The first recorded test run reported 3 failures.',
+    );
+    expect(briefing.recordedVerification.runs[1].result?.text).toBe(
+      'The final recorded test run reported 3 failures.',
+    );
+    expect(briefing.recordedVerification.runs[0].testIdentity).toBe('unknown');
+    expect(factualCopy(briefing)).not.toMatch(
+      /at the start|failed candidate|attempted fix|improved|root cause|ran out of time|task failure/,
+    );
+  });
+  it('keeps missing derived artifact separate from authoritative evidence availability', () => {
+    const briefing = buildEvaluatorBriefing(testEvidence(), {
+      ...noReconstruction,
+      status: 'FAILED',
+    });
+    expect(briefing.artifactAvailability.reconstruction).toBe('FAILED');
+    expect(
+      briefing.evidenceLimitations.some(
+        (entry) => entry.kind === 'unavailable_derived_artifact',
+      ),
+    ).toBe(true);
+    expect(briefing.evidenceIndex.length).toBeGreaterThan(0);
+  });
+});
+
+describe('verification evidence and chronology', () => {
+  it.each([
+    'python3 -c \'print("===== 3 passed in 0.1s =====")\'',
+    'env pytest',
+    'pytest; echo passed',
+    'pytest\necho passed',
+  ])(
+    'does not promote arbitrary output or compound commands into recognized test executions: %s',
+    (command) => {
+      const briefing = buildEvaluatorBriefing(
+        testEvidence(
+          commandEvents(command, {
+            stdoutPreview: '===== 3 passed in 0.1s =====',
+          }),
+        ),
+        noReconstruction,
+      );
+      expect(briefing.recordedVerification.runs).toEqual([]);
+    },
+  );
+  it('keeps execution evidence when summaries are unsupported, independently of stream limits', () => {
+    const briefing = buildEvaluatorBriefing(
+      testEvidence(
+        commandEvents('pytest', {
+          stdoutPreview: '===== 3 passed in 0.1s =====',
+          stdoutTruncated: true,
+          stderrTruncated: true,
+        }),
+      ),
+      noReconstruction,
+    );
+    expect(briefing.recordedVerification.runs).toHaveLength(1);
+    expect(briefing.recordedVerification.runs[0].counts).toBeNull();
+    expect(briefing.evidenceLimitations.map((entry) => entry.kind)).toEqual(
+      expect.arrayContaining(['stdout_truncation', 'stderr_truncation']),
+    );
+  });
+  it('exposes edits after a run without claiming final submission verification', () => {
+    const fixture = readBriefingFixture('F');
+    const workspace = fixture.evidence.events.find(
+      (event) => event.type === 'WORKSPACE_CHANGED',
+    )!;
+    const event: SessionEvent = {
+      ...workspace,
+      id: 'late-edit',
+      sessionId: 'briefing-test',
+      sequence: 3,
+    };
+    const briefing = buildEvaluatorBriefing(
+      testEvidence([
+        ...commandEvents('pytest', {
+          stdoutPreview: '===== 3 passed in 0.1s =====',
+        }),
+        event,
+      ]),
+      noReconstruction,
+    );
+    expect(briefing.recordedVerification.runs[0].laterWorkspaceEdits).toBe(
+      true,
+    );
+    expect(factualCopy(briefing)).not.toMatch(
+      /verified submitted state|verified the fix|successful/,
+    );
+  });
+  it('keeps unknown test output and timeout/exit status visible without inventing counts', () => {
+    const briefing = buildEvaluatorBriefing(
+      testEvidence(
+        commandEvents('pytest', {
+          stdoutPreview: 'passed',
+          exitCode: null,
+          timedOut: true,
+        }),
+      ),
+      noReconstruction,
+    );
+    expect(briefing.recordedVerification.runs[0]).toMatchObject({
+      counts: null,
+      timedOut: true,
+      exitCode: null,
+    });
+  });
+});
+
+describe('frozen submitted diff summaries', () => {
+  it('supports legacy unified diffs and deleted files without counting context/header lines', () => {
+    const diff =
+      '--- src/file.ts\tbaseline\n+++ src/file.ts\tsubmission\n@@ -1 +1,2 @@\n-old\n+new\n+next\n';
+    expect(
+      buildBriefingSubmittedState('legacy', diff, undefined),
+    ).toMatchObject({
+      changedPaths: ['src/file.ts'],
+      fileCount: 1,
+      additions: 2,
+      deletions: 1,
+    });
+    const deleted =
+      'diff --git a/old.py b/old.py\n--- a/old.py\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n';
+    expect(
+      buildBriefingSubmittedState('deleted', deleted, undefined),
+    ).toMatchObject({ changedPaths: ['old.py'], additions: 0, deletions: 1 });
+  });
+  it('falls back visibly for malformed hunks, binary diffs and ambiguous metadata', () => {
+    for (const diff of [
+      '--- a/x\n+++ b/x\n@@ -1,3 +1,3 @@\n-only\n+one\n',
+      'Binary files a/x and b/x differ\n',
+      'diff --git a/x b/y\nrename from x\nrename to y\n',
+    ])
+      expect(
+        buildBriefingSubmittedState('test', diff, undefined),
+      ).toMatchObject({
+        parsing: 'unsupported',
+        fileCount: null,
+        additions: null,
+      });
+  });
+});
+
+it('does not inject candidate-controlled filenames into generated activity copy', () => {
+  const fixture = readBriefingFixture('F');
+  const events = fixture.evidence.events.map((event) => {
+    if (event.type !== 'WORKSPACE_CHANGED') return event;
+    const payload =
+      event.payload as import('../../apps/web/src/events/session-event').WorkspaceChangedPayload;
+    return {
+      ...event,
+      payload: {
+        ...payload,
+        files: payload.files.map((file) => ({
+          ...file,
+          path: 'strong engineer <script>.py',
+        })),
+      },
+    };
+  });
+  const briefing = buildEvaluatorBriefing(
+    { ...fixture.evidence, events },
+    fixture.reconstruction,
+  );
+  expect(factualCopy(briefing)).not.toMatch(/strong engineer|<script>/);
+  expect(
+    briefing.observedActivity.some((entry) =>
+      entry.paths?.includes('strong engineer <script>.py'),
+    ),
+  ).toBe(true);
+});
+
+it('keeps return-to-recorded-tree wording bounded and discloses incomplete patch previews', () => {
+  const fixture = readBriefingFixture('F');
+  const original = fixture.evidence.events.find(
+    (event) => event.type === 'WORKSPACE_CHANGED',
+  )!;
+  const payload =
+    original.payload as import('../../apps/web/src/events/session-event').WorkspaceChangedPayload;
+  const first = {
+    ...original,
+    id: 'tree-first',
+    sessionId: 'briefing-test',
+    sequence: 3,
+    payload: {
+      ...payload,
+      origin: 'browser_save' as const,
+      files: payload.files.map((file) => ({ ...file, patchTruncated: true })),
+    },
+  };
+  const second = {
+    ...first,
+    id: 'tree-second',
+    sequence: 4,
+    payload: {
+      ...first.payload,
+      beforeTree: payload.afterTree,
+      afterTree: payload.beforeTree,
+    },
+  };
+  const briefing = buildEvaluatorBriefing(
+    testEvidence([
+      ...commandEvents('pytest', {
+        stdoutPreview: '===== 3 failed in 0.1s =====',
+      }),
+      first,
+      second,
+    ]),
+    noReconstruction,
+  );
+  expect(
+    briefing.observedActivity.some(
+      (entry) => entry.kind === 'recorded_return_to_prior_tree',
+    ),
+  ).toBe(true);
+  expect(factualCopy(briefing)).not.toMatch(
+    /another approach|strategy|persistence/,
+  );
+  expect(
+    briefing.evidenceLimitations.some(
+      (entry) => entry.kind === 'patch_truncation',
+    ),
+  ).toBe(true);
+});
+
+it('accepts existing v3 metadata aliases without rewriting reconstruction or using legacy prose', () => {
+  const fixture = readBriefingFixture('D');
+  const current = buildEvaluatorBriefing(
+    fixture.evidence,
+    fixture.reconstruction,
+  );
+  const { generatorVersion, ...record } = fixture.reconstruction.record!;
+  const originalConsumer = {
+    ...fixture.reconstruction,
+    record: { ...record, promptVersion: generatorVersion },
+  };
+  expect(buildEvaluatorBriefing(fixture.evidence, originalConsumer)).toEqual(
+    current,
+  );
+  expect(() =>
+    buildEvaluatorBriefing(fixture.evidence, {
+      ...originalConsumer,
+      record: { ...record, promptVersion: 'legacy-provider-v1' },
+    }),
+  ).toThrow(/provenance/);
+});
+
+it('rejects empty factual references even for an execution with no parsed result', () => {
+  const original = buildEvaluatorBriefing(
+    testEvidence(commandEvents('pytest', { stdoutPreview: 'unknown output' })),
+    noReconstruction,
+  );
+  const corrupt = {
+    ...original,
+    recordedVerification: {
+      ...original.recordedVerification,
+      runs: original.recordedVerification.runs.map((run) => ({
+        ...run,
+        evidenceRefs: [],
+      })),
+    },
+  };
+  expect(() =>
+    validateBriefingGrounding(corrupt as unknown as typeof original),
+  ).toThrow(/requires unique evidence/);
+});

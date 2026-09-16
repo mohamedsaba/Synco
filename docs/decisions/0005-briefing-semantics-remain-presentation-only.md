@@ -21,6 +21,6 @@ Deterministic v3, chronology, catalog, typed facts, coverage, submission and the
 - [Accepted final product specification](../product/evaluator-v2-design-specification.md)
 - [Architecture feasibility audit](../audits/evaluator-v2-architecture-feasibility.md)
 - [Foundation architecture](../architecture/evaluator-briefing.md)
-- [Implementation plan](../plans/active/053-evaluator-briefing-foundation.md)
+- [Implementation plan](../plans/completed/053-evaluator-briefing-foundation.md)
 
 Case D's accepted technical description is specific fixture evidence, not permission for a generic behavior classifier. Future request-review controls, layouts and manager notes do not expand the authorized foundation scope.

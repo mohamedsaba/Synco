@@ -203,4 +203,4 @@ The accepted specification above is preserved from the supplied final reconciled
 - [Evaluator architecture](../architecture/evaluator-experience.md)
 - [Briefing foundation architecture](../architecture/evaluator-briefing.md)
 - [Presentation boundary decision](../decisions/0005-briefing-semantics-remain-presentation-only.md)
-- [Foundation implementation plan](../plans/active/053-evaluator-briefing-foundation.md)
+- [Foundation implementation plan](../plans/completed/053-evaluator-briefing-foundation.md)

@@ -309,6 +309,6 @@ Acceptance: same v3 reconstruction and source refs; C says recorded failures, D 
 - [Final reconciled product/experience specification](../product/evaluator-v2-design-specification.md)
 - [Briefing foundation architecture](../architecture/evaluator-briefing.md)
 - [Presentation boundary decision](../decisions/0005-briefing-semantics-remain-presentation-only.md)
-- [Implementation plan](../plans/active/053-evaluator-briefing-foundation.md)
+- [Implementation plan](../plans/completed/053-evaluator-briefing-foundation.md)
 
 The audit above remains the architecture source of truth; its original analysis-only scope does not override the later explicit foundation implementation authorization.

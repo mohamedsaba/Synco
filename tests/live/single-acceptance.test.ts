@@ -12,77 +12,19 @@ import { DockerSandboxAdapter } from '../../apps/web/src/sandbox/docker-sandbox-
 import { scenario001 } from '../../apps/web/src/scenarios/scenario-001';
 import { SessionService } from '../../apps/web/src/sessions/session-service';
 import { SqliteSessionStore } from '../../apps/web/src/sessions/sqlite-session-store';
-import {
-  applyCompleteFix,
-  applyPartialFix,
-  resetAndVerify,
-} from './nvidia-nim-acceptance-fixtures';
+import { scenarioAcceptanceHistories } from './scenario-acceptance-histories';
 
 const outputDir = '/tmp/delimit-nvidia-single';
-const databasePath = path.join(outputDir, 'single.sqlite');
-
-const histories: Record<
-  string,
-  (service: SessionService, token: string) => Promise<void>
-> = {
-  A: async (service, token) => {
-    await service.executeCommand(
-      token,
-      "psql -h 127.0.0.1 -U delimit -d inventory -t -A -c \"SELECT quantity FROM inventory WHERE warehouse_id='WH-EAST-01' AND product_id='PROD-1001';\"",
-    );
-    await service.executeCommand(
-      token,
-      'redis-cli get "stock:wh-east-01:PROD-1001"',
-    );
-    await service.executeCommand(token, 'pytest');
-    await service.executeCommand(
-      token,
-      'redis-cli del "stock:wh-east-01:PROD-1001"',
-    );
-    await service.executeCommand(token, 'pytest');
-  },
-  B: async (service, token) => {
-    await service.executeCommand(token, 'pytest');
-    await applyPartialFix(service, token);
-    await service.executeCommand(token, 'pytest');
-  },
-  C: async (service, token) => {
-    await service.executeCommand(
-      token,
-      "psql -h 127.0.0.1 -U delimit -d inventory -t -A -c \"SELECT quantity FROM inventory WHERE warehouse_id='WH-EAST-01' AND product_id='PROD-1001';\"",
-    );
-    await service.executeCommand(
-      token,
-      'redis-cli get "stock:wh-east-01:PROD-1001"',
-    );
-    await service.executeCommand(token, 'pytest');
-    await applyCompleteFix(service, token);
-    await resetAndVerify(service, token);
-  },
-  D: async (service, token) => {
-    await service.executeCommand(token, 'pytest');
-    const original = await applyPartialFix(service, token);
-    await service.executeCommand(token, 'pytest');
-    await service.saveWorkspaceFile(token, 'inventory/service.py', original);
-    await service.executeCommand(
-      token,
-      'python3 -c \'import time; time.sleep(1); open("notes.txt", "w").write("synthetic note\\n")\' >/dev/null 2>&1 &',
-    );
-    await new Promise((resolve) => setTimeout(resolve, 1_500));
-    await service.executeCommand(token, 'pwd');
-    await service.executeCommand(token, 'rm notes.txt');
-    await applyCompleteFix(service, token);
-    await service.executeCommand(token, 'pytest');
-    await resetAndVerify(service, token);
-  },
-};
 
 const liveEnabled = Boolean(process.env.NVIDIA_API_KEY);
 
 describe.skipIf(!liveEnabled)('NVIDIA NIM single acceptance runner', () => {
   it('runs the requested synthetic history through live NIM inference', async () => {
     const sessionLabel = (process.env.ACCEPTANCE_SESSION || 'A').toUpperCase();
-    const performHistory = histories[sessionLabel];
+    const performHistory =
+      scenarioAcceptanceHistories[
+        sessionLabel as keyof typeof scenarioAcceptanceHistories
+      ];
     if (!performHistory) {
       throw new Error(`Unknown session label: ${sessionLabel}`);
     }

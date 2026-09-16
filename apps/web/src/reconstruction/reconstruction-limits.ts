@@ -11,8 +11,10 @@ export type ReconstructionLimits = Readonly<{
   maximumOutputBytes: number;
 }>;
 
+const maximumEvidenceItems = 250;
+
 export const initialReconstructionLimits: ReconstructionLimits = {
-  maximumEvidenceItems: 250,
+  maximumEvidenceItems,
   maximumCommandOutputBytes: 4 * 1024,
   maximumPatchBytes: 8 * 1024,
   maximumFinalDiffBytes: 16 * 1024,
@@ -20,6 +22,7 @@ export const initialReconstructionLimits: ReconstructionLimits = {
   maximumStatements: 12,
   maximumStatementTextLength: 280,
   maximumStatementDetailLength: 480,
-  maximumReferencesPerStatement: 6,
+  // An aggregate can cite every member of the bounded input chronology.
+  maximumReferencesPerStatement: maximumEvidenceItems,
   maximumOutputBytes: 16 * 1024,
 };

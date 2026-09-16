@@ -46,7 +46,7 @@ Completed vertical slices:
 - **Slice 2 — Command evidence:** readiness-gated sandbox execution and authoritative command lifecycle events.
 - **Slice 3 — Realistic Scenario 001:** a multi-file Flask, PostgreSQL, Redis, and pytest incident environment.
 - **Slice 4 — Deterministic workspace/evidence reconstruction:** trusted workspace tree transitions, explicit evidence gaps, out-of-band drift reconciliation, and one chronological evaluator history.
-- **Slice 5 — AI-assisted evidence reconstruction (awaiting live acceptance):** bounded NVIDIA NIM structured output, strict server validation, immutable reconstruction persistence, evaluator-only ensure/retry API, and a primary Candidate Work view with inline evidence drill-down.
+- **Slice 5 — Deterministic evaluator reconstruction:** typed evidence facts, phase-bounded workspace aggregation with exact multi-reference membership, conservative pytest-summary parsing, material-boundary coverage, versioned immutable reconstruction persistence, evaluator-only ensure/retry API, and evaluator-readable Candidate Work milestones with inline forensic drill-down. Deterministic v3 is the accepted authoritative presentation contract. The runtime requires no AI provider or API key; NVIDIA and OpenRouter adapters remain explicit experimental tooling only, and earlier artifacts remain auditable.
 
 Not yet implemented:
 

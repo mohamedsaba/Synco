@@ -1,6 +1,7 @@
 import type { EvidencePacketV1 } from './evidence-packet';
 
-export const reconstructionPromptVersion = 'evaluator-reconstruction-v2-nim';
+export const reconstructionPromptVersion =
+  'evaluator-reconstruction-v3-neutral-grounding';
 
 export const reconstructionSystemPrompt = `You translate observable engineering-work evidence into concise plain language for an evaluator.
 
@@ -13,11 +14,12 @@ Reconstruction guidelines:
 - Avoid technical noise: do not recite code-level details such as function names, method names, parameter names, raw assertion numbers, error messages, or internal test parameters. Describe what phase of work happened in plain English.
 - STRICT CLAUSE-LEVEL SEMANTIC GROUNDING INVARIANTS (MANDATORY):
   * NO IMPLICIT CROSS-STATEMENT EVIDENCE: Every factual clause in a statement must be established solely by the evidence references attached to that same statement. Never rely on facts cited by another statement.
-  * NO INTERPRETATION OF COMMAND OUTPUTS: Report only literal observed command executions and return values corresponding strictly to the cited command (e.g. "Ran test suite and observed test failures." or "Deleted cache key."). A statement citing a command reference MUST describe that exact command; NEVER describe pytest as a cache query or vice versa. NEVER add interpretive clauses like "indicating stale cache entry" or "showing outdated count". Words such as "stale", "outdated", "resolved", "correct", "complete", or "insufficient" are strictly forbidden.
-  * NO MOTIVATION FROM SEQUENCE: Sequence does not establish why a candidate acted or what they concluded. Never attribute motivation, intent, or realization to candidate actions (e.g. state "Reverted the earlier change in inventory/service.py." - NEVER claim they reverted it "after observing it was insufficient", "because tests failed", or infer candidate reasoning).
+  * NO INTERPRETATION OF COMMAND OUTPUTS: Report only the literal command execution and observed result established by the cited command. A statement citing a command reference MUST describe that exact command and must not relabel one command as another kind of action. NEVER add interpretive clauses such as a cause, comparison, diagnosis, or broader outcome. Use purpose-neutral verbs: do not say an action was performed "to confirm", "to verify", "to determine", or for any other inferred purpose unless that purpose is literally part of the cited evidence.
+  * TEST-OUTPUT SCOPE: For a test command, report only the test runner's observed pass/fail counts and command result. Do not characterize failures from test names, docstrings, comments, assertion prose, scenario context, or expected behavior.
+  * NO MOTIVATION FROM SEQUENCE: Sequence does not establish why a candidate acted or what they concluded. Describe a reversion only as an observed file change; never claim the candidate reverted it because of another event or infer candidate reasoning.
   * VERIFICATION SCOPE: A passing command establishes only its observed result (e.g. "The final supplied verification completed with all tests passing."). NEVER claim "confirming the fix", "resolving the issue", "proving the fix", or "correctly solved".
   * SUBMISSION SCOPE: The statement citing a submission reference (session:...:submitted) MUST have text EXACTLY "Submitted the session." with claimBasis "chronology". NEVER add "without repository changes", "with changes", "with final diff", or describe code modifications or diff state in the submission statement.
-  * FINAL-STATE SCOPE: Final-state references (session:...:final-diff) describe ONLY the exact code changes present in the finalDiff excerpt. NEVER describe unmade changes, future work, or scenario goals/requirements absent from the diff (e.g. do not claim identifier normalization if not in the diff).
+  * FINAL-STATE SCOPE: Final-state references (session:...:final-diff) describe ONLY the exact code changes present in the finalDiff excerpt. NEVER describe unmade changes, future work, or scenario goals/requirements absent from the diff.
   * SCENARIO CONTEXT IS NOT EVIDENCE: Scenario brief and acceptance criteria describe assignment context, NOT candidate actions. Never convert scenario requirements into claims about candidate work.
 - Describe only observable activity supported by cited evidence references. Compression must not sanitize the work history: preserve unsuccessful command outcomes followed by later work, workspace transitions, reversions, evidence gaps, out-of-band uncertainty, the final observed command outcome, final submitted state (if changes exist), and the submission boundary.
 - Always include a concluding statement for session submission citing the required submission reference with exact text "Submitted the session.".
@@ -70,14 +72,14 @@ export const buildReconstructionUserPrompt = (
       const label = isFinal
         ? 'final observed command execution'
         : 'command execution';
-      return `- ${ref} | TYPE: command_execution | SUPPORTS: ${label} ("${item.fact.command}", exit code ${item.fact.exitCode}) only (state literal command and output only; strictly forbidden from adding "indicating stale cache entry" or claiming it confirms/resolves an issue)`;
+      return `- ${ref} | TYPE: command_execution | SUPPORTS: ${label} ("${item.fact.command}", exit code ${item.fact.exitCode}) only (state the literal command and observed output only; do not add a cause, comparison, diagnosis, or broader outcome)`;
     }
     if (item?.fact && 'files' in item.fact && Array.isArray(item.fact.files)) {
       const files = (item.fact.files as Array<{ path?: string }>)
         .map((f) => f.path ?? '')
         .filter(Boolean)
         .join(', ');
-      return `- ${ref} | TYPE: workspace_transition | SUPPORTS: workspace file changes in [${files}] only (describe neutrally without inferred motivation or reasons)`;
+      return `- ${ref} | TYPE: workspace_change | SUPPORTS: workspace file changes in [${files}] only (describe neutrally without inferred motivation or reasons)`;
     }
     if (kinds.has('workspace_gap')) {
       return `- ${ref} | TYPE: evidence_gap | SUPPORTS: unobserved interval in workspace evidence`;
@@ -97,13 +99,13 @@ CRITICAL: Every required reference listed above must appear in at least one stat
 
   const concludingInstructions = [
     finalCommandRef
-      ? `- You MUST include a statement citing the final observed command reference "${finalCommandRef}" with claimBasis "chronology" describing the final test/command result before submission (e.g. "The final supplied pytest run completed with all three tests passing." or "The final pytest run had test failures."). Do NOT claim it "confirms the fix" or "resolves the issue".`
+      ? `- You MUST include a statement citing the final observed command reference "${finalCommandRef}" with claimBasis "chronology" describing only that command and its observed result before submission. Do NOT claim it confirms a change, resolves an issue, or proves a broader outcome.`
       : '',
     submissionRef
       ? `- You MUST include a concluding statement with claimBasis "chronology" citing the exact submission reference "${submissionRef}". The text of this statement MUST be EXACTLY "Submitted the session." with no additional words or clauses.`
       : '',
     finalDiffRef
-      ? `- You MUST include a concluding statement with claimBasis "final_state" citing ONLY the exact final-diff reference "${finalDiffRef}" summarizing the submitted code changes. It must describe ONLY the changes actually in packet.finalDiff.excerpt. NEVER claim unmade changes or scenario requirements (e.g. if the diff only adds cache invalidation, describe only cache invalidation; do not claim warehouse identifiers were normalized). This is the ONLY statement permitted to use claimBasis "final_state". Never combine chronology references into a final_state statement.`
+      ? `- You MUST include a concluding statement with claimBasis "final_state" citing ONLY the exact final-diff reference "${finalDiffRef}" summarizing the submitted code changes. It must describe ONLY the changes actually in packet.finalDiff.excerpt. NEVER claim unmade changes or scenario requirements. This is the ONLY statement permitted to use claimBasis "final_state". Never combine chronology references into a final_state statement.`
       : '',
   ]
     .filter(Boolean)
@@ -117,9 +119,10 @@ Instructions:
 - Keep each statement concise (10 to 25 words, strictly under 200 characters) and written in plain language for an evaluator. Do NOT write long compound or run-on sentences.
 - Avoid technical jargon, function names, parameter names, line numbers, raw assertion values, and root-cause claims. Describe what phase of work happened in plain English.
 - NO IMPLICIT CROSS-STATEMENT EVIDENCE: Every factual clause in a statement must be supported solely by its own cited references. Never rely on facts from another statement.
-- NO UNSUPPORTED ADJECTIVES OR INTERPRETATION: Report literal observed command results only corresponding to the cited command (e.g. "Ran test suite and observed test failures." or "Deleted cache key."). A statement citing a command reference MUST describe that exact command; NEVER describe pytest as a cache query or vice versa. NEVER append "indicating stale cache entry" or "outdated count". Words such as "stale", "outdated", "resolved", "correct", "complete", or "insufficient" are strictly forbidden.
-- NO MOTIVATION FROM SEQUENCE: Describe actions and reversions neutrally (e.g. "Reverted the earlier change in inventory/service.py."). Never claim why the candidate acted or what they concluded.
-- VERIFICATION SCOPE: State only observed test results (e.g. "The final supplied pytest run completed with all three tests passing."). Never claim tests "confirmed the fix", "resolved the issue", or proved correctness.
+- NO UNSUPPORTED ADJECTIVES OR INTERPRETATION: Report only the literal command execution and observed result established by the cited command. A statement citing a command reference MUST describe that exact command and must not relabel one command as another kind of action. Never append a cause, comparison, diagnosis, or broader outcome. Use purpose-neutral verbs: do not say an action was performed "to confirm", "to verify", "to determine", or for any other inferred purpose unless that purpose is literally part of the cited evidence.
+- TEST-OUTPUT SCOPE: For a test command, report only the test runner's observed pass/fail counts and command result. Do not characterize failures from test names, docstrings, comments, assertion prose, scenario context, or expected behavior.
+- NO MOTIVATION FROM SEQUENCE: Describe actions and reversions neutrally as observed file changes. Never claim why the candidate acted or what they concluded.
+- VERIFICATION SCOPE: State only the observed result of the cited verification command. Never claim it confirmed a change, resolved an issue, or proved correctness.
 - SUBMISSION STATEMENT RULE: The statement citing "${submissionRef ?? 'session:...:submitted'}" MUST have text EXACTLY "Submitted the session." with claimBasis "chronology". NEVER add "without repository changes", "with changes", or describe code modifications.
 - FINAL DIFF STATEMENT RULE: The final diff statement (citing "${finalDiffRef ?? 'session:...:final-diff'}") describes ONLY the modifications in packet.finalDiff.excerpt. Do NOT claim unmade changes that are not in the diff excerpt.
 - CRITICAL CLAIM BASIS RULE: All statements describing commands, test runs, code edits, reversions, and submission MUST use claimBasis "chronology". NEVER use claimBasis "final_state" on a test run or command! ONLY the diff statement citing "${finalDiffRef ?? 'final-diff'}" may use claimBasis "final_state".

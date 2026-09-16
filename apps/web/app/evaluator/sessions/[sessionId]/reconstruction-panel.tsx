@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { presentCandidateWorkStatement } from '../../../../src/reconstruction/candidate-work-presentation';
 import type { EvidenceCatalogEntry } from '../../../../src/reconstruction/evidence-reference-catalog';
 import type { EvidenceReconstructionRecord } from '../../../../src/reconstruction/evidence-reconstruction';
 import { EvidenceItemCard } from './evidence-item-card';
@@ -14,13 +15,17 @@ type ReconstructionPanelProps = Readonly<{
   initial: Readonly<{
     status: 'NOT_STARTED' | 'PENDING' | 'AVAILABLE' | 'FAILED';
     record: SafeRecord | null;
-    providerConfigured: boolean;
+    legacyArtifacts: readonly Readonly<{
+      id: string;
+      status: EvidenceReconstructionRecord['status'];
+      promptVersion: string;
+      providerId: string | null;
+      modelId: string | null;
+      createdAt: string;
+      completedAt: string | null;
+    }>[];
   }>;
   entries: readonly EvidenceCatalogEntry[];
-  integrity: Readonly<{
-    gapCount: number;
-    outOfBandCount: number;
-  }>;
   submittedDiff: string;
 }>;
 
@@ -55,7 +60,6 @@ export const ReconstructionPanel = ({
   sessionId,
   initial,
   entries,
-  integrity,
   submittedDiff,
 }: ReconstructionPanelProps) => {
   const router = useRouter();
@@ -82,7 +86,7 @@ export const ReconstructionPanel = ({
             },
       );
       if (!response.ok) {
-        setRequestError('AI reconstruction could not be started.');
+        setRequestError('Candidate Work reconstruction could not be started.');
         return;
       }
     } finally {
@@ -113,51 +117,47 @@ export const ReconstructionPanel = ({
         <div>
           <h2 id="candidate-work-title">Candidate Work</h2>
           <p>
-            AI-assisted plain-language reconstruction. This is evidence
-            navigation, not an evaluator decision or competence assessment.
+            Deterministic plain-language reconstruction from recorded evidence.
+            This is evidence navigation, not an evaluator decision or competence
+            assessment.
           </p>
         </div>
       </div>
 
-      {integrity.gapCount > 0 || integrity.outOfBandCount > 0 ? (
-        <div className="capture-note" style={{ margin: '1.5rem' }}>
-          Evidence integrity notice: {integrity.gapCount} capture gap(s) and{' '}
-          {integrity.outOfBandCount} workspace change(s) between recorded
-          actions remain visible independently of the AI reconstruction.
-        </div>
-      ) : null}
-
       <div className="timeline-list">
         {initial.status === 'NOT_STARTED' ? (
           <div className="capture-note">
-            <p>
-              {initial.providerConfigured
-                ? 'AI reconstruction has not started.'
-                : 'AI reconstruction is unavailable because NVIDIA_API_KEY is not configured.'}
-            </p>
-            {initial.providerConfigured ? (
-              <button
-                className="primary-action"
-                disabled={requesting}
-                onClick={() => void requestReconstruction(false)}
-                type="button"
-              >
-                {requesting ? 'Starting…' : 'Generate reconstruction'}
-              </button>
-            ) : null}
+            <p>Candidate Work reconstruction has not started.</p>
+            <button
+              className="primary-action"
+              disabled={requesting}
+              onClick={() => void requestReconstruction(false)}
+              type="button"
+            >
+              {requesting ? 'Building…' : 'Build Candidate Work'}
+            </button>
           </div>
         ) : null}
         {requestError ? (
           <div className="capture-note">{requestError}</div>
         ) : null}
+        {initial.legacyArtifacts.length > 0 ? (
+          <div className="capture-note">
+            {initial.legacyArtifacts.length} earlier experimental reconstruction
+            artifact(s) remain retained for audit. Their prose is not exposed as
+            current Candidate Work.
+          </div>
+        ) : null}
         {initial.status === 'PENDING' ? (
-          <div className="capture-note">AI reconstruction is pending…</div>
+          <div className="capture-note">
+            Candidate Work reconstruction is pending…
+          </div>
         ) : null}
         {initial.status === 'FAILED' && initial.record ? (
           <div className="capture-note">
             <p>
-              AI reconstruction failed ({initial.record.failureCode}).{' '}
-              {initial.record.failureMessage}
+              Candidate Work reconstruction failed ({initial.record.failureCode}
+              ). {initial.record.failureMessage}
             </p>
             <button
               className="primary-action"
@@ -165,36 +165,50 @@ export const ReconstructionPanel = ({
               onClick={() => void requestReconstruction(true)}
               type="button"
             >
-              {requesting ? 'Retrying…' : 'Retry reconstruction'}
+              {requesting ? 'Retrying…' : 'Retry Candidate Work'}
             </button>
           </div>
         ) : null}
         {initial.status === 'AVAILABLE' && initial.record?.content
-          ? initial.record.content.statements.map((statement) => (
-              <article className="timeline-item-card" key={statement.id}>
-                <div className="timeline-item-header">
-                  <div className="timeline-item-title">
-                    <span className="event-badge badge-command">
-                      {statement.claimBasis.replace('_', ' ')}
-                    </span>
-                    <strong>{statement.text}</strong>
+          ? initial.record.content.statements.map((statement) => {
+              const statementEntries = statement.evidenceRefs.flatMap(
+                (reference) => {
+                  const entry = byReference.get(reference);
+                  return entry ? [entry] : [];
+                },
+              );
+              const category = presentCandidateWorkStatement(
+                statement,
+                statementEntries,
+              );
+              return (
+                <article className="timeline-item-card" key={statement.id}>
+                  <div className="timeline-item-header">
+                    <div className="timeline-item-title">
+                      <span
+                        className={`event-badge candidate-work-badge ${category.className}`}
+                      >
+                        {category.label}
+                      </span>
+                      <strong>{statement.text}</strong>
+                    </div>
                   </div>
-                </div>
-                {statement.detail ? <p>{statement.detail}</p> : null}
-                <div>
-                  {statement.evidenceRefs.map((reference) => {
-                    const entry = byReference.get(reference);
-                    return entry ? (
-                      <EvidenceReference
-                        entry={entry}
-                        key={reference}
-                        submittedDiff={submittedDiff}
-                      />
-                    ) : null;
-                  })}
-                </div>
-              </article>
-            ))
+                  {statement.detail ? <p>{statement.detail}</p> : null}
+                  <div>
+                    {statement.evidenceRefs.map((reference) => {
+                      const entry = byReference.get(reference);
+                      return entry ? (
+                        <EvidenceReference
+                          entry={entry}
+                          key={reference}
+                          submittedDiff={submittedDiff}
+                        />
+                      ) : null;
+                    })}
+                  </div>
+                </article>
+              );
+            })
           : null}
       </div>
     </section>

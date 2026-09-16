@@ -1,56 +1,56 @@
 # Reconstruction
 
-The evaluator's primary object is one chronological reconstruction of the work. Tests, commands, AI interactions, file activity, and diff context are levels of detail within that same history, not disconnected dashboards.
+The evaluator's primary object is one chronological reconstruction of the work. Commands, file activity, evidence gaps, and submitted-state context are levels of detail within that history, not separate analytics dashboards.
 
-Raw immutable events are the primary source. Reconstruction can be regenerated from them. Deterministic formatting should create the timeline structure before optional AI prose is added.
+Raw immutable events and the server-derived final diff are authoritative. Candidate Work is a derived navigation layer and never replaces them.
 
-## Candidate Session and Reconstruction Lifecycles
+## Deterministic Candidate Work
 
-Candidate-session state and AI reconstruction status are separate. On the successful path, `CREATED → ACTIVE → SUBMITTED`; `SUBMITTED` means final evidence is frozen, candidate mutation is closed, and candidate-session submission is complete. Successful submission makes that immutable evidence eligible for reconstruction, but neither the submission service nor response waits for AI.
+Free-form AI reconstruction was rejected for authoritative evaluator-facing Candidate Work because the bounded model experiment could not reliably satisfy clause-level evidence entailment. This was an invariant-enforcement decision, not a response to provider availability.
 
-Reconstruction is a derived evaluator artifact with its own lifecycle: an eligible session with no row is not started, an execution attempt claims `PENDING`, valid persisted output becomes `AVAILABLE`, and an unsuccessful attempt becomes `FAILED`. A failed reconstruction may be retried without changing or reopening the submitted candidate session. Generation execution may begin after submission or recover later; evaluator page rendering is not the domain event that creates eligibility.
+The runtime pipeline is:
 
-AI prose is compression and connective tissue. Every generated annotation should cite the event IDs that support it:
-
-```json
-{
-  "text": "Candidate continued investigating after the test passed.",
-  "evidence": ["evt_31", "evt_38"]
-}
+```text
+authoritative events
+  → evidence-reference catalog
+  → deterministic typed facts
+  → deterministic selection and aggregation
+  → deterministic Candidate Work presentation
+  → human evaluator
 ```
 
-An evaluator must be able to expand an item to inspect its source evidence. Unsupported annotations are rejected or omitted. Regeneration should retain provenance, model/configuration metadata where relevant, and the underlying events so prose changes cannot rewrite history.
+Typed facts are limited to distinctions already established by Slice 1–4 evidence: activation and submission boundaries; command text, working directory, completion status, timeout, and bounded output; workspace origin, tree transition, and typed file changes; evidence gaps; and submitted diff paths. Arbitrary command output remains evidence but is not copied into Candidate Work. The only output interpretations are complete numeric-only stdout and a conservative pytest summary; truncated output is never semantically parsed.
 
-Reconstruction may state observable outcomes such as a test passing or a file changing. It must not score, rank, declare competence, infer hidden mental states, or automatically pass or reject a candidate. A separately recorded human decision is not a derived task outcome.
+Pytest counts are accepted only from one complete terminal-summary line bounded by pytest's `==== … in 0.04s ====` structure after ANSI removal. The status segment may contain only comma-separated `passed` and `failed` counts. Truncated output, collection errors, multiple candidate summaries, unrelated log phrases, skipped/xfailed/warning summaries, and any uncertain shape produce no test-summary fact. The safe Candidate Work fallback is a neutral command milestone when coverage requires it; the exact command and exit status remain in evidence expansion and Technical Chronology.
 
-## Chronology Evidence, Final-State Evidence, and Coverage
+An authoritative `test_summary` fact is presented as a `Test run` milestone with only its exact passed/failed counts. Without that fact, command naming alone cannot produce a test label or test result. Command names do not establish intent.
 
-Evidence references have distinct roles:
+Every statement is constructed by Delimit from typed data and carries the exact evidence references that produced that fact. Candidate Work presents short milestone copy; exact commands, output, exit status, tree hashes, sequences, and patches stay in evidence expansion. A multi-reference statement is permitted only for one maximal consecutive run of ordinary workspace transitions; its count, affected paths, and membership are deterministic, and evidence expansion exposes every contributing reference. Aggregation never crosses a command, reversion, out-of-band change, or evidence gap. There is no entry point for arbitrary factual prose. Repeated template text is valid when distinct references record repeated actions.
 
-- **Chronology evidence** establishes observable ordering: what occurred before or after another recorded item and which workspace transitions were observed during iterative work.
-- **Final-state evidence** establishes what exists in the submitted repository. The final diff is authoritative for submitted state but does not establish when, why, or in response to what a change occurred.
+## Lifecycles and persistence
 
-A claim such as “X changed after command Y failed” requires chronology evidence; the final diff alone can support only a submitted-state claim such as “the submitted repository contains changes to X.” Generated statement order is derived by the server from cited chronology evidence rather than trusted from model output.
+Candidate-session state and reconstruction state remain separate. A successful candidate session follows `CREATED → ACTIVE → SUBMITTED`; submission freezes final evidence and closes candidate mutation.
 
-Grounding protects against fabrication. Coverage protects against selective storytelling. Reconstruction is compression, not sanitization: it need not repeat every command, but required deterministic anchors preserve the shape of material workspace transitions, unsuccessful observed outcomes followed by later work, meaningful reversions, evidence gaps, out-of-band changes, the final observed command outcome, final submitted state, and the submission boundary. These facts are not labeled good or bad.
+Reconstruction retains `NOT_STARTED → PENDING → AVAILABLE`, with `FAILED` and explicit retry behavior. `PENDING` is short-lived for deterministic generation, but retaining the transactional claim and compare-and-set lifecycle preserves concurrency, crash-recovery, and idempotence behavior.
 
-Evidence gaps are epistemic boundaries. A statement may refer to evidence on both sides only when it also makes the missing interval visible; it must not imply that continuous or causal workspace history was observed across the gap. Structural validation can require citations and coverage, but it cannot prove semantic correctness or fully determine causal meaning.
+An `AVAILABLE` record is immutable. Persistence is versioned by `(session_id, prompt_version)`, and the existing one-record-per-session table is migrated transactionally without changing legacy row content or provenance. Current records store `delimit-deterministic` and `evaluator-reconstruction-deterministic-v3`; v3 identifies the evaluator-language presentation contract. Earlier AI and deterministic artifacts remain immutable audit versions while the same session can obtain current Candidate Work. Evaluator API responses expose only bounded legacy provenance metadata, never legacy prose as the current reconstruction.
 
-## Workspace Mutation Capture Boundaries & Out-Of-Band Drift
+## Chronology, final state, and coverage
 
-Workspace file modifications are captured through deterministic Git tree transitions (`beforeTree` → `afterTree`):
+Chronology references establish observable ordering. Final-state references establish only what the submitted repository contains. A final diff cannot establish when, why, or in response to what a change occurred.
 
-1. **Browser Saves (`origin: 'browser_save'`)**:
-   Occurs when a candidate saves a file through the browser editor. The transition captures the specific diff across that save operation.
+Coverage anchors preserve the material shape of work without requiring every command or save. They include submission, each evidence gap, each out-of-band change, each deterministic reversion, each maximal ordinary workspace progression, a timed-out or non-zero command followed by later command or workspace activity, the final observed command, and a non-empty final diff. Anchor units are selected first. Among non-anchor commands, only commands with an authoritative pytest summary are eligible for Candidate Work; unclassified and numeric-only commands remain in Technical Chronology. A required command anchor is always retained and rendered neutrally when it lacks a safe human-facing classification.
 
-2. **Command Boundaries (`origin: 'command_execution'`)**:
-   Reflects the delta between the pre-command tree and the post-command tree. The associated `commandId` indicates temporal correlation across the command boundary, not an exclusive causal assertion. If candidate processes were active simultaneously, Delimit reports the net observable change across that execution window without speculating on which process produced which byte.
+Candidate Work remains limited to 12 statements for readability. One aggregate may cite up to the 250-item bounded chronology, and aggregate output remains subject to the 16 KiB content limit. A history is `COVERAGE_UNSATISFIABLE` only when more than 12 non-coalescible material boundaries remain after safe aggregation, or when exact references cannot fit the declared content bounds. Delimit fails visibly rather than dropping evidence or weakening coverage; the complete technical chronology remains available.
 
-3. **Out-of-Band Mutations (`origin: 'out_of_band'`)**:
-   Delimit compares the workspace state before every serialized operation against the last known authoritative tree. When candidate background processes or daemons mutate files outside of an active command or save window, Delimit detects the drift and records an out-of-band `WORKSPACE_CHANGED` event before processing the new operation. Evaluator presentation factually states: _"Workspace changed between recorded actions"_ without speculating on the causal process.
+Evidence gaps are epistemic boundaries. Candidate Work labels them `Evidence gap` and states that recorded workspace evidence is incomplete. An out-of-band transition is an `Unobserved workspace change`; a tree returning to a recorded state is a `Workspace reversion`. File paths and exact actions are included only when mechanically available. None attributes cause or intent.
 
-## Submission and Cleanup Invariants
+## Workspace mutation capture
 
-Submission first reconciles out-of-band drift and captures a fresh final tree and complete baseline diff. The final tree must equal the `afterTree` of the last authoritative workspace transition, or the immutable baseline when no transition exists. A mismatch is an unexplained evidence-chain failure: Delimit records `WORKSPACE_CAPTURE_FAILED`, keeps the session `ACTIVE`, preserves the sandbox, and does not freeze an inconsistent chronology.
+Workspace modifications remain authoritative Git tree transitions (`beforeTree → afterTree`) captured at browser saves, command boundaries, and out-of-band reconciliation. A command-correlated transition is temporal correlation, not exclusive causation. Submission reconciles drift, captures the final tree and complete baseline diff, and refuses to submit an inconsistent evidence chain.
 
-After evidence capture succeeds, the durable transition to `SUBMITTED` freezes that evidence and closes all candidate mutation APIs. Sandbox destruction is subsequent infrastructure cleanup rather than part of the SQLite state transition. If cleanup fails, the session remains `SUBMITTED`, its evidence remains immutable, and `SANDBOX_CLEANUP_FAILED` makes the operational failure visible after the submission boundary.
+After durable submission, sandbox cleanup is infrastructure work. Cleanup failure does not reopen the session or alter its evidence.
+
+## Evaluator boundary
+
+The evaluator sees scenario context, evidence-integrity notices, Candidate Work, inline evidence expansion, the complete technical chronology, and the final submitted diff. Candidate Work is the readable milestone layer; Technical Chronology is the exhaustive shell/event layer; Final Submitted Diff is the exact submitted state. Reconstruction may report observable outcomes such as a command exit status or parsed test counts. It must not score, rank, declare competence, infer motivation or hidden reasoning, or automatically pass or reject a candidate.

@@ -5,6 +5,11 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import type { EvidencePacketV1 } from '../../apps/web/src/reconstruction/evidence-packet';
+import {
+  DeterministicEvidenceReconstructionGenerator,
+  deterministicReconstructionProviderId,
+  deterministicReconstructionVersion,
+} from '../../apps/web/src/reconstruction/deterministic-evidence-reconstruction-generator';
 import { EvidenceReconstructionService } from '../../apps/web/src/reconstruction/evidence-reconstruction-service';
 import { FakeEvidenceReconstructionGenerator } from '../../apps/web/src/reconstruction/evidence-reconstruction-generator';
 import { SqliteEvidenceReconstructionStore } from '../../apps/web/src/reconstruction/sqlite-evidence-reconstruction-store';
@@ -94,6 +99,38 @@ describe('evidence reconstruction persistence lifecycle', () => {
     expect(generator.calls).toHaveLength(1);
   });
 
+  it('creates immutable Candidate Work deterministically without provider configuration', async () => {
+    const service = new EvidenceReconstructionService(
+      new SqliteEvidenceReconstructionStore(databasePath),
+      new DeterministicEvidenceReconstructionGenerator(),
+      () => evidence,
+      {
+        now: () => '2026-09-15T10:00:00.000Z',
+        createId: () => 'deterministic-reconstruction',
+        createAttemptToken: () => 'deterministic-attempt',
+      },
+    );
+
+    const first = await service.ensure(sessionId);
+    const second = await service.ensure(sessionId);
+
+    expect(first).toMatchObject({
+      status: 'AVAILABLE',
+      providerId: deterministicReconstructionProviderId,
+      modelId: deterministicReconstructionVersion,
+      promptVersion: deterministicReconstructionVersion,
+      providerRequestId: null,
+      attemptCount: 1,
+    });
+    expect(
+      first.content?.statements.map((statement) => statement.text),
+    ).toEqual([
+      'Session submitted.',
+      'The submitted state includes changes to `a`.',
+    ]);
+    expect(second).toEqual(first);
+  });
+
   it('persists failure without touching evidence and retries only explicitly', async () => {
     let shouldFail = true;
     const generator = new FakeEvidenceReconstructionGenerator((packet) =>
@@ -171,12 +208,14 @@ describe('evidence reconstruction persistence lifecycle', () => {
     });
     const reclaimed = store.reclaimStale(
       sessionId,
+      'prompt-v1',
       '2026-09-15T10:01:00.000Z',
       'new-token',
       '2026-09-15T10:02:00.000Z',
     );
     const obsolete = store.completeFailed({
       sessionId,
+      promptVersion: 'prompt-v1',
       attemptCount: first.record.attemptCount,
       attemptToken: 'old-token',
       failureCode: 'INTERNAL_GENERATION_ERROR',

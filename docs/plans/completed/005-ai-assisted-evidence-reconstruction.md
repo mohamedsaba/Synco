@@ -1,18 +1,275 @@
-# 005 — AI-Assisted Evidence Reconstruction for Non-Technical Evaluators
+# 005 — Deterministic Evidence Reconstruction for Non-Technical Evaluators
 
 ## Status
 
-Implementation is in progress and continuing live-provider acceptance. The approved production adapter uses NVIDIA NIM hosted inference with `nvidia/nemotron-3.5-lightning-30b-a3b` via endpoint `https://integrate.api.nvidia.com/v1/chat/completions`, one non-streaming structured-output request using JSON Schema, bounded output, and the Delimit validation pipeline. The evaluator-only API, post-response opportunity, persistent lifecycle, retry behavior, Candidate Work UI, inline evidence, and deterministic fallback are implemented. Real NVIDIA NIM smoke testing and the four-session acceptance experiment are run using `NVIDIA_API_KEY`; only synthetic Scenario 001 data is permitted under the current configuration.
+Complete and accepted on 2026-09-15. Deterministic v3 is the authoritative Candidate Work presentation contract. The runtime uses typed facts, deterministic selection and aggregation, and closed presentation mappings; no AI provider or key is required. The evaluator-only API, post-response opportunity, persistent lifecycle, retry behavior, Candidate Work UI, and inline evidence remain intact. Existing provider-generated `AVAILABLE` records remain immutable audit history, but their prose is withheld from the authoritative Candidate Work surface.
 
-Baseline: `25ebb3f9982e81ef0e12175a8a8f337f6a06a33d`
+Baseline: `025d0dc`
+
+The takeover audit and model-compliance sections below are retained as experiment history. Where the earlier proposed generative design conflicts with the deterministic decision and implementation record, the deterministic sections take precedence.
+
+## Evaluator presentation pass — 2026-09-15
+
+Independent architecture review accepted the deterministic evidence engine,
+aggregation, parser, persistence, migration, and long-history behavior. The
+remaining work is limited to Candidate Work presentation:
+
+- replace shell-first primary copy with short, mechanically classified
+  milestone copy;
+- present authoritative pytest summaries as `Test run` milestones without
+  moving exit status or raw output out of evidence expansion;
+- distinguish ordinary changes, aggregated changes, reversions, unobserved
+  changes, gaps, submission, and submitted state with evaluator-facing labels;
+- keep commands without a safely classified semantic fact as neutral command
+  milestones, with the exact command visible only under `View evidence`;
+- verify fresh Scenarios A–D and an empty submitted session in the actual
+  evaluator UI.
+
+This pass did not change typed evidence authority, required coverage,
+aggregation, evidence references, persistence, or provider independence. It
+narrows optional command promotion to authoritative pytest summaries; all other
+commands remain exhaustive in Technical Chronology unless an existing coverage
+anchor requires a neutral Candidate Work milestone. Human product review
+accepted the rendered hierarchy and wording as deterministic v3.
+
+### Presentation verification result
+
+- The standard gate passes formatting, linting, typechecking, 23 test files / 93
+  tests, and the production build; four credential-gated live files are
+  intentionally skipped.
+- Fresh Docker-backed A–D acceptance passes with deterministic v3 presentation.
+- Browser review of all four fresh sessions confirms the readable milestone
+  layer, exact multi-reference expansion, and the separate exhaustive Technical
+  Chronology. The long background shell command is absent from Candidate Work
+  and present verbatim in Technical Chronology.
+- Empty submission produces only `Submitted` / `Session submitted.` in focused
+  deterministic coverage.
+
+## Final closure outcome — 2026-09-15
+
+Slice 5 is complete. Its history intentionally records the change in approach:
+
+- the slice began with an AI-assisted reconstruction design and a bounded model
+  compliance experiment;
+- repeated model runs failed the clause-level evidence-entailment requirement,
+  so free-form AI was rejected as authoritative Candidate Work;
+- the runtime pivoted to typed facts, deterministic coverage selection,
+  phase-bounded workspace aggregation, and closed statement templates;
+- long histories are compressed only through exact consecutive workspace
+  aggregation, while material integrity boundaries remain separate;
+- pytest parsing is conservative and produces a test summary only from one
+  complete, unambiguous passed/failed terminal-summary line;
+- persistence is versioned by `(session_id, prompt_version)`, with a
+  transactional migration that preserves legacy record content and provenance;
+- deterministic v3 refined only evaluator presentation: Candidate Work is the
+  bounded milestone layer, Technical Chronology is exhaustive evidence, and
+  Final Submitted Diff is the exact submitted state; and
+- architecture, code-quality, evidence-semantic, persistence, migration,
+  evaluator-presentation, documentation, and adversarial acceptance gates all
+  passed. The accepted runtime remains provider-independent, and provider
+  adapters remain non-runtime experiment tooling.
+
+## C4 blocker remediation — 2026-09-15
+
+Antigravity accepted the deterministic evidence semantics on valid histories and
+identified three focused inconsistencies. This remediation preserves the
+existing pipeline and addresses them at their owning boundaries:
+
+1. Replace per-transition workspace anchoring with deterministic phase
+   aggregation. A maximal consecutive run of ordinary workspace transitions is
+   one coverage unit with exact member references. Reversions, out-of-band
+   changes, evidence gaps, unsuccessful commands before later work, the final
+   command, submission, and final state remain independent boundaries. A
+   renderer may combine only that homogeneous workspace group and must expose
+   every member reference. The 12-statement readability limit remains; a
+   history is genuinely unsatisfiable only when more than 12 non-coalescible
+   material boundaries remain after this policy.
+2. Replace broad pass/fail token scanning with recognition of one structurally
+   valid pytest terminal-summary line after ANSI removal. Ambiguous, missing,
+   or truncated summaries produce no test-summary fact; the command and exit
+   status remain visible.
+3. Migrate reconstruction persistence from one record per session to one record
+   per `(session_id, prompt_version)`. Existing rows retain content and
+   provenance unchanged. Runtime reads and creates the deterministic version;
+   evaluator API responses expose only bounded legacy audit metadata, never
+   legacy prose as current Candidate Work.
+
+The existing cross-gap validator remains relevant because deterministic
+workspace aggregation introduces intentional multi-reference statements. It is
+retained as a guardrail, with aggregation constrained never to cross a command
+or integrity boundary.
+
+### C4 remediation verification
+
+- The standard gate passes formatting, linting, typechecking, 22 test files / 85
+  tests, and the production build; four credential-gated live files are
+  intentionally skipped.
+- Fresh Docker-backed deterministic acceptance passes Scenarios A–D. The new
+  long-history integration suite proves safe aggregation across 15 consecutive
+  saves, preservation of nonlinear integrity boundaries, and explicit failure
+  when 13 material boundaries cannot fit 12 statements.
+- Adversarial parser coverage rejects log prose, incomplete output, collection
+  errors, unsupported pytest statuses, and multiple terminal summaries while
+  accepting one complete ANSI-normalized passed/failed summary.
+- Old-schema migration and version-coexistence coverage preserves legacy AI
+  content and provenance while exposing deterministic v2 as the only current
+  Candidate Work content.
+
+## Takeover audit — 2026-09-15
+
+The committed Slice 5 baseline was re-inspected before completion work. Two
+concrete regressions require targeted correction before another live run:
+
+- the generic reconstruction prompt still contains Scenario 001 solution
+  vocabulary and domain-specific examples, which can prime unsupported clauses;
+- the NVIDIA NIM adapter reads and logs raw HTTP failure bodies, while the
+  existing provider test checks only the bounded thrown error.
+
+The next implementation step is limited to removing that prompt priming,
+adding a prompt regression, replacing raw provider logging with safe operational
+metadata, and proving the raw body is neither consumed nor logged. After the
+deterministic gate passes, live acceptance will restart with Scenario A only;
+Sessions B–D will run sequentially only if A passes clause-level audit.
+
+Final UI inspection also found that the deterministic integrity notice was
+nested after the Candidate Work heading. It is moved ahead of Candidate Work to
+restore the approved evaluator hierarchy without changing evidence semantics.
+
+### Fresh live acceptance result
+
+Two fresh Scenario A sessions were generated after removing generic
+Scenario 001 solution examples. Both provider calls returned structurally valid
+`AVAILABLE` artifacts, but both failed manual clause-level entailment review.
+The latest output inferred purpose with “to confirm,” called values/entries
+“stale” without comparison evidence attached to those statements, and omitted
+the initial three-test failure. Provider latency was 36,608 ms for the first
+run and 26,743 ms for the second. This repeatable semantic non-compliance is not
+treated as application success. Sessions B–D were intentionally not run.
+
+## Model compliance experiment — 2026-09-15
+
+The next acceptance step is a bounded provider/model comparison, not another
+prompt revision. The Scenario A evidence packet, prompt version, output schema,
+temperature, output limit, and non-streaming mode will remain fixed across two
+runs per candidate where quota permits. Exact model IDs and safe provenance will
+be recorded for every run.
+
+The initial candidate set is:
+
+- direct NVIDIA NIM `nvidia/nemotron-3.5-lightning-30b-a3b`;
+- OpenRouter `nvidia/nemotron-3.5-lightning:free` (explicit model routing; its
+  current OpenRouter capability does not include schema-constrained response
+  format, so strict JSON parsing remains the structural gate);
+- OpenRouter `nvidia/nemotron-3-super-120b-a12b:free` (explicit model routing
+  with JSON Schema response format and parameter-support routing required).
+
+If those three produce no repeated semantic pass, the single optional fourth
+candidate is OpenRouter `google/gemma-4-31b-it:free`, using the same JSON Schema
+request and frozen packet.
+
+### Experiment result
+
+One fresh Scenario A packet (`eec23cbb4914edc4fbce7c4c05c83b58d01ec6e3be8f6531263f9ddac27af495`)
+was reused for two calls to each of the four explicit models. The corrected
+packet included the initial failed `pytest` command as an
+`unsuccessful_command_before_further_work` anchor.
+
+- Direct NVIDIA NIM returned schema-valid and coverage-complete output twice
+  (22,509 ms and 31,734 ms), but both outputs contained unsupported clauses.
+  Examples include “inventory quantity mismatches,” “deletion confirmed,”
+  “stale inventory counts,” “confirming restock,” and “persistent stale
+  inventory issue.”
+- OpenRouter Nemotron Lightning free returned HTTP 200 twice (13,259 ms and
+  33,184 ms), but both outputs failed the schema. The untrusted shapes also
+  contained unsupported purpose/comparison language and one duplicate
+  submission statement.
+- OpenRouter Nemotron Super free returned an invalid response envelope once
+  (482 ms) and schema-valid, coverage-complete output once (6,166 ms). The valid
+  output relabelled `pytest` as “the verification suite,” so it failed semantic
+  acceptance.
+- OpenRouter Gemma 4 31B free was present in the contemporaneous model catalog
+  but returned HTTP 404 twice (155 ms and 346 ms), so it failed operational
+  acceptance and produced no output to audit.
+
+No candidate demonstrated repeated Scenario A compliance. The application
+default remains direct NVIDIA NIM solely as the unchanged pre-experiment
+configuration, not as an accepted semantic winner. Sessions B–D were not run.
+The next decision is architectural; additional prompt complexity or a larger
+model sweep is outside this bounded experiment.
+
+## Deterministic reconstruction decision — 2026-09-15
+
+Free-form AI reconstruction is rejected for authoritative evaluator-facing
+Candidate Work because the bounded model experiment could not reliably satisfy
+clause-level evidence entailment. The next implementation replaces the runtime
+generator with deterministic construction from typed evidence facts. This is an
+invariant-enforcement decision, not a provider-availability workaround.
+
+The existing chronology, evidence-reference catalog, packet bounds, coverage
+anchors, reconstruction content schema, immutable SQLite record, evaluator API,
+and `NOT_STARTED → PENDING → AVAILABLE` orchestration remain in place. Keeping
+that lifecycle avoids a risky schema migration and preserves idempotence,
+concurrency, retry, and already-available artifact semantics. Deterministic work
+is expected to complete synchronously inside the existing claimed attempt, but
+`PENDING` remains a truthful short-lived processing state.
+
+The provider-neutral packet will expose a discriminated union of typed facts
+derived only from Slice 1–4 evidence:
+
+- activation and submission boundaries;
+- command text, exit status or timeout, and conservative literal output facts;
+- workspace origin and typed file added/modified/removed facts;
+- deterministic tree reversion and out-of-band markers;
+- evidence gaps; and
+- non-empty submitted diff paths as final-state facts.
+
+Candidate Work statements are emitted only by closed deterministic templates
+over those facts. Atomic command and integrity statements normally own one
+reference. A workspace-progression statement may own the exact references of a
+maximal consecutive run of ordinary workspace transitions; its count, affected
+paths, and membership are mechanically derived. Coverage units are selected
+first; remaining command observations are added chronologically while output
+bounds permit.
+
+Scenario metadata does not currently contain a typed verification-command
+field. The candidate brief mentions `pytest`, but prose is not authoritative
+classification metadata. Therefore v1 renders `Ran \`pytest\`` plus literal
+exit/output observations and never calls it a supplied verification command.
+Adding typed scenario metadata is unnecessary for this focused slice.
+
+NVIDIA and OpenRouter adapters remain explicit opt-in experiment tooling. They
+are removed from primary runtime wiring, and neither API key is required for a
+new deterministic `AVAILABLE` reconstruction. Optional atomic paraphrasing is
+deferred until after deterministic A–D acceptance and is not part of Slice 5
+completion.
+
+The OpenRouter and NVIDIA adapters remain provider-specific implementations of
+the existing generator interface for explicit synthetic experiments only. They
+are not runtime routing or fallback. The corrected coverage rule anchors a
+timed-out or non-zero command when a later command execution or workspace change
+occurs before submission, without classifying the command's intent.
+
+### Deterministic implementation and acceptance result
+
+The runtime uses `delimit-deterministic` with version
+`evaluator-reconstruction-deterministic-v2`. The pre-C4 Docker-backed A–D run
+passed exact fact/reference validation and negative-language checks. Scenario D
+retained its initial failure, partial change, continued failure, reversion,
+out-of-band activity, later multi-file changes, later command outcomes,
+submission, and final state, so it remains materially distinct from Scenario C.
+Manual browser verification confirmed the evaluator hierarchy and inline raw
+evidence expansion. The final `npm run verify` gate passes format, lint,
+typecheck, 20 test files / 77 tests (four credential-gated live files skipped),
+and the production build. The separate fresh deterministic A–D runner passes,
+and the final Docker leak check reports zero `delimit-` containers.
 
 ## Product question
 
-> Can a non-technical evaluator understand the important sequence of candidate work from a concise AI-assisted reconstruction, and inspect authoritative evidence whenever they want to verify a statement, without the AI judging the candidate?
+> Can a non-technical evaluator understand the important sequence of candidate work from concise deterministic statements, and inspect authoritative evidence whenever they want to verify a statement, without Delimit judging the candidate?
 
-The experiment is not whether Delimit can produce attractive prose. It is whether grounded compression makes Slice 4 evidence usable by a non-technical evaluator while preserving chronology, uncertainty, failed attempts, evidence gaps, and technical drill-down.
+The implementation favors boring, mechanically grounded language. The product question is whether that compression makes Slice 4 evidence usable while preserving chronology, uncertainty, failed attempts, evidence gaps, and technical drill-down.
 
-## Current-state observations
+## Historical pre-implementation observations
 
 - The repository is clean on `main` at the stated baseline.
 - Sessions currently use `CREATED → ACTIVE → SUBMITTED`; `SUBMITTED` means final evidence is frozen and candidate mutation APIs are closed.
@@ -188,12 +445,13 @@ Grounding protects against fabrication. Coverage protects against selective stor
 - the submission boundary;
 - every `WORKSPACE_CAPTURE_FAILED` item;
 - every `out_of_band` workspace change;
-- every non-empty workspace transition, including a transition whose `afterTree` returns to any earlier observed tree (a deterministic reversion marker);
-- every timed-out or non-zero command followed by a later workspace transition, described only as an observed command outcome before further work;
+- every maximal consecutive ordinary workspace progression, with exact member references;
+- every transition whose `afterTree` returns to an earlier observed tree as a separate deterministic reversion marker;
+- every timed-out or non-zero command followed by a later observed command execution or workspace transition, described only as an observed command outcome before further work;
 - the last completed command before submission, described only as the final observed command outcome; and
 - a non-empty final diff, as final-state evidence only.
 
-This deliberately does not infer that a command is a test or verification command. The current event model has no authoritative “supplied verification” designation, so V1 cannot truthfully create that specific anchor. The final observed command outcome is anchored instead. Adding semantic test recognition or a new event merely to satisfy reconstruction is out of scope.
+This deliberately does not infer that a command is a test or verification command. The current event model has no authoritative “supplied verification” designation, so V1 cannot truthfully create that specific anchor. It instead anchors an unsuccessful command when later observable work establishes that the history continued, plus the final observed command outcome. Adding semantic test recognition or a new event merely to satisfy reconstruction is out of scope.
 
 The model output does not repeat anchor IDs. Coverage is checked through evidence references: the union of all accepted statement references must contain every required anchor reference. One statement may cover several related anchors when its bounds allow, and no statement is required per command. Gap notices remain deterministically visible even if generation fails, but a reconstruction cannot become `AVAILABLE` while required gap anchors are absent from its statements.
 
@@ -206,7 +464,7 @@ type CoverageAnchor = Readonly<{
     | 'submission_boundary'
     | 'workspace_gap'
     | 'out_of_band_change'
-    | 'workspace_transition'
+    | 'workspace_progression'
     | 'reversion'
     | 'unsuccessful_command_before_further_work'
     | 'final_observed_command'
@@ -267,7 +525,7 @@ Validation occurs server-side after structured generation and before persistence
 1. Parse with a strict runtime schema. Prefer a small established schema library rather than handwritten recursive validation; add only the selected library and its lockfile change.
 2. Require `schemaVersion === 1` and reject unknown fields.
 3. Enforce statement, field, reference, and total-output bounds.
-4. Reject empty/whitespace statements, empty evidence sets, duplicate in-statement references, and duplicate normalized statement text.
+4. Reject empty/whitespace statements, empty evidence sets, and duplicate in-statement references. Repeated deterministic statement text is permitted when distinct chronology references establish that the same observable action occurred more than once.
 5. Resolve every reference against the exact session packet catalog.
 6. Require every reference to belong to the same session and reject duplicate persisted IDs or references.
 7. Derive `firstEvidenceOrder`, normalize array order with a stable server sort, and verify nondecreasing order before persistence.
@@ -300,7 +558,7 @@ Persist one row per session containing:
 - bounded failure code and sanitized failure message only when failed;
 - attempt count, created time, attempt-started time, and completed/updated time.
 
-The source digest ties wording to the exact packet. Raw events and submitted diff remain authoritative and reconstruct the packet; generated text remains derived and non-authoritative. Once `AVAILABLE`, it is immutable for this slice. Page refreshes read the stored row and never invoke the provider for `AVAILABLE` state.
+The source digest ties wording to the exact packet. Raw events and submitted diff remain authoritative and reconstruct the packet; generated text remains derived and non-authoritative. Each `(session_id, prompt_version)` record is immutable once `AVAILABLE`; a later generator version creates a separate record. Page refreshes read the current deterministic version and never invoke a generator for that version once available.
 
 ## Reconstruction trigger and lifecycle
 
@@ -313,13 +571,13 @@ Domain eligibility, generation execution, and evaluator rendering are separate c
 Exact state/claim semantics:
 
 1. No row plus eligible session is the derived `NOT_STARTED` state. No row plus an unsubmitted or inconsistent session is ineligible, not pending.
-2. The executor uses an immediate transaction to insert the session's sole row as `PENDING` with `attempt_count = 1`, an attempt token, immutable source event/final-diff identity, and `attempt_started_at`. Only the request that inserts the row owns that attempt. The owner then builds and hashes the bounded packet; packet-build failures complete this attempt as `FAILED` rather than causing an endless unclaimed loop.
+2. The executor uses an immediate transaction to insert the session/version row as `PENDING` with `attempt_count = 1`, an attempt token, immutable source event/final-diff identity, and `attempt_started_at`. Only the request that inserts that versioned row owns the attempt. Packet-build failures complete it as `FAILED` rather than causing an endless unclaimed loop.
 3. A fresh `PENDING` row means one attempt is claimed and may be in flight. Other callers return the existing state and must not call the generator.
-4. `AVAILABLE` means the owning attempt returned structurally valid, coverage-complete content and atomically completed the row with validated JSON and provenance. `AVAILABLE` is immutable in Slice 5 and is never regenerated.
+4. `AVAILABLE` means the owning attempt returned structurally valid, coverage-complete content and atomically completed the row with validated JSON and provenance. That version is immutable; an upgraded generator uses a new `prompt_version` row.
 5. `FAILED` means the owning attempt ended without available content. It stores only a bounded failure code/message and provenance; it does not change session state or evidence. Ordinary `FAILED` rows are never automatically retried.
 6. An evaluator's explicit retry action may conditionally change `FAILED → PENDING`, increment `attempt_count`, issue a new attempt token, and clear prior bounded failure details. No other failed retry is legal.
 7. A `PENDING` row older than the configured provider timeout plus grace period is stale. The next eligible ensure operation may conditionally reclaim it as `PENDING`, increment `attempt_count`, issue a new token, and record a new start time. This is crash recovery, not a retry of `FAILED`.
-8. Completion is compare-and-set on `(session_id, status = PENDING, attempt_count, attempt_token)`. A timed-out former owner cannot overwrite a reclaimed or completed attempt. Exactly one concurrent claimant may invoke the provider for an attempt; losers return current state.
+8. Completion is compare-and-set on `(session_id, prompt_version, status = PENDING, attempt_count, attempt_token)`. A timed-out former owner cannot overwrite a reclaimed or completed attempt. Exactly one concurrent claimant may invoke the generator for a versioned attempt; losers return current state.
 
 `after()` is best-effort execution, not durable scheduling. If the process ends before it runs, the session remains eligible/`NOT_STARTED`; later observation recovers it. Durability belongs to the frozen evidence and reconstruction claim/result, not to a queue that this slice does not need.
 
@@ -355,7 +613,7 @@ Use explicit bounded failure codes such as:
 
 Any failure updates only the reconstruction row. It never changes `SUBMITTED`, raw events, final diff, or deterministic chronology.
 
-The evaluator sees a neutral “AI-assisted reconstruction is unavailable” state and immediate access to the technical chronology. Do not expose provider secrets, raw malformed output, stack traces, or sensitive internal errors.
+The evaluator sees a neutral reconstruction-unavailable state and immediate access to the technical chronology. Experimental provider failures must not expose secrets, raw malformed output, stack traces, or sensitive internal errors.
 
 Do not automatically retry failed generations. Show a retry action only for `FAILED`; it claims one new bounded attempt. `AVAILABLE` has no regenerate action in Slice 5.
 
@@ -653,24 +911,46 @@ During implementation:
 - **UI duplication:** Inline evidence and full chronology can diverge unless they reuse one deterministic card renderer.
 - **Current documentation drift:** Handoff baseline metadata and README are stale and must be reconciled during implementation.
 
-## Resolved implementation decisions
+## Resolved implementation decisions (superseded where noted)
 
-1. **Provider and model:** NVIDIA NIM hosted inference, exact model `nvidia/nemotron-3.5-lightning-30b-a3b` via endpoint `https://integrate.api.nvidia.com/v1/chat/completions`.
-2. **External processing:** Free-tier use is restricted to synthetic/test Scenario 001 data. Real applicant use requires a separate privacy/provider review.
-3. **Initial numeric bounds:** The centrally defined plan values are implemented. Live acceptance may justify a later reviewed adjustment without weakening coverage.
+1. **Runtime generator:** deterministic typed facts, phase-bounded workspace aggregation, closed templates, and evaluator-readable milestone presentation, with current provenance `delimit-deterministic` / `evaluator-reconstruction-deterministic-v3`. Deterministic v2 remains immutable audit history.
+2. **Provider experiments:** NVIDIA NIM and OpenRouter remain explicit synthetic tooling only; real applicant use still requires a separate privacy/provider review.
+3. **Initial numeric bounds:** the centrally defined packet and output limits remain implemented. Coverage cannot be silently weakened to fit them.
 
 ADR 0003 already authorizes evidence-grounded AI explanation and prohibits judgment, so no new ADR is needed unless one of these decisions changes that boundary.
 
-## Implementation verification record
+## Historical generative verification record
 
 - Exact provider model: `nvidia/nemotron-3.5-lightning-30b-a3b` through NVIDIA NIM hosted inference OpenAI-compatible chat completions API with strict JSON Schema.
 - Generation parameters: 2,048 max output tokens, temperature 0.2, thinking disabled (`chat_template_kwargs: { enable_thinking: false }`).
-- Automated gate: test suites pass; format, lint, typecheck, and production build pass.
+- Automated gate: `npm run verify` passes on the review worktree: format,
+  lint, typecheck, 18 test files / 68 tests passed with three opt-in live files
+  skipped, and the production build completed.
 - Synthetic evaluator SSR checks: the authenticated missing-provider state rendered successfully; a separately persisted fake `AVAILABLE` artifact rendered Candidate Work statement text, inline `View evidence`, technical chronology, and final submitted diff without contacting provider.
 - Runtime cleanup: zero containers matching `delimit-` remained after Docker-backed verification.
-- Live NVIDIA NIM smoke and Sessions A–D: executed against hosted inference. Output verified against evidence ground truth and plain-language readability.
+- Frozen-packet Scenario A comparison: eight calls across four exact models are
+  recorded above. No candidate passed the repeated semantic and operational
+  gate; Sessions B–D were not run and the runtime provider did not change.
+- Runtime cleanup: zero containers matching `delimit-`; `.env` remains ignored,
+  `apps/web/next-env.d.ts` has no diff, and no active Gemini provider references
+  remain.
 
-## Recommended implementation sequence
+## Live/debug tooling disposition
+
+- Retain `nvidia-nim-acceptance-fixtures.ts` as the shared synthetic history
+  fixture.
+- Retain `single-acceptance.test.ts` as the intentional A-first runner required
+  before the sequential gate.
+- Retain `nvidia-nim-acceptance.test.ts` as the final sequential A–D runner.
+- Remove `smoke.test.ts`; its Session B path duplicates the single-session and
+  final A–D runners without unique acceptance coverage.
+
+The deterministic runner is
+`tests/live/deterministic-reconstruction-acceptance.test.ts`; all four histories
+share `tests/live/scenario-acceptance-histories.ts`. Provider runners remain
+credential-gated experiment tools and are not runtime acceptance gates.
+
+## Historical implementation sequence (completed or superseded)
 
 1. Resolve the three remaining implementation gates: provider/model, external evidence processing/privacy, and initial numeric bounds.
 2. Add reconstruction domain types, evidence-reference catalog, packet builder, bounds, and deterministic tests using existing submitted evidence.

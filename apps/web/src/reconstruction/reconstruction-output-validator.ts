@@ -88,6 +88,28 @@ export const reconstructionOutputJsonSchema = {
 const invalidOutput = (message: string) =>
   new EvidenceReconstructionError('MALFORMED_OUTPUT', message);
 
+const requireInterveningGapReferences = (
+  catalog: EvidenceReferenceCatalog,
+  firstEvidenceOrder: number,
+  lastEvidenceOrder: number,
+  statementReferences: ReadonlySet<string>,
+) => {
+  const missingGap = catalog.entries.find(
+    (entry) =>
+      entry.kind === 'evidence_gap' &&
+      entry.chronologyOrder !== null &&
+      entry.chronologyOrder > firstEvidenceOrder &&
+      entry.chronologyOrder < lastEvidenceOrder &&
+      !statementReferences.has(entry.evidenceRef),
+  );
+  if (missingGap) {
+    throw new EvidenceReconstructionError(
+      'INVALID_EVIDENCE_REFERENCE',
+      'A cross-gap statement must cite every intervening evidence gap.',
+    );
+  }
+};
+
 export const validateReconstructionOutput = (
   output: unknown,
   packet: EvidencePacketV1,
@@ -111,18 +133,9 @@ export const validateReconstructionOutput = (
     throw invalidOutput('The provider output does not match schema version 1.');
   }
 
-  const normalizedTexts = new Set<string>();
   const citedReferences = new Set<string>();
   const statements = parsed.data.statements.map(
     (statement, modelArrayIndex) => {
-      const normalizedText = statement.text.toLocaleLowerCase();
-      if (normalizedTexts.has(normalizedText)) {
-        throw invalidOutput(
-          'Duplicate reconstruction statement text is not allowed.',
-        );
-      }
-      normalizedTexts.add(normalizedText);
-
       if (
         !/[.!?]["']?$/.test(statement.text) ||
         statement.text.endsWith('...')
@@ -187,21 +200,12 @@ export const validateReconstructionOutput = (
               ...chronologyEntries.map((entry) => entry.chronologyOrder!),
             )
           : firstEvidenceOrder;
-      const interveningGaps = catalog.entries.filter(
-        (entry) =>
-          entry.kind === 'evidence_gap' &&
-          entry.chronologyOrder !== null &&
-          entry.chronologyOrder > firstEvidenceOrder &&
-          entry.chronologyOrder < lastEvidenceOrder,
+      requireInterveningGapReferences(
+        catalog,
+        firstEvidenceOrder,
+        lastEvidenceOrder,
+        uniqueReferences,
       );
-      if (
-        interveningGaps.some((gap) => !uniqueReferences.has(gap.evidenceRef))
-      ) {
-        throw new EvidenceReconstructionError(
-          'INVALID_EVIDENCE_REFERENCE',
-          'A cross-gap statement must cite every intervening evidence gap.',
-        );
-      }
 
       return { statement, firstEvidenceOrder, modelArrayIndex };
     },

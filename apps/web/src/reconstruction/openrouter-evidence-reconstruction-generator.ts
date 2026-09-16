@@ -16,10 +16,14 @@ import {
 } from './reconstruction-prompt';
 import { reconstructionOutputJsonSchema } from './reconstruction-output-validator';
 
-export const nvidiaNimProviderId = 'nvidia-nim-hosted';
-export const nvidiaNimModelId = 'nvidia/nemotron-3.5-lightning-30b-a3b';
-export const nvidiaNimEndpoint =
-  'https://integrate.api.nvidia.com/v1/chat/completions';
+export const openRouterProviderId = 'openrouter';
+export const openRouterEndpoint =
+  'https://openrouter.ai/api/v1/chat/completions';
+
+export type OpenRouterModelConfiguration = Readonly<{
+  modelId: string;
+  supportsStructuredOutput: boolean;
+}>;
 
 const responseSchema = z
   .object({
@@ -38,11 +42,13 @@ const providerFailure = (code: ReconstructionFailureCode, message: string) =>
   new EvidenceReconstructionError(code, message);
 
 const logProviderFailure = (
+  model: string,
   category: 'request_aborted' | 'request_failed' | 'http_failure',
   status?: number,
 ) => {
-  console.error('NVIDIA NIM reconstruction request failed.', {
-    provider: nvidiaNimProviderId,
+  console.error('OpenRouter reconstruction request failed.', {
+    provider: openRouterProviderId,
+    model,
     category,
     ...(status === undefined ? {} : { status }),
   });
@@ -67,65 +73,87 @@ const mapHttpFailure = (status: number) => {
   );
 };
 
-export class NvidiaNimEvidenceReconstructionGenerator implements EvidenceReconstructionGenerator {
-  readonly providerId = nvidiaNimProviderId;
-  readonly modelId = nvidiaNimModelId;
+const assertExplicitModel = (modelId: string) => {
+  const normalized = modelId.trim();
+  if (
+    !normalized ||
+    normalized === 'openrouter/free' ||
+    !normalized.includes('/')
+  ) {
+    throw providerFailure(
+      'PROVIDER_NOT_CONFIGURED',
+      'An explicit OpenRouter model ID is required.',
+    );
+  }
+  return normalized;
+};
+
+export class OpenRouterEvidenceReconstructionGenerator implements EvidenceReconstructionGenerator {
+  readonly providerId = openRouterProviderId;
+  readonly modelId: string;
   readonly versionId = reconstructionPromptVersion;
 
   constructor(
     private readonly apiKey: string,
+    private readonly configuration: OpenRouterModelConfiguration,
     private readonly fetchImplementation: typeof fetch = fetch,
   ) {
     if (!apiKey.trim()) {
       throw providerFailure(
         'PROVIDER_NOT_CONFIGURED',
-        'NVIDIA_API_KEY is not configured.',
+        'OPENROUTER_KEY is not configured.',
       );
     }
+    this.modelId = assertExplicitModel(configuration.modelId);
   }
 
   async generate(
     packet: EvidencePacketV1,
     options: Readonly<{ signal: AbortSignal }>,
   ): Promise<GeneratedReconstruction> {
+    const body: Record<string, unknown> = {
+      model: this.modelId,
+      messages: [
+        { role: 'system', content: reconstructionSystemPrompt },
+        { role: 'user', content: buildReconstructionUserPrompt(packet) },
+      ],
+      temperature: 0.2,
+      reasoning: { effort: 'none' },
+      max_tokens: 2_048,
+      stream: false,
+    };
+    if (this.configuration.supportsStructuredOutput) {
+      body.response_format = {
+        type: 'json_schema',
+        json_schema: {
+          name: 'delimit_evidence_reconstruction_v1',
+          strict: true,
+          schema: reconstructionOutputJsonSchema,
+        },
+      };
+      body.provider = { require_parameters: true };
+    }
+
     let response: Response;
     try {
-      response = await this.fetchImplementation(nvidiaNimEndpoint, {
+      response = await this.fetchImplementation(openRouterEndpoint, {
         method: 'POST',
         headers: {
           authorization: `Bearer ${this.apiKey}`,
           'content-type': 'application/json',
         },
-        body: JSON.stringify({
-          model: nvidiaNimModelId,
-          messages: [
-            { role: 'system', content: reconstructionSystemPrompt },
-            { role: 'user', content: buildReconstructionUserPrompt(packet) },
-          ],
-          response_format: {
-            type: 'json_schema',
-            json_schema: {
-              name: 'delimit_evidence_reconstruction_v1',
-              strict: true,
-              schema: reconstructionOutputJsonSchema,
-            },
-          },
-          temperature: 0.2,
-          chat_template_kwargs: { enable_thinking: false },
-          max_tokens: 2_048,
-          stream: false,
-        }),
+        body: JSON.stringify(body),
         signal: options.signal,
       });
     } catch {
       if (options.signal.aborted) {
-        logProviderFailure('request_aborted');
+        logProviderFailure(this.modelId, 'request_aborted');
         throw providerFailure(
           'PROVIDER_TIMEOUT',
           'The reconstruction provider request was aborted.',
         );
       }
-      logProviderFailure('request_failed');
+      logProviderFailure(this.modelId, 'request_failed');
       throw providerFailure(
         'PROVIDER_UNAVAILABLE',
         'The reconstruction provider is unavailable.',
@@ -133,7 +161,7 @@ export class NvidiaNimEvidenceReconstructionGenerator implements EvidenceReconst
     }
 
     if (response.status !== 200) {
-      logProviderFailure('http_failure', response.status);
+      logProviderFailure(this.modelId, 'http_failure', response.status);
       throw mapHttpFailure(response.status);
     }
 
@@ -166,8 +194,8 @@ export class NvidiaNimEvidenceReconstructionGenerator implements EvidenceReconst
 
     return {
       output,
-      providerId: nvidiaNimProviderId,
-      modelId: nvidiaNimModelId,
+      providerId: openRouterProviderId,
+      modelId: this.modelId,
       requestId: parsedEnvelope.data.id,
     };
   }

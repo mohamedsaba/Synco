@@ -2,7 +2,7 @@
 
 Events are the primary record of observable session activity. Reconstruction and generated annotations are derived views. Events should be append-only after acceptance; corrections require explicit follow-up records rather than silent mutation.
 
-AI-assisted evaluator reconstruction is stored separately as a versioned derived artifact with provider/model and source-packet provenance. It is not appended to the candidate event stream and does not alter session state, event ordering, or authoritative evidence.
+Evaluator Candidate Work reconstruction is stored separately as a versioned derived artifact with generator/version and source-packet provenance. Records are unique by session and prompt/generator version, so current deterministic v3 presentation can coexist with immutable earlier experiment and deterministic versions. It is not appended to the candidate event stream and does not alter session state, event ordering, or authoritative evidence. The authoritative runtime artifact is constructed deterministically from typed facts; presentation labels do not become raw events. Provider/model fields remain compatible provenance columns for earlier and experimental artifacts. Evaluator APIs expose legacy provenance metadata without returning legacy prose as current Candidate Work.
 
 ## Initial taxonomy
 

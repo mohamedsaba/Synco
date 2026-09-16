@@ -1,7 +1,5 @@
 import { createHash } from 'node:crypto';
 
-import type { ReconstructionItem } from '../evidence/chronological-reconstruction';
-import type { CommandFinishedPayload } from '../events/session-event';
 import type {
   EvidenceReferenceCatalog,
   EvidenceCatalogEntry,
@@ -11,12 +9,17 @@ import {
   initialReconstructionLimits,
   type ReconstructionLimits,
 } from './reconstruction-limits';
+import {
+  boundEvidenceText,
+  buildTypedEvidenceFact,
+  type TypedEvidenceFact,
+} from './typed-evidence-fact';
 
 export type CoverageAnchorKind =
   | 'submission_boundary'
   | 'workspace_gap'
   | 'out_of_band_change'
-  | 'workspace_transition'
+  | 'workspace_progression'
   | 'reversion'
   | 'unsuccessful_command_before_further_work'
   | 'final_observed_command'
@@ -33,7 +36,7 @@ export type ModelEvidenceItem = Readonly<{
   role: 'chronology';
   chronologyOrder: number;
   kind: Exclude<EvidenceCatalogEntry['kind'], 'final_diff'>;
-  fact: Readonly<Record<string, unknown>>;
+  fact: TypedEvidenceFact;
 }>;
 
 export type EvidencePacketV1 = Readonly<{
@@ -77,94 +80,6 @@ export type EvidencePacketSource = Readonly<{
 
 const byteLength = (value: string) => Buffer.byteLength(value, 'utf8');
 
-const truncateUtf8 = (value: string, maximumBytes: number) => {
-  if (byteLength(value) <= maximumBytes) return value;
-
-  let result = '';
-  for (const character of value) {
-    if (byteLength(result + character) > maximumBytes) break;
-    result += character;
-  }
-  return result;
-};
-
-const boundedText = (value: string, maximumBytes: number) => ({
-  excerpt: truncateUtf8(value, maximumBytes),
-  totalBytes: byteLength(value),
-});
-
-const modelFact = (
-  item: ReconstructionItem,
-  limits: ReconstructionLimits,
-): Readonly<Record<string, unknown>> | null => {
-  if (item.kind === 'SESSION_ACTIVATED') {
-    return { boundary: 'session_activated', timestamp: item.timestamp };
-  }
-  if (item.kind === 'SESSION_SUBMITTED') {
-    return { boundary: 'session_submitted', timestamp: item.timestamp };
-  }
-  if (item.kind === 'COMMAND_EXECUTION') {
-    const rawFinished = item.rawFinishedEvent.payload as CommandFinishedPayload;
-    const stdout = boundedText(
-      item.stdoutPreview,
-      limits.maximumCommandOutputBytes,
-    );
-    const stderr = boundedText(
-      item.stderrPreview,
-      limits.maximumCommandOutputBytes,
-    );
-    return {
-      command: item.command,
-      cwd: item.cwd,
-      exitCode: item.exitCode,
-      timedOut: item.timedOut,
-      durationMs: item.durationMs,
-      stdoutExcerpt: stdout.excerpt,
-      stdoutBytes: rawFinished.stdoutBytes,
-      stdoutTruncated:
-        rawFinished.stdoutTruncated || stdout.excerpt !== item.stdoutPreview,
-      stderrExcerpt: stderr.excerpt,
-      stderrBytes: rawFinished.stderrBytes,
-      stderrTruncated:
-        rawFinished.stderrTruncated || stderr.excerpt !== item.stderrPreview,
-    };
-  }
-  if (item.kind === 'WORKSPACE_CHANGE') {
-    return {
-      origin: item.origin,
-      observation:
-        item.origin === 'out_of_band'
-          ? 'Workspace changed between recorded actions.'
-          : 'Workspace transition observed.',
-      beforeTree: item.beforeTree,
-      afterTree: item.afterTree,
-      files: item.files.map((file) => {
-        const patch = boundedText(file.patchPreview, limits.maximumPatchBytes);
-        return {
-          path: file.path,
-          status: file.status,
-          additions: file.additions,
-          deletions: file.deletions,
-          patchExcerpt: patch.excerpt,
-          patchBytes: file.patchBytes,
-          patchTruncated:
-            file.patchTruncated || patch.excerpt !== file.patchPreview,
-        };
-      }),
-      totalAdditions: item.totalAdditions,
-      totalDeletions: item.totalDeletions,
-    };
-  }
-  if (item.kind === 'WORKSPACE_GAP') {
-    return {
-      observation: 'Workspace evidence is incomplete for this interval.',
-      phase: item.phase,
-      commandId: item.commandId,
-    };
-  }
-  return null;
-};
-
 const createAnchors = (
   catalog: EvidenceReferenceCatalog,
   submittedDiff: string,
@@ -173,12 +88,40 @@ const createAnchors = (
   const chronology = catalog.entries.filter(
     (entry) => entry.chronologyOrder !== null,
   );
-  const workspaceEntries = chronology.filter(
-    (entry) => entry.kind === 'workspace_change',
-  );
   const seenTrees = new Set<string>();
+  let ordinaryWorkspaceRefs: string[] = [];
+
+  const flushWorkspaceProgression = () => {
+    if (ordinaryWorkspaceRefs.length === 0) return;
+    anchors.push({
+      kind: 'workspace_progression',
+      evidenceRefs: ordinaryWorkspaceRefs,
+    });
+    ordinaryWorkspaceRefs = [];
+  };
 
   for (const entry of chronology) {
+    const workspaceChange =
+      entry.kind === 'workspace_change' &&
+      entry.item?.kind === 'WORKSPACE_CHANGE'
+        ? entry.item
+        : null;
+    const isReversion = workspaceChange
+      ? seenTrees.has(workspaceChange.afterTree)
+      : false;
+
+    if (
+      workspaceChange &&
+      workspaceChange.origin !== 'out_of_band' &&
+      !isReversion
+    ) {
+      ordinaryWorkspaceRefs.push(entry.evidenceRef);
+      seenTrees.add(workspaceChange.beforeTree);
+      seenTrees.add(workspaceChange.afterTree);
+      continue;
+    }
+
+    flushWorkspaceProgression();
     if (entry.kind === 'submission') {
       anchors.push({
         kind: 'submission_boundary',
@@ -193,39 +136,34 @@ const createAnchors = (
       });
       continue;
     }
-    if (
-      entry.kind === 'workspace_change' &&
-      entry.item?.kind === 'WORKSPACE_CHANGE'
-    ) {
-      anchors.push({
-        kind: 'workspace_transition',
-        evidenceRefs: [entry.evidenceRef],
-      });
-      if (entry.item.origin === 'out_of_band') {
+    if (workspaceChange) {
+      if (workspaceChange.origin === 'out_of_band') {
         anchors.push({
           kind: 'out_of_band_change',
           evidenceRefs: [entry.evidenceRef],
         });
       }
-      if (seenTrees.has(entry.item.afterTree)) {
+      if (isReversion) {
         anchors.push({ kind: 'reversion', evidenceRefs: [entry.evidenceRef] });
       }
-      seenTrees.add(entry.item.beforeTree);
-      seenTrees.add(entry.item.afterTree);
+      seenTrees.add(workspaceChange.beforeTree);
+      seenTrees.add(workspaceChange.afterTree);
       continue;
     }
     if (
       entry.kind === 'command_execution' &&
       entry.item?.kind === 'COMMAND_EXECUTION'
     ) {
-      const laterWorkspaceChange = workspaceEntries.some(
-        (workspace) =>
-          (workspace.chronologyOrder ?? -1) >
-          (entry.chronologyOrder ?? Number.MAX_SAFE_INTEGER),
+      const laterObservedWork = chronology.some(
+        (laterEntry) =>
+          (laterEntry.kind === 'command_execution' ||
+            laterEntry.kind === 'workspace_change') &&
+          (laterEntry.chronologyOrder ?? -1) >
+            (entry.chronologyOrder ?? Number.MAX_SAFE_INTEGER),
       );
       if (
         (entry.item.timedOut || entry.item.exitCode !== 0) &&
-        laterWorkspaceChange
+        laterObservedWork
       ) {
         anchors.push({
           kind: 'unsuccessful_command_before_further_work',
@@ -234,6 +172,7 @@ const createAnchors = (
       }
     }
   }
+  flushWorkspaceProgression();
 
   const commands = chronology.filter(
     (entry) => entry.kind === 'command_execution',
@@ -278,7 +217,7 @@ export const buildEvidencePacket = (
   }
 
   const evidenceItems = chronologyEntries.flatMap((entry) => {
-    const fact = modelFact(entry.item!, limits);
+    const fact = buildTypedEvidenceFact(entry.item!, limits);
     if (!fact || entry.chronologyOrder === null) return [];
     return [
       {
@@ -290,24 +229,12 @@ export const buildEvidencePacket = (
       },
     ];
   });
-  const finalDiffExcerpt = boundedText(
+  const finalDiffExcerpt = boundEvidenceText(
     source.diff,
     limits.maximumFinalDiffBytes,
   );
   const finalDiffRef = `session:${catalog.sessionId}:final-diff`;
   const anchors = createAnchors(catalog, source.diff);
-  const requiredReferences = new Set(
-    anchors.flatMap((anchor) => anchor.evidenceRefs),
-  );
-  if (
-    requiredReferences.size >
-    limits.maximumStatements * limits.maximumReferencesPerStatement
-  ) {
-    throw new EvidenceReconstructionError(
-      'COVERAGE_UNSATISFIABLE',
-      'Required coverage references cannot fit within the output bounds.',
-    );
-  }
   const truncatedEvidenceRefs = evidenceItems.flatMap((item) => {
     const encoded = JSON.stringify(item.fact);
     return encoded.includes('"stdoutTruncated":true') ||

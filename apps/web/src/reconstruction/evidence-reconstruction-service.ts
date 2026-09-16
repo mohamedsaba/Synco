@@ -69,7 +69,7 @@ export class EvidenceReconstructionService {
 
   get(sessionId: string) {
     this.loadEvidence(sessionId);
-    return this.store.getBySessionId(sessionId);
+    return this.store.getBySessionId(sessionId, this.generatorVersion);
   }
 
   async ensure(
@@ -77,7 +77,10 @@ export class EvidenceReconstructionService {
     options: Readonly<{ retryFailed?: boolean }> = {},
   ): Promise<EvidenceReconstructionRecord> {
     const evidence = this.loadEvidence(sessionId);
-    const existing = this.store.getBySessionId(sessionId);
+    const existing = this.store.getBySessionId(
+      sessionId,
+      this.generatorVersion,
+    );
     const claim = this.claimAttempt(evidence, existing, options.retryFailed);
     if (!claim.claimed) return claim.record;
 
@@ -117,6 +120,7 @@ export class EvidenceReconstructionService {
       );
       return this.store.completeAvailable({
         sessionId,
+        promptVersion: this.generatorVersion,
         attemptCount: claim.record.attemptCount,
         attemptToken: claim.record.attemptToken,
         providerId: generated.providerId,
@@ -129,6 +133,7 @@ export class EvidenceReconstructionService {
     } catch (error) {
       return this.store.completeFailed({
         sessionId,
+        promptVersion: this.generatorVersion,
         attemptCount: claim.record.attemptCount,
         attemptToken: claim.record.attemptToken,
         failureCode: failureCode(error),
@@ -154,7 +159,7 @@ export class EvidenceReconstructionService {
       return this.store.beginFirstAttempt({
         id: this.createId(),
         sessionId: evidence.sessionId,
-        promptVersion: reconstructionPromptVersion,
+        promptVersion: this.generatorVersion,
         packetBuilderVersion,
         sourceFirstSequence:
           sequences.length > 0 ? Math.min(...sequences) : null,
@@ -174,7 +179,12 @@ export class EvidenceReconstructionService {
     }
     if (existing.status === 'FAILED') {
       return retryFailed
-        ? this.store.retryFailed(evidence.sessionId, attemptToken, now)
+        ? this.store.retryFailed(
+            evidence.sessionId,
+            this.generatorVersion,
+            attemptToken,
+            now,
+          )
         : { claimed: false, record: existing };
     }
 
@@ -183,10 +193,15 @@ export class EvidenceReconstructionService {
     ).toISOString();
     return this.store.reclaimStale(
       evidence.sessionId,
+      this.generatorVersion,
       staleBefore,
       attemptToken,
       now,
     );
+  }
+
+  private get generatorVersion() {
+    return this.generator.versionId ?? reconstructionPromptVersion;
   }
 
   private async generateWithTimeout(

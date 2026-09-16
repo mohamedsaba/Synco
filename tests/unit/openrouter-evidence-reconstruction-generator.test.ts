@@ -1,14 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { EvaluatorAccessError } from '../../apps/web/src/access/evaluator-evidence';
 import type { EvidencePacketV1 } from '../../apps/web/src/reconstruction/evidence-packet';
-import { getAuthorizedReconstruction } from '../../apps/web/src/reconstruction/evidence-reconstruction-runtime';
 import {
-  nvidiaNimEndpoint,
-  nvidiaNimModelId,
-  nvidiaNimProviderId,
-  NvidiaNimEvidenceReconstructionGenerator,
-} from '../../apps/web/src/reconstruction/nvidia-nim-evidence-reconstruction-generator';
+  OpenRouterEvidenceReconstructionGenerator,
+  openRouterEndpoint,
+  openRouterProviderId,
+} from '../../apps/web/src/reconstruction/openrouter-evidence-reconstruction-generator';
 
 const packet: EvidencePacketV1 = {
   schemaVersion: 1,
@@ -41,7 +38,7 @@ const packet: EvidencePacketV1 = {
 const successfulResponse = () =>
   new Response(
     JSON.stringify({
-      id: 'nim-request-1',
+      id: 'openrouter-request-1',
       choices: [
         {
           message: {
@@ -53,17 +50,13 @@ const successfulResponse = () =>
     { status: 200 },
   );
 
-describe('NVIDIA NIM evidence reconstruction generator', () => {
-  it('does not accept a candidate credential at the reconstruction boundary', () => {
-    expect(() =>
-      getAuthorizedReconstruction('synthetic-session', 'candidate-token'),
-    ).toThrowError(EvaluatorAccessError);
-  });
-
-  it('uses the live-proven bounded JSON Schema request', async () => {
+describe('OpenRouter evidence reconstruction generator', () => {
+  it('uses an explicit structured-output model with equivalent bounded settings', async () => {
     const fetchImplementation = vi.fn().mockResolvedValue(successfulResponse());
-    const generator = new NvidiaNimEvidenceReconstructionGenerator(
+    const modelId = 'nvidia/nemotron-3-super-120b-a12b:free';
+    const generator = new OpenRouterEvidenceReconstructionGenerator(
       'synthetic-key',
+      { modelId, supportsStructuredOutput: true },
       fetchImplementation,
     );
 
@@ -71,40 +64,76 @@ describe('NVIDIA NIM evidence reconstruction generator', () => {
       generator.generate(packet, { signal: new AbortController().signal }),
     ).resolves.toEqual({
       output: { schemaVersion: 1, statements: [] },
-      providerId: nvidiaNimProviderId,
-      modelId: nvidiaNimModelId,
-      requestId: 'nim-request-1',
+      providerId: openRouterProviderId,
+      modelId,
+      requestId: 'openrouter-request-1',
     });
 
     const [url, request] = fetchImplementation.mock.calls[0] as [
       string,
       RequestInit,
     ];
-    expect(url).toBe(nvidiaNimEndpoint);
+    expect(url).toBe(openRouterEndpoint);
     const body = JSON.parse(String(request.body)) as Record<string, unknown>;
     expect(body).toMatchObject({
-      model: 'nvidia/nemotron-3.5-lightning-30b-a3b',
+      model: modelId,
       response_format: {
         type: 'json_schema',
         json_schema: { strict: true },
       },
+      provider: { require_parameters: true },
       temperature: 0.2,
-      chat_template_kwargs: { enable_thinking: false },
+      reasoning: { effort: 'none' },
       max_tokens: 2048,
       stream: false,
     });
-    expect(body).not.toHaveProperty('tools');
     expect(request.signal).toBeInstanceOf(AbortSignal);
   });
 
-  it('maps provider errors without leaking their response body', async () => {
+  it('omits schema routing for an explicit model that does not support it', async () => {
+    const fetchImplementation = vi.fn().mockResolvedValue(successfulResponse());
+    const generator = new OpenRouterEvidenceReconstructionGenerator(
+      'synthetic-key',
+      {
+        modelId: 'nvidia/nemotron-3.5-lightning:free',
+        supportsStructuredOutput: false,
+      },
+      fetchImplementation,
+    );
+
+    await generator.generate(packet, {
+      signal: new AbortController().signal,
+    });
+
+    const [, request] = fetchImplementation.mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(String(request.body)) as Record<string, unknown>;
+    expect(body).not.toHaveProperty('response_format');
+    expect(body).not.toHaveProperty('provider');
+  });
+
+  it('rejects nondeterministic router aliases', () => {
+    expect(
+      () =>
+        new OpenRouterEvidenceReconstructionGenerator('synthetic-key', {
+          modelId: 'openrouter/free',
+          supportsStructuredOutput: false,
+        }),
+    ).toThrow('explicit OpenRouter model ID');
+  });
+
+  it('maps provider errors without consuming or logging the response body', async () => {
     const consoleError = vi
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
     const response = new Response('credential detail', { status: 503 });
     const fetchImplementation = vi.fn().mockResolvedValue(response);
-    const generator = new NvidiaNimEvidenceReconstructionGenerator(
+    const modelId = 'nvidia/nemotron-3-super-120b-a12b:free';
+    const generator = new OpenRouterEvidenceReconstructionGenerator(
       'synthetic-key',
+      { modelId, supportsStructuredOutput: true },
       fetchImplementation,
     );
 
@@ -117,9 +146,10 @@ describe('NVIDIA NIM evidence reconstruction generator', () => {
 
     expect(response.bodyUsed).toBe(false);
     expect(consoleError).toHaveBeenCalledWith(
-      'NVIDIA NIM reconstruction request failed.',
+      'OpenRouter reconstruction request failed.',
       {
-        provider: nvidiaNimProviderId,
+        provider: openRouterProviderId,
+        model: modelId,
         category: 'http_failure',
         status: 503,
       },
@@ -133,70 +163,27 @@ describe('NVIDIA NIM evidence reconstruction generator', () => {
     consoleError.mockRestore();
   });
 
-  it('fails safely when NIM returns invalid JSON content', async () => {
+  it('fails safely when OpenRouter returns invalid JSON content', async () => {
     const fetchImplementation = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
-          id: 'nim-request-2',
+          id: 'openrouter-request-2',
           choices: [{ message: { content: 'not json' } }],
         }),
         { status: 200 },
       ),
     );
-    const generator = new NvidiaNimEvidenceReconstructionGenerator(
+    const generator = new OpenRouterEvidenceReconstructionGenerator(
       'synthetic-key',
+      {
+        modelId: 'nvidia/nemotron-3-super-120b-a12b:free',
+        supportsStructuredOutput: true,
+      },
       fetchImplementation,
     );
 
     await expect(
       generator.generate(packet, { signal: new AbortController().signal }),
     ).rejects.toMatchObject({ code: 'MALFORMED_OUTPUT' });
-  });
-
-  it('surfaces exact required coverage references before the evidence packet in the user prompt', async () => {
-    const fetchImplementation = vi.fn().mockResolvedValue(successfulResponse());
-    const generator = new NvidiaNimEvidenceReconstructionGenerator(
-      'synthetic-key',
-      fetchImplementation,
-    );
-
-    const packetWithAnchors: EvidencePacketV1 = {
-      ...packet,
-      coverageAnchors: [
-        {
-          id: 'anchor_001',
-          kind: 'final_observed_command',
-          evidenceRefs: ['command:session-1:cmd-1'],
-        },
-        {
-          id: 'anchor_002',
-          kind: 'submission_boundary',
-          evidenceRefs: ['session:session-1:submitted'],
-        },
-      ],
-    };
-
-    await generator.generate(packetWithAnchors, {
-      signal: new AbortController().signal,
-    });
-
-    const [, request] = fetchImplementation.mock.calls[0] as [
-      string,
-      RequestInit,
-    ];
-    const body = JSON.parse(String(request.body)) as {
-      messages: { role: string; content: string }[];
-    };
-    const userMessage =
-      body.messages.find((message) => message.role === 'user')?.content ?? '';
-
-    expect(userMessage).toContain(
-      'Required evidence references for this reconstruction:',
-    );
-    expect(userMessage).toContain('- command:session-1:cmd-1');
-    expect(userMessage).toContain('- session:session-1:submitted');
-    expect(userMessage.indexOf('- command:session-1:cmd-1')).toBeLessThan(
-      userMessage.indexOf('Evidence packet:'),
-    );
   });
 });

@@ -2,7 +2,7 @@
 
 Delimit is an early Synco product for observing realistic engineering work. A candidate works in a controlled environment, the system records observable events, and an evaluator reviews a chronological reconstruction and underlying evidence. The product does not score candidates or make hiring decisions.
 
-This repository contains the product and architecture baseline plus the first complete evidence slice: a fixed scenario, one-file candidate workspace, durable submission, and evaluator evidence review.
+This repository contains the product and architecture baseline plus five completed vertical slices spanning candidate work, authoritative evidence capture, and deterministic evaluator reconstruction.
 
 ## Start locally
 
@@ -14,9 +14,9 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Set a long local `DELIMIT_EVALUATOR_KEY` in `.env.local`, then open `http://localhost:3000` and create a candidate session. To exercise the Slice 5 reconstruction with synthetic Scenario 001 data, also set `NVIDIA_API_KEY` in `.env`. The key is server-only and is never sent to the browser or candidate sandbox. Runtime sessions are stored in `.data/delimit.sqlite` by default. A diagnostic endpoint is available at `GET /api/health`.
+Set a long local `DELIMIT_EVALUATOR_KEY` in `.env.local`, then open `http://localhost:3000` and create a candidate session. Slice 5 Candidate Work is deterministic and needs no AI provider key. Runtime sessions are stored in `.data/delimit.sqlite` by default. A diagnostic endpoint is available at `GET /api/health`.
 
-The current reconstruction integration uses NVIDIA NIM hosted inference (`nvidia/nemotron-3.5-lightning-30b-a3b`). This configuration is approved only for synthetic/test Scenario 001 evidence. Do not use real applicant, personal, sensitive, or confidential data. A separate privacy and provider review is required before any production use with real applicants.
+The repository retains server-only NVIDIA NIM and OpenRouter adapters for explicit synthetic model experiments. Set `NVIDIA_API_KEY` or `OPENROUTER_KEY` only when intentionally running those credential-gated experiments. They are not connected to the application reconstruction runtime, and neither key is sent to the browser or candidate sandbox. Do not use real applicant, personal, sensitive, or confidential data with experimental providers without a separate privacy/provider review.
 
 ## Implemented slices
 
@@ -28,7 +28,7 @@ The Slice 1 fixture follows this flow:
 4. Submit to freeze the server-owned file snapshot.
 5. Open `/evaluator`, authenticate separately, and review the original file, submitted file, and deterministic unified diff.
 
-Slices 1–4 provide immutable submission, sandboxed commands, realistic Scenario 001, authoritative event capture, and deterministic chronological evidence. Slice 5 adds a derived, evaluator-only NVIDIA NIM reconstruction with strict evidence citations and persistent generation lifecycle. It does not score candidates or make evaluator decisions. Candidate AI and a full interactive PTY remain unimplemented.
+Slices 1–4 provide immutable submission, sandboxed commands, realistic Scenario 001, authoritative event capture, and deterministic chronological evidence. Slice 5 adds evaluator-only Candidate Work built from typed facts, phase-bounded workspace aggregation, conservative pytest summaries, closed templates, exact citations, and versioned immutable persistence. Its primary surface presents short evidence milestones such as Test run, Code change, Workspace reversion, and Submitted; exact commands and raw output remain one click away and in Technical Chronology. Earlier artifacts retain audit provenance while deterministic v3 is current. Providers are not part of the runtime path. Reconstruction does not score candidates or make evaluator decisions. Candidate AI and a full interactive PTY remain unimplemented.
 
 ## Verify changes
 

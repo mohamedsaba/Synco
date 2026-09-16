@@ -1,38 +1,34 @@
 # AI boundaries
 
-AI has two permitted roles in the prototype.
+AI use is neutral and derived output is never authoritative evidence.
 
 ## Candidate AI
 
-AI may act as a normal engineering tool. The system may record the prompt, response, supplied context, timestamps, and explicit insertion actions. Usage is neutral. The system must not infer that manually typed code came from AI or interpret amount of use as competence.
+AI may eventually act as an ordinary engineering tool. Delimit may record observable prompts, responses, supplied context, timestamps, and explicit insertion actions. It must not infer that manually typed code came from AI or treat amount of AI use as competence.
 
-## Reconstruction AI
+## Authoritative evaluator reconstruction
 
-AI may summarize an event log, compress evidence, and generate factual annotations grounded in specific event IDs. Generated text remains derived and replaceable; raw events remain authoritative.
+Slice 5 Candidate Work does not use AI. Free-form AI reconstruction was rejected after the bounded Scenario A experiment because none of the tested models repeatedly satisfied the invariant that every factual clause be entailed by the references attached to that statement.
+
+The application runtime uses typed facts, deterministic workspace aggregation, closed templates, and a small deterministic evaluator-language mapping. Presentation can shorten a command to a neutral milestone or label an authoritative pytest summary as a Test run, but cannot add purpose, causality, correctness, or intent. Exact technical evidence remains under `View evidence` and in Technical Chronology. No `NVIDIA_API_KEY`, `OPENROUTER_KEY`, external request, prompt, or model response is required for a reconstruction to become `AVAILABLE`. Earlier provider artifacts remain immutable versioned audit records; the evaluator API does not return their prose as current Candidate Work.
+
+Optional AI paraphrasing is not implemented. If evaluated later, it may operate only on one deterministic atomic fact at a time, may not add factual content, and may not replace authoritative deterministic Candidate Work unless meaning preservation is mechanically enforced.
+
+## Experimental provider code
+
+The NVIDIA NIM and OpenRouter adapters remain explicit opt-in experiment tooling and are excluded from runtime wiring. They preserve the completed model-compliance experiment and may support future research. Their prompts, schema validation, provider-specific settings, and server-only keys do not define the production Candidate Work path.
+
+When those tools are deliberately run, candidate-controlled commands, output, code, filenames, and patches are untrusted data. Provider output is also untrusted and must pass structural, reference, chronology, gap, and coverage validation. Keys remain server-only and ignored by Git; safe error handling must not log raw provider bodies or secrets. Experiment use remains restricted to synthetic data until a separate privacy/provider review approves otherwise.
 
 ## Prohibited uses
 
-AI may not:
+AI and deterministic reconstruction may not:
 
 - rank or score candidates;
-- judge or label competence, personality, intent, trust, or understanding;
+- judge competence, personality, intent, trust, or understanding;
 - automatically pass, reject, or recommend a hiring decision;
-- convert task or test outcomes into an evaluator verdict;
-- claim manually entered code was copied from AI;
+- convert command or test outcomes into an evaluator verdict;
+- claim manually entered code was copied from AI; or
 - produce unsupported reconstruction statements.
 
-If a generated statement cannot point to sufficient observable events, it does not belong in the reconstruction.
-
-## Slice 5 provider and trust boundary
-
-Slice 5 uses one server-only NVIDIA NIM hosted inference adapter, with the exact model identifier `nvidia/nemotron-3.5-lightning-30b-a3b` via endpoint `https://integrate.api.nvidia.com/v1/chat/completions`. It makes one bounded, non-streaming structured-output request using JSON Schema. Tools, function calling, code execution, conversation state, and agent workflows are not enabled.
-
-Candidate-authored commands, output, code, comments, filenames, and patches are serialized as untrusted evidence data. They never become system instructions. The provider is required to return JSON matching a narrow schema, but its response remains untrusted: Delimit reparses it, applies strict Zod and domain bounds, resolves every session-scoped evidence reference, checks coverage and gap constraints, derives chronology, and only then persists normalized content. These layers reduce prompt-injection and fabrication risk; they do not make prompt injection or semantic overreach impossible.
-
-The API key is read only from server-side `NVIDIA_API_KEY`. The evaluator generation API accepts only a session ID and an optional failed-retry boolean. Candidate credentials cannot read or start reconstruction. Provider errors are converted to bounded failure metadata; raw malformed output, provider error detail, secrets, and stack traces are not persisted or returned.
-
-## Current prototype operational limitation
-
-The current configuration is approved only for synthetic/test Scenario 001 evidence. It must not be described as zero-retention, enterprise-private, or approved for production applicant data without a formal provider and privacy review.
-
-A separate provider and privacy review is required before processing real applicant evidence.
+The human evaluator owns every judgment.

@@ -10,6 +10,7 @@ export type GeneratedReconstruction = Readonly<{
 export interface EvidenceReconstructionGenerator {
   readonly providerId?: string;
   readonly modelId?: string;
+  readonly versionId?: string;
 
   generate(
     packet: EvidencePacketV1,

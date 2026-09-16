@@ -8,6 +8,7 @@ import type {
   ReconstructionFailureCode,
   ReconstructionStatus,
 } from './evidence-reconstruction';
+import { ensureVersionedReconstructionSchema } from './sqlite-evidence-reconstruction-schema';
 
 type ReconstructionRow = Readonly<{
   id: string;
@@ -50,35 +51,6 @@ type AttemptSource = Readonly<{
   now: string;
 }>;
 
-const schema = `
-  CREATE TABLE IF NOT EXISTS evidence_reconstructions (
-    id TEXT PRIMARY KEY,
-    session_id TEXT NOT NULL UNIQUE,
-    status TEXT NOT NULL CHECK (status IN ('PENDING', 'AVAILABLE', 'FAILED')),
-    schema_version INTEGER NOT NULL,
-    prompt_version TEXT NOT NULL,
-    packet_builder_version TEXT NOT NULL,
-    provider_id TEXT,
-    model_id TEXT,
-    provider_request_id TEXT,
-    source_first_sequence INTEGER,
-    source_last_sequence INTEGER,
-    source_event_count INTEGER NOT NULL,
-    source_packet_sha256 TEXT,
-    final_diff_sha256 TEXT NOT NULL,
-    final_diff_bytes INTEGER NOT NULL,
-    content_json TEXT,
-    failure_code TEXT,
-    failure_message TEXT,
-    attempt_count INTEGER NOT NULL,
-    attempt_token TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    attempt_started_at TEXT NOT NULL,
-    completed_at TEXT,
-    updated_at TEXT NOT NULL
-  );
-`;
-
 const toRecord = (row: ReconstructionRow): EvidenceReconstructionRecord => ({
   id: row.id,
   sessionId: row.session_id,
@@ -111,8 +83,23 @@ const toRecord = (row: ReconstructionRow): EvidenceReconstructionRecord => ({
 export class SqliteEvidenceReconstructionStore {
   constructor(private readonly databasePath: string) {}
 
-  getBySessionId(sessionId: string) {
-    return this.withDatabase((database) => this.find(database, sessionId));
+  getBySessionId(sessionId: string, promptVersion: string) {
+    return this.withDatabase((database) =>
+      this.find(database, sessionId, promptVersion),
+    );
+  }
+
+  getAllBySessionId(sessionId: string) {
+    return this.withDatabase((database) =>
+      (
+        database
+          .prepare(
+            `SELECT * FROM evidence_reconstructions
+             WHERE session_id = ? ORDER BY created_at, id`,
+          )
+          .all(sessionId) as ReconstructionRow[]
+      ).map(toRecord),
+    );
   }
 
   beginFirstAttempt(source: AttemptSource) {
@@ -145,25 +132,43 @@ export class SqliteEvidenceReconstructionStore {
           );
         return {
           claimed: result.changes === 1,
-          record: this.requireRecord(database, source.sessionId),
+          record: this.requireRecord(
+            database,
+            source.sessionId,
+            source.promptVersion,
+          ),
         };
       });
       return transaction.immediate();
     });
   }
 
-  retryFailed(sessionId: string, attemptToken: string, now: string) {
-    return this.reclaim(sessionId, "status = 'FAILED'", [], attemptToken, now);
+  retryFailed(
+    sessionId: string,
+    promptVersion: string,
+    attemptToken: string,
+    now: string,
+  ) {
+    return this.reclaim(
+      sessionId,
+      promptVersion,
+      "status = 'FAILED'",
+      [],
+      attemptToken,
+      now,
+    );
   }
 
   reclaimStale(
     sessionId: string,
+    promptVersion: string,
     staleBefore: string,
     attemptToken: string,
     now: string,
   ) {
     return this.reclaim(
       sessionId,
+      promptVersion,
       "status = 'PENDING' AND attempt_started_at < ?",
       [staleBefore],
       attemptToken,
@@ -174,6 +179,7 @@ export class SqliteEvidenceReconstructionStore {
   completeAvailable(
     input: Readonly<{
       sessionId: string;
+      promptVersion: string;
       attemptCount: number;
       attemptToken: string;
       providerId: string;
@@ -186,6 +192,7 @@ export class SqliteEvidenceReconstructionStore {
   ) {
     return this.complete(
       input.sessionId,
+      input.promptVersion,
       input.attemptCount,
       input.attemptToken,
       `status = 'AVAILABLE', provider_id = ?, model_id = ?,
@@ -206,6 +213,7 @@ export class SqliteEvidenceReconstructionStore {
   completeFailed(
     input: Readonly<{
       sessionId: string;
+      promptVersion: string;
       attemptCount: number;
       attemptToken: string;
       failureCode: ReconstructionFailureCode;
@@ -219,6 +227,7 @@ export class SqliteEvidenceReconstructionStore {
   ) {
     return this.complete(
       input.sessionId,
+      input.promptVersion,
       input.attemptCount,
       input.attemptToken,
       `status = 'FAILED', provider_id = ?, model_id = ?,
@@ -239,6 +248,7 @@ export class SqliteEvidenceReconstructionStore {
 
   private reclaim(
     sessionId: string,
+    promptVersion: string,
     predicate: string,
     predicateValues: readonly unknown[],
     attemptToken: string,
@@ -252,12 +262,19 @@ export class SqliteEvidenceReconstructionStore {
               status = 'PENDING', attempt_count = attempt_count + 1,
               attempt_token = ?, attempt_started_at = ?, completed_at = NULL,
               failure_code = NULL, failure_message = NULL, updated_at = ?
-            WHERE session_id = ? AND ${predicate}`,
+            WHERE session_id = ? AND prompt_version = ? AND ${predicate}`,
           )
-          .run(attemptToken, now, now, sessionId, ...predicateValues);
+          .run(
+            attemptToken,
+            now,
+            now,
+            sessionId,
+            promptVersion,
+            ...predicateValues,
+          );
         return {
           claimed: result.changes === 1,
-          record: this.requireRecord(database, sessionId),
+          record: this.requireRecord(database, sessionId, promptVersion),
         };
       });
       return transaction.immediate();
@@ -266,6 +283,7 @@ export class SqliteEvidenceReconstructionStore {
 
   private complete(
     sessionId: string,
+    promptVersion: string,
     attemptCount: number,
     attemptToken: string,
     assignments: string,
@@ -275,26 +293,37 @@ export class SqliteEvidenceReconstructionStore {
       const result = database
         .prepare(
           `UPDATE evidence_reconstructions SET ${assignments}
-           WHERE session_id = ? AND status = 'PENDING'
+           WHERE session_id = ? AND prompt_version = ? AND status = 'PENDING'
              AND attempt_count = ? AND attempt_token = ?`,
         )
-        .run(...values, sessionId, attemptCount, attemptToken);
+        .run(...values, sessionId, promptVersion, attemptCount, attemptToken);
       return {
         completed: result.changes === 1,
-        record: this.requireRecord(database, sessionId),
+        record: this.requireRecord(database, sessionId, promptVersion),
       };
     });
   }
 
-  private find(database: Database.Database, sessionId: string) {
+  private find(
+    database: Database.Database,
+    sessionId: string,
+    promptVersion: string,
+  ) {
     const row = database
-      .prepare('SELECT * FROM evidence_reconstructions WHERE session_id = ?')
-      .get(sessionId) as ReconstructionRow | undefined;
+      .prepare(
+        `SELECT * FROM evidence_reconstructions
+         WHERE session_id = ? AND prompt_version = ?`,
+      )
+      .get(sessionId, promptVersion) as ReconstructionRow | undefined;
     return row ? toRecord(row) : null;
   }
 
-  private requireRecord(database: Database.Database, sessionId: string) {
-    const record = this.find(database, sessionId);
+  private requireRecord(
+    database: Database.Database,
+    sessionId: string,
+    promptVersion: string,
+  ) {
+    const record = this.find(database, sessionId, promptVersion);
     if (!record) throw new Error('The reconstruction row was not found.');
     return record;
   }
@@ -306,7 +335,7 @@ export class SqliteEvidenceReconstructionStore {
     const database = new Database(this.databasePath);
     database.pragma('journal_mode = WAL');
     database.pragma('busy_timeout = 5000');
-    database.exec(schema);
+    ensureVersionedReconstructionSchema(database);
     try {
       return operation(database);
     } finally {

@@ -126,10 +126,20 @@ const EvidencePage = async ({ params }: EvidencePageProps) => {
         </div>
       </dl>
 
+      {gapCount > 0 || outOfBandCount > 0 ? (
+        <aside
+          aria-label="Evidence integrity notice"
+          className="capture-note evidence-integrity-notice"
+        >
+          Evidence integrity notice: {gapCount} capture gap(s) and{' '}
+          {outOfBandCount} workspace change(s) between recorded actions remain
+          visible independently of the Candidate Work reconstruction.
+        </aside>
+      ) : null}
+
       <ReconstructionPanel
         entries={catalog.entries}
         initial={reconstruction}
-        integrity={{ gapCount, outOfBandCount }}
         sessionId={sessionId}
         submittedDiff={evidence.diff}
       />

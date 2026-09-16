@@ -150,6 +150,10 @@
   line-height: 1.65;
 }
 
+.evidence-integrity-notice {
+  margin: 0 0 2rem;
+}
+
 .editor-panel {
   display: flex;
   flex-direction: column;
@@ -603,6 +607,10 @@ textarea:disabled {
   letter-spacing: 0.05em;
 }
 
+.candidate-work-badge {
+  text-transform: none;
+}
+
 .badge-command {
   background: #0369a1;
   color: #e0f2fe;
@@ -613,9 +621,24 @@ textarea:disabled {
   color: #ede9fe;
 }
 
+.badge-test {
+  background: #0f766e;
+  color: #ccfbf1;
+}
+
+.badge-reversion {
+  background: #9a3412;
+  color: #ffedd5;
+}
+
 .badge-gap {
   background: #b91c1c;
   color: #fee2e2;
+}
+
+.badge-submitted {
+  background: #3f6212;
+  color: #ecfccb;
 }
 
 .origin-badge {

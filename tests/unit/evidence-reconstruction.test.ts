@@ -7,7 +7,10 @@ import { buildEvidenceReferenceCatalog } from '../../apps/web/src/reconstruction
 import { EvidenceReconstructionError } from '../../apps/web/src/reconstruction/evidence-reconstruction';
 import { validateReconstructionOutput } from '../../apps/web/src/reconstruction/reconstruction-output-validator';
 import { initialReconstructionLimits } from '../../apps/web/src/reconstruction/reconstruction-limits';
-import { reconstructionSystemPrompt } from '../../apps/web/src/reconstruction/reconstruction-prompt';
+import {
+  buildReconstructionUserPrompt,
+  reconstructionSystemPrompt,
+} from '../../apps/web/src/reconstruction/reconstruction-prompt';
 
 const sessionId = 'session-a';
 
@@ -165,6 +168,45 @@ const completeOutput = () => ({
 });
 
 describe('Slice 5 evidence packet and validation', () => {
+  it('anchors an unsuccessful command when a later command is observed without a workspace transition', () => {
+    const commandOnlyEvents = events
+      .filter(
+        (event) =>
+          event.type !== 'WORKSPACE_CHANGED' &&
+          event.type !== 'WORKSPACE_CAPTURE_FAILED',
+      )
+      .map((event, index) => ({ ...event, sequence: index + 1 }));
+    const reconstruction = buildChronologicalReconstruction(
+      {
+        activatedAt: '2026-09-15T10:00:00.000Z',
+        submittedAt: '2026-09-15T10:05:00.000Z',
+        submittedDiff: '',
+      },
+      commandOnlyEvents,
+    );
+    const catalog = buildEvidenceReferenceCatalog(sessionId, reconstruction);
+    const packet = buildEvidencePacket(
+      {
+        scenario: {
+          title: 'Scenario',
+          brief: 'Brief',
+          acceptanceCriteria: [],
+        },
+        activatedAt: '2026-09-15T10:00:00.000Z',
+        submittedAt: '2026-09-15T10:05:00.000Z',
+        diff: '',
+      },
+      catalog,
+    );
+
+    expect(packet.coverageAnchors).toContainEqual(
+      expect.objectContaining({
+        kind: 'unsuccessful_command_before_further_work',
+        evidenceRefs: [`command:${sessionId}:cmd-1`],
+      }),
+    );
+  });
+
   it('builds session-scoped chronology and final-state references with coverage anchors', () => {
     const { packet, catalog } = createFixture();
 
@@ -187,7 +229,6 @@ describe('Slice 5 evidence packet and validation', () => {
     expect(packet.coverageAnchors.map((anchor) => anchor.kind)).toEqual(
       expect.arrayContaining([
         'unsuccessful_command_before_further_work',
-        'workspace_transition',
         'out_of_band_change',
         'workspace_gap',
         'final_observed_command',
@@ -241,6 +282,24 @@ describe('Slice 5 evidence packet and validation', () => {
     );
   });
 
+  it('keeps generic prompt instructions free of Scenario 001 solution vocabulary', () => {
+    const { packet } = createFixture();
+    const genericPrompt = `${reconstructionSystemPrompt}\n${buildReconstructionUserPrompt(packet).split('Evidence packet:')[0]}`;
+
+    expect(genericPrompt).not.toMatch(
+      /identifier normalization|warehouse normalization|cache invalidation/i,
+    );
+    expect(genericPrompt).not.toMatch(
+      /redis|pytest|cache key|stale|outdated|inventory\//i,
+    );
+    expect(genericPrompt).toContain(
+      'do not say an action was performed "to confirm", "to verify", "to determine"',
+    );
+    expect(genericPrompt).toContain(
+      "report only the test runner's observed pass/fail counts",
+    );
+  });
+
   it('normalizes model order from evidence before assigning IDs', () => {
     const { packet, catalog } = createFixture();
     const output = completeOutput();
@@ -255,6 +314,17 @@ describe('Slice 5 evidence packet and validation', () => {
     ]);
     expect(result.statements[0].text).toContain('unsuccessful command');
     expect(result.statements[2].claimBasis).toBe('final_state');
+  });
+
+  it('permits repeated deterministic text when distinct evidence records repeated actions', () => {
+    const { packet, catalog } = createFixture();
+    const output = completeOutput();
+    output.statements[0].text = 'Ran a recorded command.';
+    output.statements[1].text = 'Ran a recorded command.';
+
+    expect(() =>
+      validateReconstructionOutput(output, packet, catalog),
+    ).not.toThrow();
   });
 
   it('rejects missing coverage, unknown references, and final-diff chronology claims', () => {

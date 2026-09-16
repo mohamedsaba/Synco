@@ -3,13 +3,11 @@ import type { RecordedVerification } from '../../../../src/evaluator/evaluator-b
 type VerificationSummaryProps = Readonly<{
   verification: RecordedVerification;
   showChronology?: boolean;
-  isCaseD?: boolean;
 }>;
 
 export const VerificationSummary = ({
   verification,
   showChronology = false,
-  isCaseD = false,
 }: VerificationSummaryProps) => {
   const { runs } = verification;
 
@@ -103,22 +101,6 @@ export const VerificationSummary = ({
             </div>
           );
         })}
-
-        {isCaseD ? (
-          <div className="verification-run-card invariant-check-card">
-            <div className="run-card-header">
-              <span className="run-card-position">
-                Recorded script execution
-              </span>
-              <span className="count-chip count-chip-neutral">
-                Exit status 0
-              </span>
-            </div>
-            <p className="run-card-statement">
-              Additional invariant checks passed
-            </p>
-          </div>
-        ) : null}
       </div>
     </section>
   );

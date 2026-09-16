@@ -428,6 +428,11 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       expect(html).toContain('Engineering Manager');
       expect(html).toContain('aria-selected="true"');
       expect(html).toContain('lens-tab-active');
+      expect(html).toContain('aria-controls="lens-panel-GENERALIST_RECRUITER"');
+      expect(html).toContain('aria-controls="lens-panel-ENGINEER"');
+      // Copy requirement: "recorded tooling" rather than "verified tooling"
+      expect(html).toContain('recorded tooling');
+      expect(html).not.toContain('verified tooling');
     });
   });
 
@@ -516,23 +521,13 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       expect(html).not.toContain('FAILED CANDIDATE');
       expect(html).not.toContain('UNSATISFACTORY');
       expect(html).not.toContain('GRADE: F');
-    });
-
-    it('renders Case D additional invariant notice when isCaseD is true', () => {
-      const html = renderToStaticMarkup(
-        <VerificationSummary
-          verification={mockBriefing.recordedVerification}
-          showChronology={true}
-          isCaseD={true}
-        />,
-      );
-
-      expect(html).toContain('Additional invariant checks passed');
+      // No synthetic invariant card
+      expect(html).not.toContain('Additional invariant checks passed');
     });
   });
 
   describe('PlatformNotice & Case F Coverage', () => {
-    it('renders Case F platform-owned capture gap notice', () => {
+    it('renders Case F platform-owned capture gap notice with authoritative copy and heading', () => {
       const limitations: EvaluatorBriefing['evidenceLimitations'] = [
         {
           id: 'lim-1',
@@ -541,10 +536,9 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
           basis: 'chronology',
           evidenceRefs: ['session:session-c:gap'],
           wording: {
-            template: 'Activity capture incomplete.',
-            variables: {},
+            key: 'workspace_gap',
           },
-          text: 'Activity capture incomplete: A gap in workspace telemetry was detected.',
+          text: 'Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
         },
       ];
 
@@ -553,8 +547,11 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       );
 
       expect(html).toContain('Platform and observation notices');
+      expect(html).toContain('Platform recording limitation');
       expect(html).toContain('Activity capture incomplete');
-      expect(html).toContain('gap in workspace telemetry');
+      expect(html).toContain(
+        'Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
+      );
     });
   });
 
@@ -590,6 +587,33 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       expect(html).toContain('+5 lines');
       expect(html).toContain('−1 lines');
       expect(html).toContain('inventory/service.py');
+    });
+
+    it('renders diff behind progressive disclosure toggle when prominentDiff is false', () => {
+      const html = renderToStaticMarkup(
+        <SubmittedWork
+          submittedState={mockBriefing.submittedState}
+          diff={mockReview.submittedDiff}
+          prominentDiff={false}
+        />,
+      );
+
+      expect(html).toContain('submitted-diff-disclosure');
+      expect(html).toContain('View submitted changes');
+    });
+
+    it('renders diff directly when prominentDiff is true', () => {
+      const html = renderToStaticMarkup(
+        <SubmittedWork
+          submittedState={mockBriefing.submittedState}
+          diff={mockReview.submittedDiff}
+          prominentDiff={true}
+        />,
+      );
+
+      expect(html).not.toContain('submitted-diff-disclosure');
+      expect(html).not.toContain('View submitted changes');
+      expect(html).toContain('submitted-diff-container');
     });
   });
 
@@ -659,13 +683,6 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
     const projectedEngineer = projectBriefing(mockBriefing, 'ENGINEER');
     const projectedEM = projectBriefing(mockBriefing, 'ENGINEERING_MANAGER');
 
-    const projections = {
-      GENERALIST_RECRUITER: projectedGeneralist,
-      TECHNICAL_RECRUITER: projectedTechnicalRecruiter,
-      ENGINEER: projectedEngineer,
-      ENGINEERING_MANAGER: projectedEM,
-    };
-
     const evidence = {
       sessionId: 'session-c-12345678',
       activatedAt: '2026-09-16T17:00:00.000Z',
@@ -687,43 +704,61 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       },
     };
 
-    it('Generalist Recruiter: grouped activity, no raw event IDs, no SHA hashes', () => {
+    it('Generalist Recruiter: grouped activity, no raw event IDs, no SHA hashes, progressive diff disclosure, and unmounted technical record', () => {
       const html = renderToStaticMarkup(
         <EvaluatorExperience
           sessionId="session-c-12345678"
-          initialRole="GENERALIST_RECRUITER"
-          projections={projections}
+          activeRole="GENERALIST_RECRUITER"
+          projection={projectedGeneralist}
           review={mockReview}
           evidence={evidence}
-          isCaseD={false}
         />,
       );
 
       expect(html).toContain('Generalist Recruiter');
       expect(html).toContain('What happened');
+      // Tabpanel accessibility semantics
+      expect(html).toContain('id="lens-panel-GENERALIST_RECRUITER"');
+      expect(html).toContain('role="tabpanel"');
+      expect(html).toContain('aria-labelledby="lens-tab-GENERALIST_RECRUITER"');
+      expect(html).toContain('tabindex="0"');
+      // Progressive disclosure: diff behind toggle
+      expect(html).toContain('View submitted changes');
+      // Technical record must NOT be mounted
+      expect(html).not.toContain('Open technical chronology');
+      expect(html).not.toContain('technical-record-prominent');
       // No raw event IDs
       expect(html).not.toContain('evt_');
       // No raw SHA-256 hashes
       expect(html).not.toContain(
         mockBriefing.provenance.authoritativeEvidenceSha256!,
       );
+      // No synthetic invariant checks
+      expect(html).not.toContain('Additional invariant checks passed');
     });
 
-    it('Engineer: prominent technical record and full diff view', () => {
+    it('Engineer: prominent technical record, direct diff view, and matching tabpanel semantics', () => {
       const html = renderToStaticMarkup(
         <EvaluatorExperience
           sessionId="session-c-12345678"
-          initialRole="ENGINEER"
-          projections={projections}
+          activeRole="ENGINEER"
+          projection={projectedEngineer}
           review={mockReview}
           evidence={evidence}
-          isCaseD={false}
         />,
       );
 
+      // Tabpanel accessibility semantics
+      expect(html).toContain('id="lens-panel-ENGINEER"');
+      expect(html).toContain('role="tabpanel"');
+      expect(html).toContain('aria-labelledby="lens-tab-ENGINEER"');
+      expect(html).toContain('tabindex="0"');
+      // Prominent diff directly visible
+      expect(html).not.toContain('View submitted changes');
+      expect(html).toContain('Submitted changes');
+      // Technical record mounted prominently
       expect(html).toContain('technical-record-prominent');
       expect(html).toContain('Open technical chronology');
-      expect(html).toContain('Submitted changes');
       expect(html).toContain('Evidence SHA-256');
     });
 
@@ -731,31 +766,33 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       const html = renderToStaticMarkup(
         <EvaluatorExperience
           sessionId="session-c-12345678"
-          initialRole="TECHNICAL_RECRUITER"
-          projections={projections}
+          activeRole="TECHNICAL_RECRUITER"
+          projection={projectedTechnicalRecruiter}
           review={mockReview}
           evidence={evidence}
-          isCaseD={false}
         />,
       );
 
+      expect(html).toContain('id="lens-panel-TECHNICAL_RECRUITER"');
       expect(html).toContain('Verification progression');
       expect(html).toContain('View evidence');
+      expect(html).not.toContain('Open technical chronology');
     });
 
     it('Engineering Manager: review guidance and synthesis without capability scores', () => {
       const html = renderToStaticMarkup(
         <EvaluatorExperience
           sessionId="session-c-12345678"
-          initialRole="ENGINEERING_MANAGER"
-          projections={projections}
+          activeRole="ENGINEERING_MANAGER"
+          projection={projectedEM}
           review={mockReview}
           evidence={evidence}
-          isCaseD={false}
         />,
       );
 
+      expect(html).toContain('id="lens-panel-ENGINEERING_MANAGER"');
       expect(html).toContain('Review guidance');
+      expect(html).not.toContain('Open technical chronology');
       expect(html).not.toContain('Candidate rank:');
       expect(html).not.toContain('Performance score:');
     });

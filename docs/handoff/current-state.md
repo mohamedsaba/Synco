@@ -81,7 +81,7 @@ Key completed capabilities:
 
 1. **Four Audience Depth Profiles**:
    - `GENERALIST_RECRUITER`: Fast executive summary, plain-English activity grouping, neutral verification facts, zero cryptographic hashes or raw event IDs.
-   - `TECHNICAL_RECRUITER`: Technical footprint, verified tooling, chronological progression, and direct evidence links.
+   - `TECHNICAL_RECRUITER`: Technical footprint, recorded tooling, chronological progression, and direct evidence links.
    - `ENGINEER`: Full technical workspace, authoritative diff viewer, command lines, execution logs, and cryptographic SHA-256 provenance.
    - `ENGINEERING_MANAGER`: High-level synthesis, concise submission scope, platform limitation notices, and evaluation policy guidance.
 2. **Accessible Role Lens Switcher**:
@@ -93,7 +93,6 @@ Key completed capabilities:
    - Authoritative diff viewer with line modification statistics and anchor navigation (`#submitted-changes`).
    - Platform notices for telemetry gaps (`Activity capture incomplete`) without blaming the candidate (Case F).
    - Graceful fallback for legacy sessions lacking evaluation context (Case G).
-   - Invariant check notice for Case D (`Additional invariant checks passed`).
    - Non-operational handoff affordance: `[ Request engineering review ]`.
 
 ## Verification evidence

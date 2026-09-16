@@ -46,17 +46,17 @@ The [accepted final v2 specification](../product/evaluator-v2-design-specificati
 The production visual experience implements the complete Evaluator Experience v2 across four audience depth profiles:
 
 - `GENERALIST_RECRUITER`: 10–20s executive summary, plain-English activity grouping, neutral verification progression, and no cryptographic hashes or raw event IDs.
-- `TECHNICAL_RECRUITER`: Technical footprint, verified tooling, chronological progression, and direct evidence disclosures.
+- `TECHNICAL_RECRUITER`: Technical footprint, recorded tooling, chronological progression, and direct evidence disclosures.
 - `ENGINEER`: Full technical workspace, authoritative diff viewer, raw command lines, execution logs, and cryptographic SHA-256 provenance.
 - `ENGINEERING_MANAGER`: High-level synthesis, concise submission scope, platform limitation notices, and evaluation policy guidance.
 
 ### UI Data Flow & Epistemic Boundaries
 
 ```
-AUTHORITATIVE EVIDENCE -> DETERMINISTIC RECONSTRUCTION -> SEMANTIC BRIEFING -> ROLE PROJECTION -> FINAL UI
+AUTHORITATIVE EVIDENCE -> DETERMINISTIC RECONSTRUCTION -> SEMANTIC BRIEFING -> SERVER-FIRST ROLE PROJECTION -> FINAL UI
 ```
 
-The React UI (`apps/web/app/evaluator/sessions/[sessionId]/`) contains zero secondary interpretation engine. All textual summaries, counts, and disclosures are pre-computed in the typed briefing model (`EvaluatorBriefing` and `projectBriefing`).
+The route server component projects the requested role (`?depth=...`), passing only the single projected briefing into the UI. The React UI (`apps/web/app/evaluator/sessions/[sessionId]/`) contains zero secondary interpretation engine. All textual summaries, counts, and disclosures are pre-computed in the typed briefing model (`EvaluatorBriefing` and `projectBriefing`). No raw diff or command parsing exists in UI components.
 
 Key architectural components:
 

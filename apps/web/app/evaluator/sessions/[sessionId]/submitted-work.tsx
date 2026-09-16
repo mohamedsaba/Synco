@@ -4,9 +4,14 @@ import { SubmittedDiff, submittedChangesAnchor } from './submitted-diff';
 type SubmittedWorkProps = Readonly<{
   submittedState: SubmittedStateSummary;
   diff: string;
+  prominentDiff?: boolean;
 }>;
 
-export const SubmittedWork = ({ submittedState, diff }: SubmittedWorkProps) => {
+export const SubmittedWork = ({
+  submittedState,
+  diff,
+  prominentDiff = true,
+}: SubmittedWorkProps) => {
   const { changedPaths, additions, deletions, text } = submittedState;
   const fileCount = changedPaths.length;
 
@@ -61,9 +66,20 @@ export const SubmittedWork = ({ submittedState, diff }: SubmittedWorkProps) => {
         ) : null}
       </div>
 
-      <div className="submitted-diff-container">
-        <SubmittedDiff diff={diff} />
-      </div>
+      {prominentDiff ? (
+        <div className="submitted-diff-container">
+          <SubmittedDiff diff={diff} />
+        </div>
+      ) : (
+        <details className="submitted-diff-disclosure">
+          <summary className="submitted-diff-toggle">
+            View submitted changes
+          </summary>
+          <div className="submitted-diff-container">
+            <SubmittedDiff diff={diff} />
+          </div>
+        </details>
+      )}
     </section>
   );
 };

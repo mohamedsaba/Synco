@@ -1322,6 +1322,14 @@ details[open] > summary > .disclosure-chevron {
   color: var(--muted);
 }
 
+.platform-notice-heading {
+  margin: 0;
+  font-family: var(--font-header);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
 .platform-notice-text {
   margin: 0;
   font-family: var(--font-body);
@@ -1694,6 +1702,30 @@ details[open] > summary > .disclosure-chevron {
 
 .submitted-diff-container {
   border: 1px solid var(--ink);
+}
+
+.submitted-diff-disclosure {
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.submitted-diff-toggle {
+  padding: 0.85rem 1.25rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--ink);
+  background: var(--surface);
+  user-select: none;
+}
+
+.submitted-diff-toggle:hover {
+  background: var(--surface-subtle);
+}
+
+.submitted-diff-disclosure[open] > .submitted-diff-toggle {
+  border-bottom: 1px solid var(--line);
 }
 
 /* Review Guidance */

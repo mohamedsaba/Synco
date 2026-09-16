@@ -9,7 +9,7 @@ type EvaluatorHeaderProps = Readonly<{
   sessionDuration?: BriefingSessionDuration;
   submittedAt: string;
   activeRole: BriefingDepthProfile;
-  onRoleChange: (role: BriefingDepthProfile) => void;
+  onRoleChange?: (role: BriefingDepthProfile) => void;
 }>;
 
 export const EvaluatorHeader = ({

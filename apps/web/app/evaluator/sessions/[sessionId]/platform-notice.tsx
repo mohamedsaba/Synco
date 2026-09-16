@@ -51,6 +51,9 @@ export const PlatformNotice = ({ limitations }: PlatformNoticeProps) => {
                     : 'Observation limitation'}
               </span>
             </div>
+            <h3 className="platform-notice-heading">
+              Platform recording limitation
+            </h3>
             <p className="platform-notice-text">{limitation.text}</p>
           </aside>
         );

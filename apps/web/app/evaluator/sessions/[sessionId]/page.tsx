@@ -15,7 +15,6 @@ import {
   briefingDepthProfiles,
   projectBriefing,
   type BriefingDepthProfile,
-  type ProjectedBriefing,
 } from '../../../../src/evaluator/project-evaluator-briefing';
 import { submittedChangesAnchor } from './submitted-diff';
 import { EvaluatorExperience } from './evaluator-experience';
@@ -81,18 +80,13 @@ const EvidencePage = async ({ params, searchParams }: EvidencePageProps) => {
 
   const requestedRole =
     resolvedSearchParams?.depth || resolvedSearchParams?.role;
-  const initialRole: BriefingDepthProfile =
+  const activeRole: BriefingDepthProfile =
     requestedRole &&
     briefingDepthProfiles.includes(requestedRole as BriefingDepthProfile)
       ? (requestedRole as BriefingDepthProfile)
       : 'GENERALIST_RECRUITER';
 
-  const projections: Record<BriefingDepthProfile, ProjectedBriefing> = {
-    GENERALIST_RECRUITER: projectBriefing(briefing, 'GENERALIST_RECRUITER'),
-    TECHNICAL_RECRUITER: projectBriefing(briefing, 'TECHNICAL_RECRUITER'),
-    ENGINEER: projectBriefing(briefing, 'ENGINEER'),
-    ENGINEERING_MANAGER: projectBriefing(briefing, 'ENGINEERING_MANAGER'),
-  };
+  const projection = projectBriefing(briefing, activeRole);
 
   return (
     <main className="evaluator-review-shell" id={submittedChangesAnchor}>
@@ -100,8 +94,8 @@ const EvidencePage = async ({ params, searchParams }: EvidencePageProps) => {
         sessionId={sessionId}
         evidence={evidence}
         review={review}
-        projections={projections}
-        initialRole={initialRole}
+        projection={projection}
+        activeRole={activeRole}
       />
     </main>
   );

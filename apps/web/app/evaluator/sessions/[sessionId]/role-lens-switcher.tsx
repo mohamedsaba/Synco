@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import type { BriefingDepthProfile } from '../../../../src/evaluator/project-evaluator-briefing';
 import { briefingDepthProfiles } from '../../../../src/evaluator/project-evaluator-briefing';
 
@@ -15,7 +16,7 @@ const roleDescriptions: Record<BriefingDepthProfile, string> = {
   GENERALIST_RECRUITER:
     '10–20s executive summary, plain-English activity, and neutral verification',
   TECHNICAL_RECRUITER:
-    'Technical footprint, verified tooling, and chronological progression',
+    'Technical footprint, recorded tooling, and chronological progression',
   ENGINEER:
     'Full technical workspace, code diffs, command lines, and raw execution logs',
   ENGINEERING_MANAGER:
@@ -24,13 +25,29 @@ const roleDescriptions: Record<BriefingDepthProfile, string> = {
 
 type RoleLensSwitcherProps = Readonly<{
   activeRole: BriefingDepthProfile;
-  onRoleChange: (role: BriefingDepthProfile) => void;
+  onRoleChange?: (role: BriefingDepthProfile) => void;
 }>;
 
 export const RoleLensSwitcher = ({
   activeRole,
   onRoleChange,
 }: RoleLensSwitcherProps) => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const handleRoleSelect = useCallback(
+    (role: BriefingDepthProfile) => {
+      if (onRoleChange) {
+        onRoleChange(role);
+      }
+      const params = new URLSearchParams(searchParams?.toString() ?? '');
+      params.set('depth', role);
+      router.push(`${pathname ?? ''}?${params.toString()}`);
+    },
+    [router, pathname, searchParams, onRoleChange],
+  );
+
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       const currentIndex = briefingDepthProfiles.indexOf(activeRole);
@@ -53,10 +70,10 @@ export const RoleLensSwitcher = ({
       }
 
       if (nextIndex !== currentIndex) {
-        onRoleChange(briefingDepthProfiles[nextIndex]);
+        handleRoleSelect(briefingDepthProfiles[nextIndex]);
       }
     },
-    [activeRole, onRoleChange],
+    [activeRole, handleRoleSelect],
   );
 
   return (
@@ -79,7 +96,7 @@ export const RoleLensSwitcher = ({
               aria-controls={`lens-panel-${role}`}
               tabIndex={isSelected ? 0 : -1}
               className={`lens-tab ${isSelected ? 'lens-tab-active' : ''}`}
-              onClick={() => onRoleChange(role)}
+              onClick={() => handleRoleSelect(role)}
               title={roleDescriptions[role]}
             >
               <span className="lens-tab-name">{roleLabels[role]}</span>

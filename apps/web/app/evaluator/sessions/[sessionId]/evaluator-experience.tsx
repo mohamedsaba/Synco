@@ -1,6 +1,3 @@
-'use client';
-
-import { useState } from 'react';
 import type {
   BriefingDepthProfile,
   ProjectedBriefing,
@@ -23,34 +20,18 @@ type EvaluatorExperienceProps = Readonly<{
   sessionId: string;
   evidence: EvaluatorReviewEvidence;
   review: EvaluatorReviewPresentation;
-  projections: Record<BriefingDepthProfile, ProjectedBriefing>;
-  initialRole: BriefingDepthProfile;
+  projection: ProjectedBriefing;
+  activeRole: BriefingDepthProfile;
 }>;
 
 export const EvaluatorExperience = ({
   sessionId,
   evidence,
   review,
-  projections,
-  initialRole,
+  projection,
+  activeRole,
 }: EvaluatorExperienceProps) => {
-  const [activeRole, setActiveRole] =
-    useState<BriefingDepthProfile>(initialRole);
-
-  const handleRoleChange = (role: BriefingDepthProfile) => {
-    setActiveRole(role);
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      url.searchParams.set('depth', role);
-      window.history.replaceState(null, '', url.toString());
-    }
-  };
-
-  const projected = projections[activeRole];
-  const { briefing, defaultDepth } = projected;
-  const isCaseD =
-    evidence.diff.includes('set_cached_stock') &&
-    !evidence.diff.includes('diff --git a/inventory/cache.py');
+  const { briefing, defaultDepth } = projection;
 
   return (
     <div className="evaluator-v2-container" data-role-lens={activeRole}>
@@ -60,10 +41,15 @@ export const EvaluatorExperience = ({
         sessionDuration={briefing.sessionDuration}
         submittedAt={evidence.submittedAt}
         activeRole={activeRole}
-        onRoleChange={handleRoleChange}
       />
 
-      <div className="evaluator-main-layout">
+      <section
+        id={`lens-panel-${activeRole}`}
+        role="tabpanel"
+        aria-labelledby={`lens-tab-${activeRole}`}
+        tabIndex={0}
+        className="evaluator-main-layout"
+      >
         {/* Platform Limitation Notices */}
         <PlatformNotice limitations={briefing.evidenceLimitations} />
 
@@ -80,7 +66,6 @@ export const EvaluatorExperience = ({
         <VerificationSummary
           verification={briefing.recordedVerification}
           showChronology={defaultDepth.verificationChronology}
-          isCaseD={isCaseD}
         />
 
         {/* 3. Observed Activity Feed */}
@@ -94,6 +79,7 @@ export const EvaluatorExperience = ({
         <SubmittedWork
           submittedState={briefing.submittedState}
           diff={review.submittedDiff}
+          prominentDiff={!defaultDepth.conciseSubmissionScope}
         />
 
         {/* 5. Evaluation Guidance / Policy */}
@@ -110,13 +96,16 @@ export const EvaluatorExperience = ({
           />
         ) : null}
 
-        {/* 7. Technical Record / Deep Chronology */}
-        <div
-          className={`technical-record-wrapper ${activeRole === 'ENGINEER' ? 'technical-record-prominent' : 'technical-record-deferred'}`}
-        >
-          <TechnicalRecord review={review} activatedAt={evidence.activatedAt} />
-        </div>
-      </div>
+        {/* 7. Technical Record / Deep Chronology (mounted only when enabled in default depth) */}
+        {defaultDepth.technicalRecord ? (
+          <div className="technical-record-wrapper technical-record-prominent">
+            <TechnicalRecord
+              review={review}
+              activatedAt={evidence.activatedAt}
+            />
+          </div>
+        ) : null}
+      </section>
     </div>
   );
 };

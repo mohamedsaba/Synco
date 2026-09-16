@@ -53,3 +53,5 @@ Not Slice 6 or visual redesign. Do not modify evidence truth.
    - Update/add unit tests in `tests/unit/evaluator-briefing.test.ts`.
    - Regenerate C, D, F, G artifacts in `docs/artifacts/evaluator-briefing/` with `DELIMIT_WRITE_BRIEFING_ARTIFACTS=1`.
    - Run full `npm run verify`.
+
+See also: [Slice 054 Implementation Report](../../artifacts/evaluator-briefing/slice-054-implementation-report.md).

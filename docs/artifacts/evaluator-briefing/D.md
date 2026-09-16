@@ -6,6 +6,10 @@ Full base and all four projections: [D.json](D.json).
 
 ## Base briefing
 
+### Session duration
+
+- 5s (status: available, elapsed ms: 5045).
+
 ### Task context
 
 - task_brief: attributed scenario data at `scenario:ddd5ad93-4144-407e-a11f-5934044ebcfa:brief` (version 1.0.0).
@@ -64,7 +68,7 @@ Full base and all four projections: [D.json](D.json).
 
 ### Observed activity
 
-- A workspace edit was recorded.
+- Code was modified in inventory/service.py.
   - Statement ID: `observation:event:ddd5ad93-4144-407e-a11f-5934044ebcfa:evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2`; source: `event:ddd5ad93-4144-407e-a11f-5934044ebcfa:evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2`.
   - Scope: `recorded_workspace_transition`; mapping: `generic`.
 
@@ -92,7 +96,7 @@ Full base and all four projections: [D.json](D.json).
   - Statement ID: `observation:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252`; source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252`.
   - Scope: `recorded_execution`; mapping: `generic`.
 
-- Submission was recorded.
+- The work was submitted.
   - Statement ID: `observation:session:ddd5ad93-4144-407e-a11f-5934044ebcfa:submitted`; source: `session:ddd5ad93-4144-407e-a11f-5934044ebcfa:submitted`.
   - Scope: `submission_boundary`; mapping: `generic`.
 
@@ -108,7 +112,7 @@ Full base and all four projections: [D.json](D.json).
 
 ### Submitted state
 
-The frozen submission diff contains changes to 1 file.
+The submission includes changes to 1 file.
 
 Source: `session:ddd5ad93-4144-407e-a11f-5934044ebcfa:final-diff`. Additions: 4; deletions: 7. Paths are evidence data:
 
@@ -118,20 +122,11 @@ Source: `session:ddd5ad93-4144-407e-a11f-5934044ebcfa:final-diff`. Additions: 4;
 
 ### Evidence limitations
 
-- Scenario semantic metadata is absent; generic evidence wording is used.
+- Scenario-specific descriptions are not configured for this session. Standard activity records remain available.
   - Authority: metadata; source: `scenario:ddd5ad93-4144-407e-a11f-5934044ebcfa:semanticSnapshot`.
 
-- This recorded command has no supported semantic read mapping; generic wording is used.
-  - Authority: evidence; source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73`.
-
-- This recorded command has no supported semantic read mapping; generic wording is used.
-  - Authority: evidence; source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed`.
-
-- This recorded command has no supported semantic read mapping; generic wording is used.
-  - Authority: evidence; source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277`.
-
-- This recorded command has no supported semantic read mapping; generic wording is used.
-  - Authority: evidence; source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702`.
+- Some recorded commands do not have scenario-specific descriptions. Their exact technical records remain available.
+  - Authority: evidence; source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73`, `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed`, `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277`, `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702`.
 
 ### Artifact availability
 
@@ -195,9 +190,9 @@ Attributed static policy context: `scenario:ddd5ad93-4144-407e-a11f-5934044ebcfa
   "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
   "evaluationContextVersion": "1.0.0",
   "mapperVersion": "briefing-mapper-v1",
-  "wordingVersion": "briefing-wording-v1",
-  "builderVersion": "evaluator-briefing-v1",
-  "projectionVersion": "briefing-depth-v1"
+  "wordingVersion": "briefing-wording-v2",
+  "builderVersion": "evaluator-briefing-v2",
+  "projectionVersion": "briefing-depth-v2"
 }
 ```
 
@@ -211,22 +206,31 @@ Default detail:
 {
   "structuredEvidence": false,
   "technicalRecord": false,
-  "scenarioReference": false
+  "scenarioReference": false,
+  "technicalFootprint": false,
+  "verificationChronology": false,
+  "conciseSubmissionScope": true,
+  "evidenceLimitations": false,
+  "artifactAvailability": false,
+  "reviewGuidance": true,
+  "directEvidenceLinks": false
 }
 ```
 
 Core recorded activity and verification copy:
 
-- A workspace edit was recorded. Source: `event:ddd5ad93-4144-407e-a11f-5934044ebcfa:evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2`.
-- A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73`.
-- A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed`.
-- A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277`.
+- Code was modified in inventory/service.py. Source: `event:ddd5ad93-4144-407e-a11f-5934044ebcfa:evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2`.
+- Recorded terminal activity occurred after the code change. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73`, `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed`, `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277`.
 - A test execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_3fbd7bc8-e1b7-4eb7-a510-8b3d2cd925e2`.
-- A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702`.
+- Recorded terminal activity occurred after the code change. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702`.
 - A test execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252`.
-- Submission was recorded. Source: `session:ddd5ad93-4144-407e-a11f-5934044ebcfa:submitted`.
+- The work was submitted. Source: `session:ddd5ad93-4144-407e-a11f-5934044ebcfa:submitted`.
 - The first recorded test run reported 3 passes. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_3fbd7bc8-e1b7-4eb7-a510-8b3d2cd925e2`.
 - The final recorded test run reported 3 passes. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252`.
+
+Submitted state copy:
+
+- The submission includes changes to 1 file.
 
 All 10 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.
 
@@ -240,22 +244,33 @@ Default detail:
 {
   "structuredEvidence": true,
   "technicalRecord": false,
-  "scenarioReference": true
+  "scenarioReference": true,
+  "technicalFootprint": true,
+  "verificationChronology": true,
+  "conciseSubmissionScope": false,
+  "evidenceLimitations": false,
+  "artifactAvailability": false,
+  "reviewGuidance": true,
+  "directEvidenceLinks": true
 }
 ```
 
 Core recorded activity and verification copy:
 
-- A workspace edit was recorded. Source: `event:ddd5ad93-4144-407e-a11f-5934044ebcfa:evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2`.
+- Code was modified in inventory/service.py. Source: `event:ddd5ad93-4144-407e-a11f-5934044ebcfa:evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2`.
 - A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73`.
 - A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed`.
 - A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277`.
 - A test execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_3fbd7bc8-e1b7-4eb7-a510-8b3d2cd925e2`.
 - A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702`.
 - A test execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252`.
-- Submission was recorded. Source: `session:ddd5ad93-4144-407e-a11f-5934044ebcfa:submitted`.
+- The work was submitted. Source: `session:ddd5ad93-4144-407e-a11f-5934044ebcfa:submitted`.
 - The first recorded test run reported 3 passes. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_3fbd7bc8-e1b7-4eb7-a510-8b3d2cd925e2`.
 - The final recorded test run reported 3 passes. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252`.
+
+Submitted state copy:
+
+- The submission includes changes to 1 file.
 
 All 10 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.
 
@@ -269,22 +284,33 @@ Default detail:
 {
   "structuredEvidence": true,
   "technicalRecord": true,
-  "scenarioReference": true
+  "scenarioReference": true,
+  "technicalFootprint": true,
+  "verificationChronology": true,
+  "conciseSubmissionScope": false,
+  "evidenceLimitations": true,
+  "artifactAvailability": true,
+  "reviewGuidance": true,
+  "directEvidenceLinks": true
 }
 ```
 
 Core recorded activity and verification copy:
 
-- A workspace edit was recorded. Source: `event:ddd5ad93-4144-407e-a11f-5934044ebcfa:evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2`.
+- Code was modified in inventory/service.py. Source: `event:ddd5ad93-4144-407e-a11f-5934044ebcfa:evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2`.
 - A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73`.
 - A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed`.
 - A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277`.
 - A test execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_3fbd7bc8-e1b7-4eb7-a510-8b3d2cd925e2`.
 - A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702`.
 - A test execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252`.
-- Submission was recorded. Source: `session:ddd5ad93-4144-407e-a11f-5934044ebcfa:submitted`.
+- The work was submitted. Source: `session:ddd5ad93-4144-407e-a11f-5934044ebcfa:submitted`.
 - The first recorded test run reported 3 passes. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_3fbd7bc8-e1b7-4eb7-a510-8b3d2cd925e2`.
 - The final recorded test run reported 3 passes. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252`.
+
+Submitted state copy:
+
+- The submitted diff writes the updated quantity to the storefront Redis key after the database commit.
 
 All 10 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.
 
@@ -296,23 +322,34 @@ Default detail:
 
 ```json
 {
-  "structuredEvidence": true,
+  "structuredEvidence": false,
   "technicalRecord": false,
-  "scenarioReference": true
+  "scenarioReference": false,
+  "technicalFootprint": false,
+  "verificationChronology": false,
+  "conciseSubmissionScope": true,
+  "evidenceLimitations": true,
+  "artifactAvailability": true,
+  "reviewGuidance": true,
+  "directEvidenceLinks": true
 }
 ```
 
 Core recorded activity and verification copy:
 
-- A workspace edit was recorded. Source: `event:ddd5ad93-4144-407e-a11f-5934044ebcfa:evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2`.
+- Code was modified in inventory/service.py. Source: `event:ddd5ad93-4144-407e-a11f-5934044ebcfa:evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2`.
 - A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73`.
 - A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed`.
 - A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277`.
 - A test execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_3fbd7bc8-e1b7-4eb7-a510-8b3d2cd925e2`.
 - A command execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702`.
 - A test execution was recorded. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252`.
-- Submission was recorded. Source: `session:ddd5ad93-4144-407e-a11f-5934044ebcfa:submitted`.
+- The work was submitted. Source: `session:ddd5ad93-4144-407e-a11f-5934044ebcfa:submitted`.
 - The first recorded test run reported 3 passes. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_3fbd7bc8-e1b7-4eb7-a510-8b3d2cd925e2`.
 - The final recorded test run reported 3 passes. Source: `command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_69d583f5-e67b-4ce8-885f-b0408d1fe252`.
+
+Submitted state copy:
+
+- The submission includes changes to 1 file.
 
 All 10 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.

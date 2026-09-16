@@ -77,5 +77,11 @@ export const validateBriefingGrounding = (briefing: EvaluatorBriefing) => {
     )
   )
     throw new Error('Review guidance has an invalid authority.');
+  if (
+    briefing.sessionDuration.status === 'available' &&
+    (briefing.sessionDuration.elapsedMs === null ||
+      briefing.sessionDuration.elapsedMs < 0)
+  )
+    throw new Error('Invalid briefing session duration.');
   return briefing;
 };

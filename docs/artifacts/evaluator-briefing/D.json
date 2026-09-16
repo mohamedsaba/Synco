@@ -22,9 +22,20 @@
       "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
       "evaluationContextVersion": "1.0.0",
       "mapperVersion": "briefing-mapper-v1",
-      "wordingVersion": "briefing-wording-v1",
-      "builderVersion": "evaluator-briefing-v1",
-      "projectionVersion": "briefing-depth-v1"
+      "wordingVersion": "briefing-wording-v2",
+      "builderVersion": "evaluator-briefing-v2",
+      "projectionVersion": "briefing-depth-v2"
+    },
+    "sessionDuration": {
+      "status": "available",
+      "elapsedMs": 5045,
+      "text": "5s",
+      "source": {
+        "authority": "session_timestamps",
+        "fieldRef": "session:ddd5ad93-4144-407e-a11f-5934044ebcfa:duration",
+        "activatedAt": "2026-09-16T17:13:16.989Z",
+        "submittedAt": "2026-09-16T17:13:22.034Z"
+      }
     },
     "taskContext": [
       {
@@ -139,9 +150,10 @@
         "chronologyOrder": 1,
         "scope": "recorded_workspace_transition",
         "wording": {
-          "key": "workspace_edit"
+          "key": "workspace_edit",
+          "path": "inventory/service.py"
         },
-        "text": "A workspace edit was recorded.",
+        "text": "Code was modified in inventory/service.py.",
         "mapping": {
           "status": "generic",
           "ruleId": null,
@@ -282,7 +294,7 @@
         "wording": {
           "key": "submission"
         },
-        "text": "Submission was recorded.",
+        "text": "The work was submitted.",
         "mapping": {
           "status": "generic",
           "ruleId": null,
@@ -371,7 +383,7 @@
         "key": "submitted_files",
         "count": 1
       },
-      "text": "The frozen submission diff contains changes to 1 file.",
+      "text": "The submission includes changes to 1 file.",
       "changedPaths": ["inventory/service.py"],
       "fileCount": 1,
       "additions": 4,
@@ -387,7 +399,7 @@
         "wording": {
           "key": "missing_semantics"
         },
-        "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+        "text": "Scenario-specific descriptions are not configured for this session. Standard activity records remain available.",
         "source": {
           "authority": "semantic_snapshot",
           "fieldRef": "scenario:ddd5ad93-4144-407e-a11f-5934044ebcfa:semanticSnapshot",
@@ -395,56 +407,20 @@
         }
       },
       {
-        "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
+        "id": "unsupported_semantic_mapping",
         "authority": "evidence",
         "kind": "unsupported_semantic_mapping",
         "basis": "chronology",
         "evidenceRefs": [
-          "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73"
-        ],
-        "wording": {
-          "key": "unsupported_mapping"
-        },
-        "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-      },
-      {
-        "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
-        "authority": "evidence",
-        "kind": "unsupported_semantic_mapping",
-        "basis": "chronology",
-        "evidenceRefs": [
-          "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed"
-        ],
-        "wording": {
-          "key": "unsupported_mapping"
-        },
-        "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-      },
-      {
-        "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
-        "authority": "evidence",
-        "kind": "unsupported_semantic_mapping",
-        "basis": "chronology",
-        "evidenceRefs": [
-          "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277"
-        ],
-        "wording": {
-          "key": "unsupported_mapping"
-        },
-        "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-      },
-      {
-        "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702",
-        "authority": "evidence",
-        "kind": "unsupported_semantic_mapping",
-        "basis": "chronology",
-        "evidenceRefs": [
+          "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
+          "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
+          "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
           "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702"
         ],
         "wording": {
           "key": "unsupported_mapping"
         },
-        "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+        "text": "Some recorded commands do not have scenario-specific descriptions. Their exact technical records remain available."
       }
     ],
     "artifactAvailability": {
@@ -1103,32 +1079,25 @@
   "projections": {
     "GENERALIST_RECRUITER": {
       "schemaVersion": 1,
-      "projectionVersion": "briefing-depth-v1",
+      "projectionVersion": "briefing-depth-v2",
       "profile": "GENERALIST_RECRUITER",
       "briefing": {
         "schemaVersion": 1,
         "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
         "provenance": {
           "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
-          "authoritativeEvidenceSha256": "f6d7fb6ca85a41ab626c2ac5b93e1c65fd73019c6ac1047e2c0af1b6fc70bd8b",
-          "finalDiffSha256": "39772dae7cfa5525ca1397e859f67d41986e0aaace4aa300edd4f92f6fc93668",
-          "reconstruction": {
-            "artifactId": "ab356865-9114-4858-b067-c9a990cde7b2",
-            "generatorVersion": "evaluator-reconstruction-deterministic-v3"
-          },
-          "semanticSnapshot": {
-            "status": "absent",
-            "contentVersion": null,
-            "sha256": null
-          },
-          "scenarioVersion": "1.0.0",
-          "scenarioSnapshotSha256": "11ff1d62775f353a72c97f14aaa29f1c92dc576d6ede95275a42fd9a2d257566",
-          "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
-          "evaluationContextVersion": "1.0.0",
-          "mapperVersion": "briefing-mapper-v1",
-          "wordingVersion": "briefing-wording-v1",
-          "builderVersion": "evaluator-briefing-v1",
-          "projectionVersion": "briefing-depth-v1"
+          "scenarioVersion": "1.0.0"
+        },
+        "sessionDuration": {
+          "status": "available",
+          "elapsedMs": 5045,
+          "text": "5s",
+          "source": {
+            "authority": "session_timestamps",
+            "fieldRef": "session:ddd5ad93-4144-407e-a11f-5934044ebcfa:duration",
+            "activatedAt": "2026-09-16T17:13:16.989Z",
+            "submittedAt": "2026-09-16T17:13:22.034Z"
+          }
         },
         "taskContext": [
           {
@@ -1243,9 +1212,10 @@
             "chronologyOrder": 1,
             "scope": "recorded_workspace_transition",
             "wording": {
-              "key": "workspace_edit"
+              "key": "workspace_edit",
+              "path": "inventory/service.py"
             },
-            "text": "A workspace edit was recorded.",
+            "text": "Code was modified in inventory/service.py.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -1254,59 +1224,21 @@
             "paths": ["inventory/service.py"]
           },
           {
-            "id": "observation:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
-            "kind": "recorded_command",
+            "id": "observation:grouped_terminal:2",
             "basis": "chronology",
-            "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73"
-            ],
+            "kind": "recorded_command",
+            "scope": "recorded_execution",
             "factRef": "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
             "chronologyOrder": 2,
-            "scope": "recorded_execution",
-            "wording": {
-              "key": "recorded_command"
-            },
-            "text": "A command execution was recorded.",
-            "mapping": {
-              "status": "generic",
-              "ruleId": null,
-              "subjectId": null
-            }
-          },
-          {
-            "id": "observation:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
-            "kind": "recorded_command",
-            "basis": "chronology",
             "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed"
-            ],
-            "factRef": "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
-            "chronologyOrder": 3,
-            "scope": "recorded_execution",
-            "wording": {
-              "key": "recorded_command"
-            },
-            "text": "A command execution was recorded.",
-            "mapping": {
-              "status": "generic",
-              "ruleId": null,
-              "subjectId": null
-            }
-          },
-          {
-            "id": "observation:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
-            "kind": "recorded_command",
-            "basis": "chronology",
-            "evidenceRefs": [
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
               "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277"
             ],
-            "factRef": "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
-            "chronologyOrder": 4,
-            "scope": "recorded_execution",
             "wording": {
-              "key": "recorded_command"
+              "key": "terminal_activity_after_edit"
             },
-            "text": "A command execution was recorded.",
+            "text": "Recorded terminal activity occurred after the code change.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -1334,19 +1266,19 @@
             }
           },
           {
-            "id": "observation:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702",
-            "kind": "recorded_command",
+            "id": "observation:grouped_terminal:6",
             "basis": "chronology",
+            "kind": "recorded_command",
+            "scope": "recorded_execution",
+            "factRef": "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702",
+            "chronologyOrder": 6,
             "evidenceRefs": [
               "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702"
             ],
-            "factRef": "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702",
-            "chronologyOrder": 6,
-            "scope": "recorded_execution",
             "wording": {
-              "key": "recorded_command"
+              "key": "terminal_activity_after_edit"
             },
-            "text": "A command execution was recorded.",
+            "text": "Recorded terminal activity occurred after the code change.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -1386,7 +1318,7 @@
             "wording": {
               "key": "submission"
             },
-            "text": "Submission was recorded.",
+            "text": "The work was submitted.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -1475,7 +1407,7 @@
             "key": "submitted_files",
             "count": 1
           },
-          "text": "The frozen submission diff contains changes to 1 file.",
+          "text": "The submission includes changes to 1 file.",
           "changedPaths": ["inventory/service.py"],
           "fileCount": 1,
           "additions": 4,
@@ -1491,7 +1423,7 @@
             "wording": {
               "key": "missing_semantics"
             },
-            "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+            "text": "Scenario-specific descriptions are not configured for this session. Standard activity records remain available.",
             "source": {
               "authority": "semantic_snapshot",
               "fieldRef": "scenario:ddd5ad93-4144-407e-a11f-5934044ebcfa:semanticSnapshot",
@@ -1499,56 +1431,20 @@
             }
           },
           {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
+            "id": "unsupported_semantic_mapping",
             "authority": "evidence",
             "kind": "unsupported_semantic_mapping",
             "basis": "chronology",
             "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73"
-            ],
-            "wording": {
-              "key": "unsupported_mapping"
-            },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-          },
-          {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
-            "authority": "evidence",
-            "kind": "unsupported_semantic_mapping",
-            "basis": "chronology",
-            "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed"
-            ],
-            "wording": {
-              "key": "unsupported_mapping"
-            },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-          },
-          {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
-            "authority": "evidence",
-            "kind": "unsupported_semantic_mapping",
-            "basis": "chronology",
-            "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277"
-            ],
-            "wording": {
-              "key": "unsupported_mapping"
-            },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-          },
-          {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702",
-            "authority": "evidence",
-            "kind": "unsupported_semantic_mapping",
-            "basis": "chronology",
-            "evidenceRefs": [
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
               "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702"
             ],
             "wording": {
               "key": "unsupported_mapping"
             },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+            "text": "Some recorded commands do not have scenario-specific descriptions. Their exact technical records remain available."
           }
         ],
         "artifactAvailability": {
@@ -1564,8 +1460,8 @@
           "semantics": "absent",
           "source": {
             "authority": "artifact_status",
-            "fieldRef": "reconstruction:ddd5ad93-4144-407e-a11f-5934044ebcfa:evaluator-reconstruction-deterministic-v3:status",
-            "version": "evaluator-reconstruction-deterministic-v3"
+            "fieldRef": "reconstruction:status",
+            "version": null
           }
         },
         "reviewGuidance": [
@@ -1606,7 +1502,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "workspace_change",
-            "rawEventIds": ["evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2"],
+            "rawEventIds": [],
             "chronologyOrder": 1,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -1687,10 +1583,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_f85ce160-755b-4154-8839-a261618ea87f",
-              "evt_58b4c00d-9ea5-4fa5-954d-db375d42e2bc"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 2,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -1766,10 +1659,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_1d479d99-255e-4554-9532-f213edd82bbc",
-              "evt_5b623115-cdc5-4b31-872b-eb0821f2a200"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 3,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -1845,10 +1735,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_a3480900-bf9f-468b-b716-25afd4233474",
-              "evt_65415834-b5a8-4d08-aed8-cd3c9e173451"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 4,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -1927,10 +1814,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_ae037428-c334-4c8d-8b51-2f2351e667a4",
-              "evt_97d8226e-a1e0-45bf-bd0b-1de06292a6e6"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 5,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -2010,10 +1894,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_3f291422-036a-4bed-99e7-6e79bc9b5aa5",
-              "evt_c515f94f-d78e-4ed6-bd65-c156fedd8d67"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 6,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -2089,10 +1970,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_99bb107c-a770-487b-a0a1-358bdcaefce0",
-              "evt_f74ccf49-f0e0-4887-b205-e4e71765ba40"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 7,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -2207,13 +2085,20 @@
       "defaultDepth": {
         "structuredEvidence": false,
         "technicalRecord": false,
-        "scenarioReference": false
+        "scenarioReference": false,
+        "technicalFootprint": false,
+        "verificationChronology": false,
+        "conciseSubmissionScope": true,
+        "evidenceLimitations": false,
+        "artifactAvailability": false,
+        "reviewGuidance": true,
+        "directEvidenceLinks": false
       },
       "expandedEvidenceRefs": []
     },
     "TECHNICAL_RECRUITER": {
       "schemaVersion": 1,
-      "projectionVersion": "briefing-depth-v1",
+      "projectionVersion": "briefing-depth-v2",
       "profile": "TECHNICAL_RECRUITER",
       "briefing": {
         "schemaVersion": 1,
@@ -2236,9 +2121,20 @@
           "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
           "evaluationContextVersion": "1.0.0",
           "mapperVersion": "briefing-mapper-v1",
-          "wordingVersion": "briefing-wording-v1",
-          "builderVersion": "evaluator-briefing-v1",
-          "projectionVersion": "briefing-depth-v1"
+          "wordingVersion": "briefing-wording-v2",
+          "builderVersion": "evaluator-briefing-v2",
+          "projectionVersion": "briefing-depth-v2"
+        },
+        "sessionDuration": {
+          "status": "available",
+          "elapsedMs": 5045,
+          "text": "5s",
+          "source": {
+            "authority": "session_timestamps",
+            "fieldRef": "session:ddd5ad93-4144-407e-a11f-5934044ebcfa:duration",
+            "activatedAt": "2026-09-16T17:13:16.989Z",
+            "submittedAt": "2026-09-16T17:13:22.034Z"
+          }
         },
         "taskContext": [
           {
@@ -2353,9 +2249,10 @@
             "chronologyOrder": 1,
             "scope": "recorded_workspace_transition",
             "wording": {
-              "key": "workspace_edit"
+              "key": "workspace_edit",
+              "path": "inventory/service.py"
             },
-            "text": "A workspace edit was recorded.",
+            "text": "Code was modified in inventory/service.py.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -2496,7 +2393,7 @@
             "wording": {
               "key": "submission"
             },
-            "text": "Submission was recorded.",
+            "text": "The work was submitted.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -2585,7 +2482,7 @@
             "key": "submitted_files",
             "count": 1
           },
-          "text": "The frozen submission diff contains changes to 1 file.",
+          "text": "The submission includes changes to 1 file.",
           "changedPaths": ["inventory/service.py"],
           "fileCount": 1,
           "additions": 4,
@@ -2601,7 +2498,7 @@
             "wording": {
               "key": "missing_semantics"
             },
-            "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+            "text": "Scenario-specific descriptions are not configured for this session. Standard activity records remain available.",
             "source": {
               "authority": "semantic_snapshot",
               "fieldRef": "scenario:ddd5ad93-4144-407e-a11f-5934044ebcfa:semanticSnapshot",
@@ -2609,56 +2506,20 @@
             }
           },
           {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
+            "id": "unsupported_semantic_mapping",
             "authority": "evidence",
             "kind": "unsupported_semantic_mapping",
             "basis": "chronology",
             "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73"
-            ],
-            "wording": {
-              "key": "unsupported_mapping"
-            },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-          },
-          {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
-            "authority": "evidence",
-            "kind": "unsupported_semantic_mapping",
-            "basis": "chronology",
-            "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed"
-            ],
-            "wording": {
-              "key": "unsupported_mapping"
-            },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-          },
-          {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
-            "authority": "evidence",
-            "kind": "unsupported_semantic_mapping",
-            "basis": "chronology",
-            "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277"
-            ],
-            "wording": {
-              "key": "unsupported_mapping"
-            },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-          },
-          {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702",
-            "authority": "evidence",
-            "kind": "unsupported_semantic_mapping",
-            "basis": "chronology",
-            "evidenceRefs": [
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
               "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702"
             ],
             "wording": {
               "key": "unsupported_mapping"
             },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+            "text": "Some recorded commands do not have scenario-specific descriptions. Their exact technical records remain available."
           }
         ],
         "artifactAvailability": {
@@ -3317,13 +3178,20 @@
       "defaultDepth": {
         "structuredEvidence": true,
         "technicalRecord": false,
-        "scenarioReference": true
+        "scenarioReference": true,
+        "technicalFootprint": true,
+        "verificationChronology": true,
+        "conciseSubmissionScope": false,
+        "evidenceLimitations": false,
+        "artifactAvailability": false,
+        "reviewGuidance": true,
+        "directEvidenceLinks": true
       },
       "expandedEvidenceRefs": []
     },
     "ENGINEER": {
       "schemaVersion": 1,
-      "projectionVersion": "briefing-depth-v1",
+      "projectionVersion": "briefing-depth-v2",
       "profile": "ENGINEER",
       "briefing": {
         "schemaVersion": 1,
@@ -3346,9 +3214,20 @@
           "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
           "evaluationContextVersion": "1.0.0",
           "mapperVersion": "briefing-mapper-v1",
-          "wordingVersion": "briefing-wording-v1",
-          "builderVersion": "evaluator-briefing-v1",
-          "projectionVersion": "briefing-depth-v1"
+          "wordingVersion": "briefing-wording-v2",
+          "builderVersion": "evaluator-briefing-v2",
+          "projectionVersion": "briefing-depth-v2"
+        },
+        "sessionDuration": {
+          "status": "available",
+          "elapsedMs": 5045,
+          "text": "5s",
+          "source": {
+            "authority": "session_timestamps",
+            "fieldRef": "session:ddd5ad93-4144-407e-a11f-5934044ebcfa:duration",
+            "activatedAt": "2026-09-16T17:13:16.989Z",
+            "submittedAt": "2026-09-16T17:13:22.034Z"
+          }
         },
         "taskContext": [
           {
@@ -3463,9 +3342,10 @@
             "chronologyOrder": 1,
             "scope": "recorded_workspace_transition",
             "wording": {
-              "key": "workspace_edit"
+              "key": "workspace_edit",
+              "path": "inventory/service.py"
             },
-            "text": "A workspace edit was recorded.",
+            "text": "Code was modified in inventory/service.py.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -3606,7 +3486,7 @@
             "wording": {
               "key": "submission"
             },
-            "text": "Submission was recorded.",
+            "text": "The work was submitted.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -3692,10 +3572,9 @@
             "session:ddd5ad93-4144-407e-a11f-5934044ebcfa:final-diff"
           ],
           "wording": {
-            "key": "submitted_files",
-            "count": 1
+            "key": "write_through_service_update"
           },
-          "text": "The frozen submission diff contains changes to 1 file.",
+          "text": "The submitted diff writes the updated quantity to the storefront Redis key after the database commit.",
           "changedPaths": ["inventory/service.py"],
           "fileCount": 1,
           "additions": 4,
@@ -3711,7 +3590,7 @@
             "wording": {
               "key": "missing_semantics"
             },
-            "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+            "text": "Scenario-specific descriptions are not configured for this session. Standard activity records remain available.",
             "source": {
               "authority": "semantic_snapshot",
               "fieldRef": "scenario:ddd5ad93-4144-407e-a11f-5934044ebcfa:semanticSnapshot",
@@ -3719,56 +3598,20 @@
             }
           },
           {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
+            "id": "unsupported_semantic_mapping",
             "authority": "evidence",
             "kind": "unsupported_semantic_mapping",
             "basis": "chronology",
             "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73"
-            ],
-            "wording": {
-              "key": "unsupported_mapping"
-            },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-          },
-          {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
-            "authority": "evidence",
-            "kind": "unsupported_semantic_mapping",
-            "basis": "chronology",
-            "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed"
-            ],
-            "wording": {
-              "key": "unsupported_mapping"
-            },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-          },
-          {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
-            "authority": "evidence",
-            "kind": "unsupported_semantic_mapping",
-            "basis": "chronology",
-            "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277"
-            ],
-            "wording": {
-              "key": "unsupported_mapping"
-            },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-          },
-          {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702",
-            "authority": "evidence",
-            "kind": "unsupported_semantic_mapping",
-            "basis": "chronology",
-            "evidenceRefs": [
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
               "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702"
             ],
             "wording": {
               "key": "unsupported_mapping"
             },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+            "text": "Some recorded commands do not have scenario-specific descriptions. Their exact technical records remain available."
           }
         ],
         "artifactAvailability": {
@@ -4427,7 +4270,14 @@
       "defaultDepth": {
         "structuredEvidence": true,
         "technicalRecord": true,
-        "scenarioReference": true
+        "scenarioReference": true,
+        "technicalFootprint": true,
+        "verificationChronology": true,
+        "conciseSubmissionScope": false,
+        "evidenceLimitations": true,
+        "artifactAvailability": true,
+        "reviewGuidance": true,
+        "directEvidenceLinks": true
       },
       "expandedEvidenceRefs": [
         "session:ddd5ad93-4144-407e-a11f-5934044ebcfa:activated",
@@ -4444,32 +4294,25 @@
     },
     "ENGINEERING_MANAGER": {
       "schemaVersion": 1,
-      "projectionVersion": "briefing-depth-v1",
+      "projectionVersion": "briefing-depth-v2",
       "profile": "ENGINEERING_MANAGER",
       "briefing": {
         "schemaVersion": 1,
         "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
         "provenance": {
           "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
-          "authoritativeEvidenceSha256": "f6d7fb6ca85a41ab626c2ac5b93e1c65fd73019c6ac1047e2c0af1b6fc70bd8b",
-          "finalDiffSha256": "39772dae7cfa5525ca1397e859f67d41986e0aaace4aa300edd4f92f6fc93668",
-          "reconstruction": {
-            "artifactId": "ab356865-9114-4858-b067-c9a990cde7b2",
-            "generatorVersion": "evaluator-reconstruction-deterministic-v3"
-          },
-          "semanticSnapshot": {
-            "status": "absent",
-            "contentVersion": null,
-            "sha256": null
-          },
-          "scenarioVersion": "1.0.0",
-          "scenarioSnapshotSha256": "11ff1d62775f353a72c97f14aaa29f1c92dc576d6ede95275a42fd9a2d257566",
-          "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
-          "evaluationContextVersion": "1.0.0",
-          "mapperVersion": "briefing-mapper-v1",
-          "wordingVersion": "briefing-wording-v1",
-          "builderVersion": "evaluator-briefing-v1",
-          "projectionVersion": "briefing-depth-v1"
+          "scenarioVersion": "1.0.0"
+        },
+        "sessionDuration": {
+          "status": "available",
+          "elapsedMs": 5045,
+          "text": "5s",
+          "source": {
+            "authority": "session_timestamps",
+            "fieldRef": "session:ddd5ad93-4144-407e-a11f-5934044ebcfa:duration",
+            "activatedAt": "2026-09-16T17:13:16.989Z",
+            "submittedAt": "2026-09-16T17:13:22.034Z"
+          }
         },
         "taskContext": [
           {
@@ -4584,9 +4427,10 @@
             "chronologyOrder": 1,
             "scope": "recorded_workspace_transition",
             "wording": {
-              "key": "workspace_edit"
+              "key": "workspace_edit",
+              "path": "inventory/service.py"
             },
-            "text": "A workspace edit was recorded.",
+            "text": "Code was modified in inventory/service.py.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -4727,7 +4571,7 @@
             "wording": {
               "key": "submission"
             },
-            "text": "Submission was recorded.",
+            "text": "The work was submitted.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -4816,7 +4660,7 @@
             "key": "submitted_files",
             "count": 1
           },
-          "text": "The frozen submission diff contains changes to 1 file.",
+          "text": "The submission includes changes to 1 file.",
           "changedPaths": ["inventory/service.py"],
           "fileCount": 1,
           "additions": 4,
@@ -4832,7 +4676,7 @@
             "wording": {
               "key": "missing_semantics"
             },
-            "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+            "text": "Scenario-specific descriptions are not configured for this session. Standard activity records remain available.",
             "source": {
               "authority": "semantic_snapshot",
               "fieldRef": "scenario:ddd5ad93-4144-407e-a11f-5934044ebcfa:semanticSnapshot",
@@ -4840,56 +4684,20 @@
             }
           },
           {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
+            "id": "unsupported_semantic_mapping",
             "authority": "evidence",
             "kind": "unsupported_semantic_mapping",
             "basis": "chronology",
             "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73"
-            ],
-            "wording": {
-              "key": "unsupported_mapping"
-            },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-          },
-          {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
-            "authority": "evidence",
-            "kind": "unsupported_semantic_mapping",
-            "basis": "chronology",
-            "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed"
-            ],
-            "wording": {
-              "key": "unsupported_mapping"
-            },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-          },
-          {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
-            "authority": "evidence",
-            "kind": "unsupported_semantic_mapping",
-            "basis": "chronology",
-            "evidenceRefs": [
-              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277"
-            ],
-            "wording": {
-              "key": "unsupported_mapping"
-            },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
-          },
-          {
-            "id": "unsupported_semantic_mapping:command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702",
-            "authority": "evidence",
-            "kind": "unsupported_semantic_mapping",
-            "basis": "chronology",
-            "evidenceRefs": [
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_217db507-e43f-4529-97d9-734799ee3e73",
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_6436a739-0222-4269-92f5-6a78c1ae06ed",
+              "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_a1e76b49-3d93-47b3-b0ca-f9d97e930277",
               "command:ddd5ad93-4144-407e-a11f-5934044ebcfa:cmd_e90a3088-118f-4395-9788-66efb6c80702"
             ],
             "wording": {
               "key": "unsupported_mapping"
             },
-            "text": "This recorded command has no supported semantic read mapping; generic wording is used."
+            "text": "Some recorded commands do not have scenario-specific descriptions. Their exact technical records remain available."
           }
         ],
         "artifactAvailability": {
@@ -4905,8 +4713,8 @@
           "semantics": "absent",
           "source": {
             "authority": "artifact_status",
-            "fieldRef": "reconstruction:ddd5ad93-4144-407e-a11f-5934044ebcfa:evaluator-reconstruction-deterministic-v3:status",
-            "version": "evaluator-reconstruction-deterministic-v3"
+            "fieldRef": "reconstruction:status",
+            "version": null
           }
         },
         "reviewGuidance": [
@@ -4947,7 +4755,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "workspace_change",
-            "rawEventIds": ["evt_fcab2b93-951a-4b6e-8605-adb2d2c77ae2"],
+            "rawEventIds": [],
             "chronologyOrder": 1,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -5028,10 +4836,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_f85ce160-755b-4154-8839-a261618ea87f",
-              "evt_58b4c00d-9ea5-4fa5-954d-db375d42e2bc"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 2,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -5107,10 +4912,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_1d479d99-255e-4554-9532-f213edd82bbc",
-              "evt_5b623115-cdc5-4b31-872b-eb0821f2a200"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 3,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -5186,10 +4988,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_a3480900-bf9f-468b-b716-25afd4233474",
-              "evt_65415834-b5a8-4d08-aed8-cd3c9e173451"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 4,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -5268,10 +5067,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_ae037428-c334-4c8d-8b51-2f2351e667a4",
-              "evt_97d8226e-a1e0-45bf-bd0b-1de06292a6e6"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 5,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -5351,10 +5147,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_3f291422-036a-4bed-99e7-6e79bc9b5aa5",
-              "evt_c515f94f-d78e-4ed6-bd65-c156fedd8d67"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 6,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -5430,10 +5223,7 @@
             "sessionId": "ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_99bb107c-a770-487b-a0a1-358bdcaefce0",
-              "evt_f74ccf49-f0e0-4887-b205-e4e71765ba40"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 7,
             "sourceLocator": "/api/evaluator/sessions/ddd5ad93-4144-407e-a11f-5934044ebcfa",
             "fact": {
@@ -5546,9 +5336,16 @@
         ]
       },
       "defaultDepth": {
-        "structuredEvidence": true,
+        "structuredEvidence": false,
         "technicalRecord": false,
-        "scenarioReference": true
+        "scenarioReference": false,
+        "technicalFootprint": false,
+        "verificationChronology": false,
+        "conciseSubmissionScope": true,
+        "evidenceLimitations": true,
+        "artifactAvailability": true,
+        "reviewGuidance": true,
+        "directEvidenceLinks": true
       },
       "expandedEvidenceRefs": []
     }

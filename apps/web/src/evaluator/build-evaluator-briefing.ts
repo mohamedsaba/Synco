@@ -27,10 +27,64 @@ import type {
   ArtifactAvailability,
   EvaluatorBriefing,
   ObservedStatement,
+  BriefingSessionDuration,
 } from './evaluator-briefing';
 
-export const briefingBuilderVersion = 'evaluator-briefing-v1';
-export const briefingProjectionVersion = 'briefing-depth-v1';
+export const briefingBuilderVersion = 'evaluator-briefing-v2';
+export const briefingProjectionVersion = 'briefing-depth-v2';
+
+export const formatSessionDuration = (
+  activatedAt: string | null,
+  submittedAt: string | null,
+  sessionId: string,
+): BriefingSessionDuration => {
+  const source = {
+    authority: 'session_timestamps' as const,
+    fieldRef: `session:${sessionId}:duration`,
+    activatedAt,
+    submittedAt,
+  };
+  if (!activatedAt || !submittedAt) {
+    return {
+      status: 'unavailable',
+      elapsedMs: null,
+      text: 'Session duration is unavailable due to missing timestamps.',
+      source,
+    };
+  }
+  const start = Date.parse(activatedAt);
+  const end = Date.parse(submittedAt);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+    return {
+      status: 'unavailable',
+      elapsedMs: null,
+      text: 'Session duration is unavailable due to malformed timestamps.',
+      source,
+    };
+  }
+  const elapsedMs = end - start;
+  const totalSeconds = Math.floor(elapsedMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  let text = '';
+  if (hours > 0) {
+    text =
+      seconds > 0
+        ? `${hours}h ${minutes}m ${seconds}s`
+        : `${hours}h ${minutes}m`;
+  } else if (minutes > 0) {
+    text = seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+  } else {
+    text = `${seconds}s`;
+  }
+  return {
+    status: 'available',
+    elapsedMs,
+    text,
+    source,
+  };
+};
 
 export const buildEvaluatorBriefing = (
   evidence: BriefingEvidenceInput,
@@ -147,6 +201,11 @@ export const buildEvaluatorBriefing = (
       builderVersion: briefingBuilderVersion,
       projectionVersion: briefingProjectionVersion,
     },
+    sessionDuration: formatSessionDuration(
+      evidence.activatedAt,
+      evidence.submittedAt,
+      evidence.sessionId,
+    ),
     taskContext: buildBriefingTaskContext(
       evidence.sessionId,
       evidence.scenario,

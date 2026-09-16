@@ -6,7 +6,7 @@ import {
   isDirectPytest,
 } from '../scenarios/conservative-command-binding';
 import type { ScenarioSemanticSnapshot } from '../scenarios/scenario-semantic-snapshot';
-import type { BriefingWording } from './briefing-wording';
+import { isSafeSourcePath, type BriefingWording } from './briefing-wording';
 import type { ObservedStatement } from './evaluator-briefing';
 
 export const briefingMapperVersion = 'briefing-mapper-v1';
@@ -64,6 +64,10 @@ export const mapBriefingObservation = (
     const subject = snapshot?.subjects.find(
       (subject) => subject.id === rule?.subjectId,
     );
+    const singlePath =
+      fact.files.length === 1 && isSafeSourcePath(fact.files[0].path)
+        ? fact.files[0].path
+        : undefined;
     return {
       kind: 'recorded_workspace_edit',
       scope: 'recorded_workspace_transition',
@@ -73,7 +77,10 @@ export const mapBriefingObservation = (
           : genericMapping,
       wording: subject
         ? { key: 'related_edit', subject: subject.label }
-        : { key: 'workspace_edit' },
+        : {
+            key: 'workspace_edit',
+            ...(singlePath ? { path: singlePath } : {}),
+          },
       unsupportedReadMapping: false,
     };
   }

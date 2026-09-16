@@ -17,9 +17,15 @@ export const renderBriefingReview = (
     '',
     '## Base briefing',
     '',
+  ];
+  lines.push(
+    '### Session duration',
+    '',
+    `- ${briefing.sessionDuration.text} (status: ${briefing.sessionDuration.status}${briefing.sessionDuration.elapsedMs !== null ? `, elapsed ms: ${briefing.sessionDuration.elapsedMs}` : ''}).`,
+    '',
     '### Task context',
     '',
-  ];
+  );
   for (const context of briefing.taskContext)
     lines.push(
       `- ${context.kind}: attributed scenario data at \`${context.source.fieldRef}\` (version ${context.source.version}).`,
@@ -130,6 +136,10 @@ export const renderBriefingReview = (
         `- ${run.result?.text ?? 'No supported test summary is available for this recorded execution.'} Source: ${run.evidenceRefs.map((ref) => `\`${ref}\``).join(', ')}.`,
       );
     lines.push(
+      '',
+      'Submitted state copy:',
+      '',
+      `- ${projection.briefing.submittedState.text}`,
       '',
       `All ${projection.briefing.evidenceIndex.length} source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.`,
       '',

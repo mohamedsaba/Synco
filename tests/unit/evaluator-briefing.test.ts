@@ -61,9 +61,8 @@ describe('evaluator briefing boundaries', () => {
       expect(validateBriefingGrounding(briefing)).toBe(briefing);
       for (const profile of briefingDepthProfiles) {
         const projection = projectBriefing(briefing, profile);
-        expect(projection.briefing).toBe(briefing);
-        expect(projection.briefing.observedActivity).toEqual(
-          briefing.observedActivity,
+        expect(validateBriefingGrounding(projection.briefing)).toBe(
+          projection.briefing,
         );
         expect(projection.briefing.recordedVerification).toEqual(
           briefing.recordedVerification,
@@ -83,6 +82,11 @@ describe('evaluator briefing boundaries', () => {
       expect(
         projectBriefing(briefing, 'GENERALIST_RECRUITER').expandedEvidenceRefs,
       ).toEqual([]);
+      expect(
+        projectBriefing(briefing, 'TECHNICAL_RECRUITER').defaultDepth,
+      ).not.toEqual(
+        projectBriefing(briefing, 'ENGINEERING_MANAGER').defaultDepth,
+      );
     },
   );
   it('rejects dangling, foreign, missing and wrong-basis refs and invented narrative', () => {
@@ -518,4 +522,227 @@ it('rejects empty factual references even for an execution with no parsed result
   expect(() =>
     validateBriefingGrounding(corrupt as unknown as typeof original),
   ).toThrow(/requires unique evidence/);
+});
+
+describe('briefing presentation refinement slice', () => {
+  it('uses explicit platform attribution for workspace capture gaps in Case F without forbidden words', () => {
+    const fixture = readBriefingFixture('F');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    const gapLimitation = briefing.evidenceLimitations.find(
+      (lim) => lim.kind === 'workspace_capture_gap',
+    );
+    expect(gapLimitation?.text).toBe(
+      'Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
+    );
+    const gapObservation = briefing.observedActivity.find(
+      (obs) => obs.kind === 'workspace_capture_gap',
+    );
+    expect(gapObservation?.text).toBe(
+      'Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
+    );
+    expect(factualCopy(briefing)).not.toMatch(
+      /candidate disconnected|misconduct|omission|fully captured|complete environment intact|lost session/i,
+    );
+  });
+
+  it('aggregates multiple unmapped commands into a single bounded limitation in Case D', () => {
+    const fixture = readBriefingFixture('D');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    const unmapped = briefing.evidenceLimitations.filter(
+      (lim) => lim.kind === 'unsupported_semantic_mapping',
+    );
+    expect(unmapped).toHaveLength(1);
+    expect(unmapped[0].text).toBe(
+      'Some recorded commands do not have scenario-specific descriptions. Their exact technical records remain available.',
+    );
+    expect(unmapped[0].evidenceRefs.length).toBeGreaterThan(1);
+    expect(unmapped[0].authority).toBe('evidence');
+    expect(unmapped[0].basis).toBe('chronology');
+  });
+
+  it('computes session duration deterministically and safely handles missing or malformed timestamps', () => {
+    const fixture = readBriefingFixture('D');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    expect(briefing.sessionDuration.status).toBe('available');
+    expect(briefing.sessionDuration.elapsedMs).toBe(5045);
+    expect(briefing.sessionDuration.text).toBe('5s');
+    expect(briefing.sessionDuration.source.authority).toBe(
+      'session_timestamps',
+    );
+
+    // Missing timestamps
+    const missingEvidence = {
+      ...fixture.evidence,
+      activatedAt: null,
+    };
+    const missingBriefing = buildEvaluatorBriefing(
+      missingEvidence,
+      fixture.reconstruction,
+    );
+    expect(missingBriefing.sessionDuration.status).toBe('unavailable');
+    expect(missingBriefing.sessionDuration.elapsedMs).toBeNull();
+    expect(missingBriefing.sessionDuration.text).toContain('missing');
+
+    // Reversed / malformed timestamps
+    const reversedEvidence = {
+      ...fixture.evidence,
+      activatedAt: '2026-09-17T10:00:00.000Z',
+      submittedAt: '2026-09-17T09:00:00.000Z',
+    };
+    const reversedBriefing = buildEvaluatorBriefing(
+      reversedEvidence,
+      fixture.reconstruction,
+    );
+    expect(reversedBriefing.sessionDuration.status).toBe('unavailable');
+    expect(reversedBriefing.sessionDuration.elapsedMs).toBeNull();
+    expect(reversedBriefing.sessionDuration.text).toContain('malformed');
+  });
+
+  it('suppresses internal compiler and architecture jargon from nontechnical projections', () => {
+    const fixture = readBriefingFixture('D');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    const gr = projectBriefing(briefing, 'GENERALIST_RECRUITER');
+    const em = projectBriefing(briefing, 'ENGINEERING_MANAGER');
+    const eng = projectBriefing(briefing, 'ENGINEER');
+
+    // Nontechnical provenance does not expose raw SHA256 digests or builder versions
+    expect(gr.briefing.provenance.authoritativeEvidenceSha256).toBeUndefined();
+    expect(gr.briefing.provenance.finalDiffSha256).toBeUndefined();
+    expect(gr.briefing.provenance.mapperVersion).toBeUndefined();
+    expect(em.briefing.provenance.authoritativeEvidenceSha256).toBeUndefined();
+    expect(em.briefing.provenance.finalDiffSha256).toBeUndefined();
+    expect(em.briefing.provenance.mapperVersion).toBeUndefined();
+
+    // Engineer projection keeps authoritative SHA256 digests
+    expect(eng.briefing.provenance.authoritativeEvidenceSha256).toBeDefined();
+    expect(eng.briefing.provenance.finalDiffSha256).toBeDefined();
+
+    // Nontechnical artifact availability suppresses internal generator version
+    expect(gr.briefing.artifactAvailability.source.version).toBeNull();
+    expect(em.briefing.artifactAvailability.source.version).toBeNull();
+
+    // Nontechnical evidence index suppresses raw sqlite event IDs
+    expect(
+      gr.briefing.evidenceIndex.every((e) => e.rawEventIds.length === 0),
+    ).toBe(true);
+    expect(
+      em.briefing.evidenceIndex.every((e) => e.rawEventIds.length === 0),
+    ).toBe(true);
+    expect(
+      eng.briefing.evidenceIndex.some((e) => e.rawEventIds.length > 0),
+    ).toBe(true);
+  });
+
+  it('distinguishes TECHNICAL_RECRUITER vs ENGINEERING_MANAGER projection defaults', () => {
+    const fixture = readBriefingFixture('D');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    const tr = projectBriefing(briefing, 'TECHNICAL_RECRUITER');
+    const em = projectBriefing(briefing, 'ENGINEERING_MANAGER');
+
+    expect(tr.defaultDepth.technicalFootprint).toBe(true);
+    expect(tr.defaultDepth.verificationChronology).toBe(true);
+    expect(tr.defaultDepth.scenarioReference).toBe(true);
+    expect(tr.defaultDepth.conciseSubmissionScope).toBe(false);
+    expect(tr.defaultDepth.evidenceLimitations).toBe(false);
+
+    expect(em.defaultDepth.conciseSubmissionScope).toBe(true);
+    expect(em.defaultDepth.evidenceLimitations).toBe(true);
+    expect(em.defaultDepth.artifactAvailability).toBe(true);
+    expect(em.defaultDepth.technicalFootprint).toBe(false);
+    expect(em.defaultDepth.verificationChronology).toBe(false);
+    expect(em.defaultDepth.scenarioReference).toBe(false);
+  });
+
+  it('provides bounded activity grouping for Generalist Recruiter without repeating generic command lines', () => {
+    const fixture = readBriefingFixture('G');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    const gr = projectBriefing(briefing, 'GENERALIST_RECRUITER');
+
+    const grTexts = gr.briefing.observedActivity.map((a) => a.text);
+    expect(grTexts).not.toContain('A command execution was recorded.');
+    expect(grTexts).toContain(
+      'Recorded terminal activity occurred before the code change.',
+    );
+    expect(grTexts).toContain('Code was modified in inventory/service.py.');
+    expect(grTexts).toContain(
+      'Recorded terminal activity occurred after the code change.',
+    );
+    expect(grTexts).toContain('The work was submitted.');
+  });
+
+  it('preserves Case D neutrality while giving Engineer projection the write-through detail', () => {
+    const fixture = readBriefingFixture('D');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    const eng = projectBriefing(briefing, 'ENGINEER');
+    const gr = projectBriefing(briefing, 'GENERALIST_RECRUITER');
+
+    expect(eng.briefing.submittedState.text).toBe(
+      'The submitted diff writes the updated quantity to the storefront Redis key after the database commit.',
+    );
+    expect(gr.briefing.submittedState.text).toBe(
+      'The submission includes changes to 1 file.',
+    );
+    expect(factualCopy(briefing)).not.toMatch(
+      /canonical|expected solution|chose write-through|missing cache/i,
+    );
+  });
+
+  it('preserves Case C verification failure numbers without candidate verdict framing', () => {
+    const fixture = readBriefingFixture('C');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    const runs = briefing.recordedVerification.runs;
+    expect(runs[0].result?.text).toBe(
+      'The first recorded test run reported 3 failures.',
+    );
+    expect(runs[1].result?.text).toBe(
+      'The final recorded test run reported 3 failures.',
+    );
+    expect(runs[0].counts).toEqual({ passed: 0, failed: 3 });
+    expect(runs[1].counts).toEqual({ passed: 0, failed: 3 });
+    expect(factualCopy(briefing)).not.toMatch(
+      /failed candidate|unsuccessful attempt|incompetent|rejected/i,
+    );
+  });
+
+  it('renders Case G legacy fallback gracefully without internal error strings', () => {
+    const fixture = readBriefingFixture('G');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+    const limitationTexts = briefing.evidenceLimitations.map((l) => l.text);
+    expect(limitationTexts).toContain(
+      'This historical session has limited scenario context. Standard recorded activity and submitted changes remain available.',
+    );
+    expect(limitationTexts).toContain(
+      'Scenario-specific descriptions are not configured for this session. Standard activity records remain available.',
+    );
+    expect(factualCopy(briefing)).not.toMatch(
+      /metadata is absent|generic evidence wording/i,
+    );
+  });
 });

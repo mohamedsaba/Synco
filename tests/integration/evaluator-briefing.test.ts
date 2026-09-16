@@ -11,6 +11,7 @@ import { EvidenceReconstructionService } from '../../apps/web/src/reconstruction
 import { DeterministicEvidenceReconstructionGenerator } from '../../apps/web/src/reconstruction/deterministic-evidence-reconstruction-generator';
 import { buildReconstructionView } from '../../apps/web/src/reconstruction/evidence-reconstruction-runtime';
 import { buildEvaluatorBriefing } from '../../apps/web/src/evaluator/build-evaluator-briefing';
+import { projectBriefing } from '../../apps/web/src/evaluator/project-evaluator-briefing';
 import { createEvaluatorCookieValue } from '../../apps/web/src/access/evaluator-access';
 import { scenario001 } from '../../apps/web/src/scenarios/scenario-001';
 import { scenario001SemanticSnapshot } from '../../apps/web/src/scenarios/scenario-semantic-snapshot';
@@ -203,7 +204,9 @@ describe('authorized briefing read and preserved reconstruction', () => {
       expect(await base.json()).toEqual(briefing);
       const projected = await request('?depth=GENERALIST_RECRUITER');
       expect(projected.status).toBe(200);
-      expect((await projected.json()).briefing).toEqual(briefing);
+      expect(await projected.json()).toEqual(
+        projectBriefing(briefing, 'GENERALIST_RECRUITER'),
+      );
       expect((await request('?depth=ADMIN')).status).toBe(400);
       expect(
         reconstructionStore.getBySessionId(

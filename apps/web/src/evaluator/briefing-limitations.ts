@@ -6,6 +6,7 @@ import type {
   ArtifactAvailability,
   ContextSource,
   EvidenceLimitation,
+  EvidenceRefs,
   ObservedStatement,
 } from './evaluator-briefing';
 import type { BriefingFactEntry } from './briefing-verification';
@@ -87,6 +88,7 @@ export const buildBriefingLimitations = (
       },
       availability.source,
     );
+  const unmappedRefs: string[] = [];
   for (const { entry, fact } of facts) {
     const evidence = (
       kind: Extract<EvidenceLimitation, { authority: 'evidence' }>['kind'],
@@ -120,7 +122,18 @@ export const buildBriefingLimitations = (
           observation.kind === 'recorded_command',
       )
     )
-      evidence('unsupported_semantic_mapping', { key: 'unsupported_mapping' });
+      unmappedRefs.push(entry.evidenceRef);
+  }
+  if (unmappedRefs.length > 0) {
+    limitations.push({
+      id: 'unsupported_semantic_mapping',
+      authority: 'evidence',
+      kind: 'unsupported_semantic_mapping',
+      basis: 'chronology',
+      evidenceRefs: unmappedRefs as unknown as EvidenceRefs,
+      wording: { key: 'unsupported_mapping' },
+      text: renderBriefingWording({ key: 'unsupported_mapping' }),
+    });
   }
   return limitations;
 };

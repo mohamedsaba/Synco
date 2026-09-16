@@ -126,8 +126,14 @@ describe('serialized briefing review artifacts', () => {
         manifest.find((entry) => entry.caseId === caseId)?.submittedDiffSha256,
       );
       expect(briefing.artifactAvailability.semantics).toBe('absent');
-      for (const projection of Object.values(output.projections))
-        expect(projection.briefing).toEqual(briefing);
+      for (const projection of Object.values(output.projections)) {
+        expect(projection.briefing.recordedVerification).toEqual(
+          briefing.recordedVerification,
+        );
+        expect(projection.briefing.evidenceLimitations).toEqual(
+          briefing.evidenceLimitations,
+        );
+      }
       if (caseId === 'C')
         expect(
           briefing.recordedVerification.runs.map((run) => run.counts),

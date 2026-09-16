@@ -156,32 +156,44 @@ export type EvidenceReferenceIndex = readonly Readonly<{
     | Readonly<{ kind: 'chronology'; item: ReconstructionItem }>
     | Readonly<{ kind: 'submitted_diff'; diff: string }>;
 }>[];
+export type BriefingSessionDuration = Readonly<{
+  status: 'available' | 'unavailable';
+  elapsedMs: number | null;
+  text: string;
+  source: Readonly<{
+    authority: 'session_timestamps';
+    fieldRef: string;
+    activatedAt: string | null;
+    submittedAt: string | null;
+  }>;
+}>;
 export type BriefingProvenance = Readonly<{
   sessionId: string;
-  authoritativeEvidenceSha256: string;
-  finalDiffSha256: string;
-  reconstruction: Readonly<{
+  scenarioVersion: string;
+  authoritativeEvidenceSha256?: string;
+  finalDiffSha256?: string;
+  reconstruction?: Readonly<{
     artifactId: string;
     generatorVersion: string;
   }> | null;
-  semanticSnapshot: Readonly<{
+  semanticSnapshot?: Readonly<{
     status: 'available' | 'absent' | 'unsupported';
     contentVersion: string | null;
     sha256: string | null;
   }>;
-  scenarioVersion: string;
-  scenarioSnapshotSha256: string;
-  evaluationContextSha256: string | null;
-  evaluationContextVersion: string | null;
-  mapperVersion: string;
-  wordingVersion: string;
-  builderVersion: string;
-  projectionVersion: string;
+  scenarioSnapshotSha256?: string;
+  evaluationContextSha256?: string | null;
+  evaluationContextVersion?: string | null;
+  mapperVersion?: string;
+  wordingVersion?: string;
+  builderVersion?: string;
+  projectionVersion?: string;
 }>;
 export type EvaluatorBriefing = Readonly<{
   schemaVersion: 1;
   sessionId: string;
   provenance: BriefingProvenance;
+  sessionDuration: BriefingSessionDuration;
   taskContext: readonly ContextEntry[];
   observedActivity: readonly ObservedStatement[];
   recordedVerification: RecordedVerification;

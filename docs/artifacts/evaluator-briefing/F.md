@@ -6,6 +6,10 @@ Full base and all four projections: [F.json](F.json).
 
 ## Base briefing
 
+### Session duration
+
+- 1s (status: available, elapsed ms: 1550).
+
 ### Task context
 
 - task_brief: attributed scenario data at `scenario:72b2de14-8035-4df2-a3cc-1457cfe07811:brief` (version 1.0.0).
@@ -72,11 +76,11 @@ Full base and all four projections: [F.json](F.json).
   - Statement ID: `observation:command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_2cadd252-5b46-490f-a2e1-b8c3ee29f193`; source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_2cadd252-5b46-490f-a2e1-b8c3ee29f193`.
   - Scope: `recorded_execution`; mapping: `generic`.
 
-- Part of the workspace activity record is incomplete.
+- Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.
   - Statement ID: `observation:event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_a0773275-493b-4e34-a9f6-78bec0eef6ad`; source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_a0773275-493b-4e34-a9f6-78bec0eef6ad`.
   - Scope: `workspace_interval`; mapping: `generic`.
 
-- A workspace edit was recorded.
+- Code was modified in inventory/service.py.
   - Statement ID: `observation:event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_99e460b1-a0af-4d9d-a59b-6410e6db18e0`; source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_99e460b1-a0af-4d9d-a59b-6410e6db18e0`.
   - Scope: `recorded_workspace_transition`; mapping: `generic`.
 
@@ -84,7 +88,7 @@ Full base and all four projections: [F.json](F.json).
   - Statement ID: `observation:command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_d2526894-3a50-417c-a151-efe482474915`; source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_d2526894-3a50-417c-a151-efe482474915`.
   - Scope: `recorded_execution`; mapping: `generic`.
 
-- Submission was recorded.
+- The work was submitted.
   - Statement ID: `observation:session:72b2de14-8035-4df2-a3cc-1457cfe07811:submitted`; source: `session:72b2de14-8035-4df2-a3cc-1457cfe07811:submitted`.
   - Scope: `submission_boundary`; mapping: `generic`.
 
@@ -94,7 +98,7 @@ No recognized recorded test executions appear in this bounded record. This does 
 
 ### Submitted state
 
-The frozen submission diff contains changes to 1 file.
+The submission includes changes to 1 file.
 
 Source: `session:72b2de14-8035-4df2-a3cc-1457cfe07811:final-diff`. Additions: 1; deletions: 0. Paths are evidence data:
 
@@ -104,20 +108,14 @@ Source: `session:72b2de14-8035-4df2-a3cc-1457cfe07811:final-diff`. Additions: 1;
 
 ### Evidence limitations
 
-- Scenario semantic metadata is absent; generic evidence wording is used.
+- Scenario-specific descriptions are not configured for this session. Standard activity records remain available.
   - Authority: metadata; source: `scenario:72b2de14-8035-4df2-a3cc-1457cfe07811:semanticSnapshot`.
 
-- This recorded command has no supported semantic read mapping; generic wording is used.
-  - Authority: evidence; source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_53fb7ecc-aa9c-419e-89f3-9393ed9ec81e`.
-
-- This recorded command has no supported semantic read mapping; generic wording is used.
-  - Authority: evidence; source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_2cadd252-5b46-490f-a2e1-b8c3ee29f193`.
-
-- Part of the workspace activity record is incomplete.
+- Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.
   - Authority: evidence; source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_a0773275-493b-4e34-a9f6-78bec0eef6ad`.
 
-- This recorded command has no supported semantic read mapping; generic wording is used.
-  - Authority: evidence; source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_d2526894-3a50-417c-a151-efe482474915`.
+- Some recorded commands do not have scenario-specific descriptions. Their exact technical records remain available.
+  - Authority: evidence; source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_53fb7ecc-aa9c-419e-89f3-9393ed9ec81e`, `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_2cadd252-5b46-490f-a2e1-b8c3ee29f193`, `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_d2526894-3a50-417c-a151-efe482474915`.
 
 ### Artifact availability
 
@@ -179,9 +177,9 @@ Attributed static policy context: `scenario:72b2de14-8035-4df2-a3cc-1457cfe07811
   "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
   "evaluationContextVersion": "1.0.0",
   "mapperVersion": "briefing-mapper-v1",
-  "wordingVersion": "briefing-wording-v1",
-  "builderVersion": "evaluator-briefing-v1",
-  "projectionVersion": "briefing-depth-v1"
+  "wordingVersion": "briefing-wording-v2",
+  "builderVersion": "evaluator-briefing-v2",
+  "projectionVersion": "briefing-depth-v2"
 }
 ```
 
@@ -195,18 +193,28 @@ Default detail:
 {
   "structuredEvidence": false,
   "technicalRecord": false,
-  "scenarioReference": false
+  "scenarioReference": false,
+  "technicalFootprint": false,
+  "verificationChronology": false,
+  "conciseSubmissionScope": true,
+  "evidenceLimitations": false,
+  "artifactAvailability": false,
+  "reviewGuidance": true,
+  "directEvidenceLinks": false
 }
 ```
 
 Core recorded activity and verification copy:
 
-- A command execution was recorded. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_53fb7ecc-aa9c-419e-89f3-9393ed9ec81e`.
-- A command execution was recorded. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_2cadd252-5b46-490f-a2e1-b8c3ee29f193`.
-- Part of the workspace activity record is incomplete. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_a0773275-493b-4e34-a9f6-78bec0eef6ad`.
-- A workspace edit was recorded. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_99e460b1-a0af-4d9d-a59b-6410e6db18e0`.
-- A command execution was recorded. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_d2526894-3a50-417c-a151-efe482474915`.
-- Submission was recorded. Source: `session:72b2de14-8035-4df2-a3cc-1457cfe07811:submitted`.
+- Recorded terminal activity occurred before the code change. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_53fb7ecc-aa9c-419e-89f3-9393ed9ec81e`, `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_2cadd252-5b46-490f-a2e1-b8c3ee29f193`.
+- Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_a0773275-493b-4e34-a9f6-78bec0eef6ad`.
+- Code was modified in inventory/service.py. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_99e460b1-a0af-4d9d-a59b-6410e6db18e0`.
+- Recorded terminal activity occurred after the code change. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_d2526894-3a50-417c-a151-efe482474915`.
+- The work was submitted. Source: `session:72b2de14-8035-4df2-a3cc-1457cfe07811:submitted`.
+
+Submitted state copy:
+
+- The submission includes changes to 1 file.
 
 All 8 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.
 
@@ -220,7 +228,14 @@ Default detail:
 {
   "structuredEvidence": true,
   "technicalRecord": false,
-  "scenarioReference": true
+  "scenarioReference": true,
+  "technicalFootprint": true,
+  "verificationChronology": true,
+  "conciseSubmissionScope": false,
+  "evidenceLimitations": false,
+  "artifactAvailability": false,
+  "reviewGuidance": true,
+  "directEvidenceLinks": true
 }
 ```
 
@@ -228,10 +243,14 @@ Core recorded activity and verification copy:
 
 - A command execution was recorded. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_53fb7ecc-aa9c-419e-89f3-9393ed9ec81e`.
 - A command execution was recorded. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_2cadd252-5b46-490f-a2e1-b8c3ee29f193`.
-- Part of the workspace activity record is incomplete. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_a0773275-493b-4e34-a9f6-78bec0eef6ad`.
-- A workspace edit was recorded. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_99e460b1-a0af-4d9d-a59b-6410e6db18e0`.
+- Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_a0773275-493b-4e34-a9f6-78bec0eef6ad`.
+- Code was modified in inventory/service.py. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_99e460b1-a0af-4d9d-a59b-6410e6db18e0`.
 - A command execution was recorded. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_d2526894-3a50-417c-a151-efe482474915`.
-- Submission was recorded. Source: `session:72b2de14-8035-4df2-a3cc-1457cfe07811:submitted`.
+- The work was submitted. Source: `session:72b2de14-8035-4df2-a3cc-1457cfe07811:submitted`.
+
+Submitted state copy:
+
+- The submission includes changes to 1 file.
 
 All 8 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.
 
@@ -245,7 +264,14 @@ Default detail:
 {
   "structuredEvidence": true,
   "technicalRecord": true,
-  "scenarioReference": true
+  "scenarioReference": true,
+  "technicalFootprint": true,
+  "verificationChronology": true,
+  "conciseSubmissionScope": false,
+  "evidenceLimitations": true,
+  "artifactAvailability": true,
+  "reviewGuidance": true,
+  "directEvidenceLinks": true
 }
 ```
 
@@ -253,10 +279,14 @@ Core recorded activity and verification copy:
 
 - A command execution was recorded. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_53fb7ecc-aa9c-419e-89f3-9393ed9ec81e`.
 - A command execution was recorded. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_2cadd252-5b46-490f-a2e1-b8c3ee29f193`.
-- Part of the workspace activity record is incomplete. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_a0773275-493b-4e34-a9f6-78bec0eef6ad`.
-- A workspace edit was recorded. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_99e460b1-a0af-4d9d-a59b-6410e6db18e0`.
+- Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_a0773275-493b-4e34-a9f6-78bec0eef6ad`.
+- Code was modified in inventory/service.py. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_99e460b1-a0af-4d9d-a59b-6410e6db18e0`.
 - A command execution was recorded. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_d2526894-3a50-417c-a151-efe482474915`.
-- Submission was recorded. Source: `session:72b2de14-8035-4df2-a3cc-1457cfe07811:submitted`.
+- The work was submitted. Source: `session:72b2de14-8035-4df2-a3cc-1457cfe07811:submitted`.
+
+Submitted state copy:
+
+- The submission includes changes to 1 file.
 
 All 8 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.
 
@@ -268,9 +298,16 @@ Default detail:
 
 ```json
 {
-  "structuredEvidence": true,
+  "structuredEvidence": false,
   "technicalRecord": false,
-  "scenarioReference": true
+  "scenarioReference": false,
+  "technicalFootprint": false,
+  "verificationChronology": false,
+  "conciseSubmissionScope": true,
+  "evidenceLimitations": true,
+  "artifactAvailability": true,
+  "reviewGuidance": true,
+  "directEvidenceLinks": true
 }
 ```
 
@@ -278,9 +315,13 @@ Core recorded activity and verification copy:
 
 - A command execution was recorded. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_53fb7ecc-aa9c-419e-89f3-9393ed9ec81e`.
 - A command execution was recorded. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_2cadd252-5b46-490f-a2e1-b8c3ee29f193`.
-- Part of the workspace activity record is incomplete. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_a0773275-493b-4e34-a9f6-78bec0eef6ad`.
-- A workspace edit was recorded. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_99e460b1-a0af-4d9d-a59b-6410e6db18e0`.
+- Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_a0773275-493b-4e34-a9f6-78bec0eef6ad`.
+- Code was modified in inventory/service.py. Source: `event:72b2de14-8035-4df2-a3cc-1457cfe07811:evt_99e460b1-a0af-4d9d-a59b-6410e6db18e0`.
 - A command execution was recorded. Source: `command:72b2de14-8035-4df2-a3cc-1457cfe07811:cmd_d2526894-3a50-417c-a151-efe482474915`.
-- Submission was recorded. Source: `session:72b2de14-8035-4df2-a3cc-1457cfe07811:submitted`.
+- The work was submitted. Source: `session:72b2de14-8035-4df2-a3cc-1457cfe07811:submitted`.
+
+Submitted state copy:
+
+- The submission includes changes to 1 file.
 
 All 8 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.

@@ -6,6 +6,10 @@ Full base and all four projections: [C.json](C.json).
 
 ## Base briefing
 
+### Session duration
+
+- 2s (status: available, elapsed ms: 2327).
+
 ### Task context
 
 - task_brief: attributed scenario data at `scenario:1891b6c6-2441-45ee-96c2-ff737272f682:brief` (version 1.0.0).
@@ -68,7 +72,7 @@ Full base and all four projections: [C.json](C.json).
   - Statement ID: `observation:command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_81cdae66-8c85-4227-8833-f74765da596e`; source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_81cdae66-8c85-4227-8833-f74765da596e`.
   - Scope: `recorded_execution`; mapping: `generic`.
 
-- A workspace edit was recorded.
+- Code was modified in inventory/service.py.
   - Statement ID: `observation:event:1891b6c6-2441-45ee-96c2-ff737272f682:evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1`; source: `event:1891b6c6-2441-45ee-96c2-ff737272f682:evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1`.
   - Scope: `recorded_workspace_transition`; mapping: `generic`.
 
@@ -76,7 +80,7 @@ Full base and all four projections: [C.json](C.json).
   - Statement ID: `observation:command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_6c6051ac-050c-472c-adfc-a7f03f723d95`; source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_6c6051ac-050c-472c-adfc-a7f03f723d95`.
   - Scope: `recorded_execution`; mapping: `generic`.
 
-- Submission was recorded.
+- The work was submitted.
   - Statement ID: `observation:session:1891b6c6-2441-45ee-96c2-ff737272f682:submitted`; source: `session:1891b6c6-2441-45ee-96c2-ff737272f682:submitted`.
   - Scope: `submission_boundary`; mapping: `generic`.
 
@@ -92,7 +96,7 @@ Full base and all four projections: [C.json](C.json).
 
 ### Submitted state
 
-The frozen submission diff contains changes to 1 file.
+The submission includes changes to 1 file.
 
 Source: `session:1891b6c6-2441-45ee-96c2-ff737272f682:final-diff`. Additions: 1; deletions: 0. Paths are evidence data:
 
@@ -102,7 +106,7 @@ Source: `session:1891b6c6-2441-45ee-96c2-ff737272f682:final-diff`. Additions: 1;
 
 ### Evidence limitations
 
-- Scenario semantic metadata is absent; generic evidence wording is used.
+- Scenario-specific descriptions are not configured for this session. Standard activity records remain available.
   - Authority: metadata; source: `scenario:1891b6c6-2441-45ee-96c2-ff737272f682:semanticSnapshot`.
 
 ### Artifact availability
@@ -163,9 +167,9 @@ Attributed static policy context: `scenario:1891b6c6-2441-45ee-96c2-ff737272f682
   "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
   "evaluationContextVersion": "1.0.0",
   "mapperVersion": "briefing-mapper-v1",
-  "wordingVersion": "briefing-wording-v1",
-  "builderVersion": "evaluator-briefing-v1",
-  "projectionVersion": "briefing-depth-v1"
+  "wordingVersion": "briefing-wording-v2",
+  "builderVersion": "evaluator-briefing-v2",
+  "projectionVersion": "briefing-depth-v2"
 }
 ```
 
@@ -179,18 +183,29 @@ Default detail:
 {
   "structuredEvidence": false,
   "technicalRecord": false,
-  "scenarioReference": false
+  "scenarioReference": false,
+  "technicalFootprint": false,
+  "verificationChronology": false,
+  "conciseSubmissionScope": true,
+  "evidenceLimitations": false,
+  "artifactAvailability": false,
+  "reviewGuidance": true,
+  "directEvidenceLinks": false
 }
 ```
 
 Core recorded activity and verification copy:
 
 - A test execution was recorded. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_81cdae66-8c85-4227-8833-f74765da596e`.
-- A workspace edit was recorded. Source: `event:1891b6c6-2441-45ee-96c2-ff737272f682:evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1`.
+- Code was modified in inventory/service.py. Source: `event:1891b6c6-2441-45ee-96c2-ff737272f682:evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1`.
 - A test execution was recorded. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_6c6051ac-050c-472c-adfc-a7f03f723d95`.
-- Submission was recorded. Source: `session:1891b6c6-2441-45ee-96c2-ff737272f682:submitted`.
+- The work was submitted. Source: `session:1891b6c6-2441-45ee-96c2-ff737272f682:submitted`.
 - The first recorded test run reported 3 failures. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_81cdae66-8c85-4227-8833-f74765da596e`.
 - The final recorded test run reported 3 failures. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_6c6051ac-050c-472c-adfc-a7f03f723d95`.
+
+Submitted state copy:
+
+- The submission includes changes to 1 file.
 
 All 6 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.
 
@@ -204,18 +219,29 @@ Default detail:
 {
   "structuredEvidence": true,
   "technicalRecord": false,
-  "scenarioReference": true
+  "scenarioReference": true,
+  "technicalFootprint": true,
+  "verificationChronology": true,
+  "conciseSubmissionScope": false,
+  "evidenceLimitations": false,
+  "artifactAvailability": false,
+  "reviewGuidance": true,
+  "directEvidenceLinks": true
 }
 ```
 
 Core recorded activity and verification copy:
 
 - A test execution was recorded. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_81cdae66-8c85-4227-8833-f74765da596e`.
-- A workspace edit was recorded. Source: `event:1891b6c6-2441-45ee-96c2-ff737272f682:evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1`.
+- Code was modified in inventory/service.py. Source: `event:1891b6c6-2441-45ee-96c2-ff737272f682:evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1`.
 - A test execution was recorded. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_6c6051ac-050c-472c-adfc-a7f03f723d95`.
-- Submission was recorded. Source: `session:1891b6c6-2441-45ee-96c2-ff737272f682:submitted`.
+- The work was submitted. Source: `session:1891b6c6-2441-45ee-96c2-ff737272f682:submitted`.
 - The first recorded test run reported 3 failures. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_81cdae66-8c85-4227-8833-f74765da596e`.
 - The final recorded test run reported 3 failures. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_6c6051ac-050c-472c-adfc-a7f03f723d95`.
+
+Submitted state copy:
+
+- The submission includes changes to 1 file.
 
 All 6 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.
 
@@ -229,18 +255,29 @@ Default detail:
 {
   "structuredEvidence": true,
   "technicalRecord": true,
-  "scenarioReference": true
+  "scenarioReference": true,
+  "technicalFootprint": true,
+  "verificationChronology": true,
+  "conciseSubmissionScope": false,
+  "evidenceLimitations": true,
+  "artifactAvailability": true,
+  "reviewGuidance": true,
+  "directEvidenceLinks": true
 }
 ```
 
 Core recorded activity and verification copy:
 
 - A test execution was recorded. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_81cdae66-8c85-4227-8833-f74765da596e`.
-- A workspace edit was recorded. Source: `event:1891b6c6-2441-45ee-96c2-ff737272f682:evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1`.
+- Code was modified in inventory/service.py. Source: `event:1891b6c6-2441-45ee-96c2-ff737272f682:evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1`.
 - A test execution was recorded. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_6c6051ac-050c-472c-adfc-a7f03f723d95`.
-- Submission was recorded. Source: `session:1891b6c6-2441-45ee-96c2-ff737272f682:submitted`.
+- The work was submitted. Source: `session:1891b6c6-2441-45ee-96c2-ff737272f682:submitted`.
 - The first recorded test run reported 3 failures. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_81cdae66-8c85-4227-8833-f74765da596e`.
 - The final recorded test run reported 3 failures. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_6c6051ac-050c-472c-adfc-a7f03f723d95`.
+
+Submitted state copy:
+
+- The submission includes changes to 1 file.
 
 All 6 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.
 
@@ -252,19 +289,30 @@ Default detail:
 
 ```json
 {
-  "structuredEvidence": true,
+  "structuredEvidence": false,
   "technicalRecord": false,
-  "scenarioReference": true
+  "scenarioReference": false,
+  "technicalFootprint": false,
+  "verificationChronology": false,
+  "conciseSubmissionScope": true,
+  "evidenceLimitations": true,
+  "artifactAvailability": true,
+  "reviewGuidance": true,
+  "directEvidenceLinks": true
 }
 ```
 
 Core recorded activity and verification copy:
 
 - A test execution was recorded. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_81cdae66-8c85-4227-8833-f74765da596e`.
-- A workspace edit was recorded. Source: `event:1891b6c6-2441-45ee-96c2-ff737272f682:evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1`.
+- Code was modified in inventory/service.py. Source: `event:1891b6c6-2441-45ee-96c2-ff737272f682:evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1`.
 - A test execution was recorded. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_6c6051ac-050c-472c-adfc-a7f03f723d95`.
-- Submission was recorded. Source: `session:1891b6c6-2441-45ee-96c2-ff737272f682:submitted`.
+- The work was submitted. Source: `session:1891b6c6-2441-45ee-96c2-ff737272f682:submitted`.
 - The first recorded test run reported 3 failures. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_81cdae66-8c85-4227-8833-f74765da596e`.
 - The final recorded test run reported 3 failures. Source: `command:1891b6c6-2441-45ee-96c2-ff737272f682:cmd_6c6051ac-050c-472c-adfc-a7f03f723d95`.
+
+Submitted state copy:
+
+- The submission includes changes to 1 file.
 
 All 6 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.

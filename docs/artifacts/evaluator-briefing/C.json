@@ -22,9 +22,20 @@
       "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
       "evaluationContextVersion": "1.0.0",
       "mapperVersion": "briefing-mapper-v1",
-      "wordingVersion": "briefing-wording-v1",
-      "builderVersion": "evaluator-briefing-v1",
-      "projectionVersion": "briefing-depth-v1"
+      "wordingVersion": "briefing-wording-v2",
+      "builderVersion": "evaluator-briefing-v2",
+      "projectionVersion": "briefing-depth-v2"
+    },
+    "sessionDuration": {
+      "status": "available",
+      "elapsedMs": 2327,
+      "text": "2s",
+      "source": {
+        "authority": "session_timestamps",
+        "fieldRef": "session:1891b6c6-2441-45ee-96c2-ff737272f682:duration",
+        "activatedAt": "2026-09-16T04:34:15.658Z",
+        "submittedAt": "2026-09-16T04:34:17.985Z"
+      }
     },
     "taskContext": [
       {
@@ -159,9 +170,10 @@
         "chronologyOrder": 2,
         "scope": "recorded_workspace_transition",
         "wording": {
-          "key": "workspace_edit"
+          "key": "workspace_edit",
+          "path": "inventory/service.py"
         },
-        "text": "A workspace edit was recorded.",
+        "text": "Code was modified in inventory/service.py.",
         "mapping": {
           "status": "generic",
           "ruleId": null,
@@ -202,7 +214,7 @@
         "wording": {
           "key": "submission"
         },
-        "text": "Submission was recorded.",
+        "text": "The work was submitted.",
         "mapping": {
           "status": "generic",
           "ruleId": null,
@@ -291,7 +303,7 @@
         "key": "submitted_files",
         "count": 1
       },
-      "text": "The frozen submission diff contains changes to 1 file.",
+      "text": "The submission includes changes to 1 file.",
       "changedPaths": ["inventory/service.py"],
       "fileCount": 1,
       "additions": 1,
@@ -307,7 +319,7 @@
         "wording": {
           "key": "missing_semantics"
         },
-        "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+        "text": "Scenario-specific descriptions are not configured for this session. Standard activity records remain available.",
         "source": {
           "authority": "semantic_snapshot",
           "fieldRef": "scenario:1891b6c6-2441-45ee-96c2-ff737272f682:semanticSnapshot",
@@ -652,32 +664,25 @@
   "projections": {
     "GENERALIST_RECRUITER": {
       "schemaVersion": 1,
-      "projectionVersion": "briefing-depth-v1",
+      "projectionVersion": "briefing-depth-v2",
       "profile": "GENERALIST_RECRUITER",
       "briefing": {
         "schemaVersion": 1,
         "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
         "provenance": {
           "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
-          "authoritativeEvidenceSha256": "d00ef781814d4a31ebdce91253e0dad01dedbd0184ec02b681cd62a459a71b45",
-          "finalDiffSha256": "aa3ef7e4199eab809137b22dcb80117abd72db5d4ceef223dd13f4a1851bc4a8",
-          "reconstruction": {
-            "artifactId": "3ed9104f-55fc-4526-8265-d6a72aedaee2",
-            "generatorVersion": "evaluator-reconstruction-deterministic-v3"
-          },
-          "semanticSnapshot": {
-            "status": "absent",
-            "contentVersion": null,
-            "sha256": null
-          },
-          "scenarioVersion": "1.0.0",
-          "scenarioSnapshotSha256": "11ff1d62775f353a72c97f14aaa29f1c92dc576d6ede95275a42fd9a2d257566",
-          "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
-          "evaluationContextVersion": "1.0.0",
-          "mapperVersion": "briefing-mapper-v1",
-          "wordingVersion": "briefing-wording-v1",
-          "builderVersion": "evaluator-briefing-v1",
-          "projectionVersion": "briefing-depth-v1"
+          "scenarioVersion": "1.0.0"
+        },
+        "sessionDuration": {
+          "status": "available",
+          "elapsedMs": 2327,
+          "text": "2s",
+          "source": {
+            "authority": "session_timestamps",
+            "fieldRef": "session:1891b6c6-2441-45ee-96c2-ff737272f682:duration",
+            "activatedAt": "2026-09-16T04:34:15.658Z",
+            "submittedAt": "2026-09-16T04:34:17.985Z"
+          }
         },
         "taskContext": [
           {
@@ -812,9 +817,10 @@
             "chronologyOrder": 2,
             "scope": "recorded_workspace_transition",
             "wording": {
-              "key": "workspace_edit"
+              "key": "workspace_edit",
+              "path": "inventory/service.py"
             },
-            "text": "A workspace edit was recorded.",
+            "text": "Code was modified in inventory/service.py.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -855,7 +861,7 @@
             "wording": {
               "key": "submission"
             },
-            "text": "Submission was recorded.",
+            "text": "The work was submitted.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -944,7 +950,7 @@
             "key": "submitted_files",
             "count": 1
           },
-          "text": "The frozen submission diff contains changes to 1 file.",
+          "text": "The submission includes changes to 1 file.",
           "changedPaths": ["inventory/service.py"],
           "fileCount": 1,
           "additions": 1,
@@ -960,7 +966,7 @@
             "wording": {
               "key": "missing_semantics"
             },
-            "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+            "text": "Scenario-specific descriptions are not configured for this session. Standard activity records remain available.",
             "source": {
               "authority": "semantic_snapshot",
               "fieldRef": "scenario:1891b6c6-2441-45ee-96c2-ff737272f682:semanticSnapshot",
@@ -981,8 +987,8 @@
           "semantics": "absent",
           "source": {
             "authority": "artifact_status",
-            "fieldRef": "reconstruction:1891b6c6-2441-45ee-96c2-ff737272f682:evaluator-reconstruction-deterministic-v3:status",
-            "version": "evaluator-reconstruction-deterministic-v3"
+            "fieldRef": "reconstruction:status",
+            "version": null
           }
         },
         "reviewGuidance": [
@@ -1023,10 +1029,7 @@
             "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_ff602f96-3cf3-4121-a871-a15bba6a19f1",
-              "evt_7a492a83-d4e0-4fb9-aa0b-e2bcece3e731"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 1,
             "sourceLocator": "/api/evaluator/sessions/1891b6c6-2441-45ee-96c2-ff737272f682",
             "fact": {
@@ -1106,7 +1109,7 @@
             "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
             "basis": "chronology",
             "kind": "workspace_change",
-            "rawEventIds": ["evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1"],
+            "rawEventIds": [],
             "chronologyOrder": 2,
             "sourceLocator": "/api/evaluator/sessions/1891b6c6-2441-45ee-96c2-ff737272f682",
             "fact": {
@@ -1187,10 +1190,7 @@
             "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_cc4bc3fe-737b-4461-a892-a14cbc138e71",
-              "evt_a7cbdda1-1089-410c-96f3-fb91fb5e1e3c"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 3,
             "sourceLocator": "/api/evaluator/sessions/1891b6c6-2441-45ee-96c2-ff737272f682",
             "fact": {
@@ -1305,13 +1305,20 @@
       "defaultDepth": {
         "structuredEvidence": false,
         "technicalRecord": false,
-        "scenarioReference": false
+        "scenarioReference": false,
+        "technicalFootprint": false,
+        "verificationChronology": false,
+        "conciseSubmissionScope": true,
+        "evidenceLimitations": false,
+        "artifactAvailability": false,
+        "reviewGuidance": true,
+        "directEvidenceLinks": false
       },
       "expandedEvidenceRefs": []
     },
     "TECHNICAL_RECRUITER": {
       "schemaVersion": 1,
-      "projectionVersion": "briefing-depth-v1",
+      "projectionVersion": "briefing-depth-v2",
       "profile": "TECHNICAL_RECRUITER",
       "briefing": {
         "schemaVersion": 1,
@@ -1334,9 +1341,20 @@
           "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
           "evaluationContextVersion": "1.0.0",
           "mapperVersion": "briefing-mapper-v1",
-          "wordingVersion": "briefing-wording-v1",
-          "builderVersion": "evaluator-briefing-v1",
-          "projectionVersion": "briefing-depth-v1"
+          "wordingVersion": "briefing-wording-v2",
+          "builderVersion": "evaluator-briefing-v2",
+          "projectionVersion": "briefing-depth-v2"
+        },
+        "sessionDuration": {
+          "status": "available",
+          "elapsedMs": 2327,
+          "text": "2s",
+          "source": {
+            "authority": "session_timestamps",
+            "fieldRef": "session:1891b6c6-2441-45ee-96c2-ff737272f682:duration",
+            "activatedAt": "2026-09-16T04:34:15.658Z",
+            "submittedAt": "2026-09-16T04:34:17.985Z"
+          }
         },
         "taskContext": [
           {
@@ -1471,9 +1489,10 @@
             "chronologyOrder": 2,
             "scope": "recorded_workspace_transition",
             "wording": {
-              "key": "workspace_edit"
+              "key": "workspace_edit",
+              "path": "inventory/service.py"
             },
-            "text": "A workspace edit was recorded.",
+            "text": "Code was modified in inventory/service.py.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -1514,7 +1533,7 @@
             "wording": {
               "key": "submission"
             },
-            "text": "Submission was recorded.",
+            "text": "The work was submitted.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -1603,7 +1622,7 @@
             "key": "submitted_files",
             "count": 1
           },
-          "text": "The frozen submission diff contains changes to 1 file.",
+          "text": "The submission includes changes to 1 file.",
           "changedPaths": ["inventory/service.py"],
           "fileCount": 1,
           "additions": 1,
@@ -1619,7 +1638,7 @@
             "wording": {
               "key": "missing_semantics"
             },
-            "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+            "text": "Scenario-specific descriptions are not configured for this session. Standard activity records remain available.",
             "source": {
               "authority": "semantic_snapshot",
               "fieldRef": "scenario:1891b6c6-2441-45ee-96c2-ff737272f682:semanticSnapshot",
@@ -1964,13 +1983,20 @@
       "defaultDepth": {
         "structuredEvidence": true,
         "technicalRecord": false,
-        "scenarioReference": true
+        "scenarioReference": true,
+        "technicalFootprint": true,
+        "verificationChronology": true,
+        "conciseSubmissionScope": false,
+        "evidenceLimitations": false,
+        "artifactAvailability": false,
+        "reviewGuidance": true,
+        "directEvidenceLinks": true
       },
       "expandedEvidenceRefs": []
     },
     "ENGINEER": {
       "schemaVersion": 1,
-      "projectionVersion": "briefing-depth-v1",
+      "projectionVersion": "briefing-depth-v2",
       "profile": "ENGINEER",
       "briefing": {
         "schemaVersion": 1,
@@ -1993,9 +2019,20 @@
           "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
           "evaluationContextVersion": "1.0.0",
           "mapperVersion": "briefing-mapper-v1",
-          "wordingVersion": "briefing-wording-v1",
-          "builderVersion": "evaluator-briefing-v1",
-          "projectionVersion": "briefing-depth-v1"
+          "wordingVersion": "briefing-wording-v2",
+          "builderVersion": "evaluator-briefing-v2",
+          "projectionVersion": "briefing-depth-v2"
+        },
+        "sessionDuration": {
+          "status": "available",
+          "elapsedMs": 2327,
+          "text": "2s",
+          "source": {
+            "authority": "session_timestamps",
+            "fieldRef": "session:1891b6c6-2441-45ee-96c2-ff737272f682:duration",
+            "activatedAt": "2026-09-16T04:34:15.658Z",
+            "submittedAt": "2026-09-16T04:34:17.985Z"
+          }
         },
         "taskContext": [
           {
@@ -2130,9 +2167,10 @@
             "chronologyOrder": 2,
             "scope": "recorded_workspace_transition",
             "wording": {
-              "key": "workspace_edit"
+              "key": "workspace_edit",
+              "path": "inventory/service.py"
             },
-            "text": "A workspace edit was recorded.",
+            "text": "Code was modified in inventory/service.py.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -2173,7 +2211,7 @@
             "wording": {
               "key": "submission"
             },
-            "text": "Submission was recorded.",
+            "text": "The work was submitted.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -2262,7 +2300,7 @@
             "key": "submitted_files",
             "count": 1
           },
-          "text": "The frozen submission diff contains changes to 1 file.",
+          "text": "The submission includes changes to 1 file.",
           "changedPaths": ["inventory/service.py"],
           "fileCount": 1,
           "additions": 1,
@@ -2278,7 +2316,7 @@
             "wording": {
               "key": "missing_semantics"
             },
-            "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+            "text": "Scenario-specific descriptions are not configured for this session. Standard activity records remain available.",
             "source": {
               "authority": "semantic_snapshot",
               "fieldRef": "scenario:1891b6c6-2441-45ee-96c2-ff737272f682:semanticSnapshot",
@@ -2623,7 +2661,14 @@
       "defaultDepth": {
         "structuredEvidence": true,
         "technicalRecord": true,
-        "scenarioReference": true
+        "scenarioReference": true,
+        "technicalFootprint": true,
+        "verificationChronology": true,
+        "conciseSubmissionScope": false,
+        "evidenceLimitations": true,
+        "artifactAvailability": true,
+        "reviewGuidance": true,
+        "directEvidenceLinks": true
       },
       "expandedEvidenceRefs": [
         "session:1891b6c6-2441-45ee-96c2-ff737272f682:activated",
@@ -2636,32 +2681,25 @@
     },
     "ENGINEERING_MANAGER": {
       "schemaVersion": 1,
-      "projectionVersion": "briefing-depth-v1",
+      "projectionVersion": "briefing-depth-v2",
       "profile": "ENGINEERING_MANAGER",
       "briefing": {
         "schemaVersion": 1,
         "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
         "provenance": {
           "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
-          "authoritativeEvidenceSha256": "d00ef781814d4a31ebdce91253e0dad01dedbd0184ec02b681cd62a459a71b45",
-          "finalDiffSha256": "aa3ef7e4199eab809137b22dcb80117abd72db5d4ceef223dd13f4a1851bc4a8",
-          "reconstruction": {
-            "artifactId": "3ed9104f-55fc-4526-8265-d6a72aedaee2",
-            "generatorVersion": "evaluator-reconstruction-deterministic-v3"
-          },
-          "semanticSnapshot": {
-            "status": "absent",
-            "contentVersion": null,
-            "sha256": null
-          },
-          "scenarioVersion": "1.0.0",
-          "scenarioSnapshotSha256": "11ff1d62775f353a72c97f14aaa29f1c92dc576d6ede95275a42fd9a2d257566",
-          "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
-          "evaluationContextVersion": "1.0.0",
-          "mapperVersion": "briefing-mapper-v1",
-          "wordingVersion": "briefing-wording-v1",
-          "builderVersion": "evaluator-briefing-v1",
-          "projectionVersion": "briefing-depth-v1"
+          "scenarioVersion": "1.0.0"
+        },
+        "sessionDuration": {
+          "status": "available",
+          "elapsedMs": 2327,
+          "text": "2s",
+          "source": {
+            "authority": "session_timestamps",
+            "fieldRef": "session:1891b6c6-2441-45ee-96c2-ff737272f682:duration",
+            "activatedAt": "2026-09-16T04:34:15.658Z",
+            "submittedAt": "2026-09-16T04:34:17.985Z"
+          }
         },
         "taskContext": [
           {
@@ -2796,9 +2834,10 @@
             "chronologyOrder": 2,
             "scope": "recorded_workspace_transition",
             "wording": {
-              "key": "workspace_edit"
+              "key": "workspace_edit",
+              "path": "inventory/service.py"
             },
-            "text": "A workspace edit was recorded.",
+            "text": "Code was modified in inventory/service.py.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -2839,7 +2878,7 @@
             "wording": {
               "key": "submission"
             },
-            "text": "Submission was recorded.",
+            "text": "The work was submitted.",
             "mapping": {
               "status": "generic",
               "ruleId": null,
@@ -2928,7 +2967,7 @@
             "key": "submitted_files",
             "count": 1
           },
-          "text": "The frozen submission diff contains changes to 1 file.",
+          "text": "The submission includes changes to 1 file.",
           "changedPaths": ["inventory/service.py"],
           "fileCount": 1,
           "additions": 1,
@@ -2944,7 +2983,7 @@
             "wording": {
               "key": "missing_semantics"
             },
-            "text": "Scenario semantic metadata is absent; generic evidence wording is used.",
+            "text": "Scenario-specific descriptions are not configured for this session. Standard activity records remain available.",
             "source": {
               "authority": "semantic_snapshot",
               "fieldRef": "scenario:1891b6c6-2441-45ee-96c2-ff737272f682:semanticSnapshot",
@@ -2965,8 +3004,8 @@
           "semantics": "absent",
           "source": {
             "authority": "artifact_status",
-            "fieldRef": "reconstruction:1891b6c6-2441-45ee-96c2-ff737272f682:evaluator-reconstruction-deterministic-v3:status",
-            "version": "evaluator-reconstruction-deterministic-v3"
+            "fieldRef": "reconstruction:status",
+            "version": null
           }
         },
         "reviewGuidance": [
@@ -3007,10 +3046,7 @@
             "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_ff602f96-3cf3-4121-a871-a15bba6a19f1",
-              "evt_7a492a83-d4e0-4fb9-aa0b-e2bcece3e731"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 1,
             "sourceLocator": "/api/evaluator/sessions/1891b6c6-2441-45ee-96c2-ff737272f682",
             "fact": {
@@ -3090,7 +3126,7 @@
             "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
             "basis": "chronology",
             "kind": "workspace_change",
-            "rawEventIds": ["evt_6a56a1ea-0d70-4cf3-b9c8-55abc60337a1"],
+            "rawEventIds": [],
             "chronologyOrder": 2,
             "sourceLocator": "/api/evaluator/sessions/1891b6c6-2441-45ee-96c2-ff737272f682",
             "fact": {
@@ -3171,10 +3207,7 @@
             "sessionId": "1891b6c6-2441-45ee-96c2-ff737272f682",
             "basis": "chronology",
             "kind": "command_execution",
-            "rawEventIds": [
-              "evt_cc4bc3fe-737b-4461-a892-a14cbc138e71",
-              "evt_a7cbdda1-1089-410c-96f3-fb91fb5e1e3c"
-            ],
+            "rawEventIds": [],
             "chronologyOrder": 3,
             "sourceLocator": "/api/evaluator/sessions/1891b6c6-2441-45ee-96c2-ff737272f682",
             "fact": {
@@ -3287,9 +3320,16 @@
         ]
       },
       "defaultDepth": {
-        "structuredEvidence": true,
+        "structuredEvidence": false,
         "technicalRecord": false,
-        "scenarioReference": true
+        "scenarioReference": false,
+        "technicalFootprint": false,
+        "verificationChronology": false,
+        "conciseSubmissionScope": true,
+        "evidenceLimitations": true,
+        "artifactAvailability": true,
+        "reviewGuidance": true,
+        "directEvidenceLinks": true
       },
       "expandedEvidenceRefs": []
     }

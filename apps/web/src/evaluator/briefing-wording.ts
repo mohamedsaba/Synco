@@ -24,8 +24,7 @@ export type BriefingWording =
         | 'terminal_activity_before_edit'
         | 'terminal_activity_after_edit'
         | 'terminal_activity'
-        | 'test_run_before_submission'
-        | 'write_through_service_update';
+        | 'test_run_before_submission';
     }
   | { key: 'workspace_edit'; path?: string }
   | { key: 'bound_read' | 'related_edit'; subject: NeutralSubject }
@@ -72,8 +71,6 @@ const literalTemplates = {
     'Recorded terminal activity occurred after the code change.',
   terminal_activity: 'Recorded terminal activity occurred.',
   test_run_before_submission: 'A test run was recorded before submission.',
-  write_through_service_update:
-    'The submitted diff writes the updated quantity to the storefront Redis key after the database commit.',
 } as const;
 
 const count = (value: number) => {

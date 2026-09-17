@@ -688,7 +688,7 @@ describe('briefing presentation refinement slice', () => {
     expect(grTexts).toContain('The work was submitted.');
   });
 
-  it('preserves Case D neutrality while giving Engineer projection the write-through detail', () => {
+  it('preserves Case D neutrality across roles without raw diff interpretation', () => {
     const fixture = readBriefingFixture('D');
     const briefing = buildEvaluatorBriefing(
       fixture.evidence,
@@ -696,15 +696,79 @@ describe('briefing presentation refinement slice', () => {
     );
     const eng = projectBriefing(briefing, 'ENGINEER');
     const gr = projectBriefing(briefing, 'GENERALIST_RECRUITER');
+    const tr = projectBriefing(briefing, 'TECHNICAL_RECRUITER');
+    const em = projectBriefing(briefing, 'ENGINEERING_MANAGER');
 
+    // Submitted state remains strictly grounded and factual across all role projections
     expect(eng.briefing.submittedState.text).toBe(
-      'The submitted diff writes the updated quantity to the storefront Redis key after the database commit.',
+      'The submission includes changes to 1 file.',
     );
     expect(gr.briefing.submittedState.text).toBe(
       'The submission includes changes to 1 file.',
     );
+    expect(tr.briefing.submittedState.text).toBe(
+      'The submission includes changes to 1 file.',
+    );
+    expect(em.briefing.submittedState.text).toBe(
+      'The submission includes changes to 1 file.',
+    );
+    expect(eng.briefing.submittedState.wording).toEqual({
+      key: 'submitted_files',
+      count: 1,
+    });
+
+    // Technical depth is governed by defaultDepth, not synthetic semantic copy
+    expect(eng.defaultDepth.conciseSubmissionScope).toBe(false);
+    expect(eng.defaultDepth.technicalRecord).toBe(true);
+    expect(eng.defaultDepth.directEvidenceLinks).toBe(true);
+    expect(gr.defaultDepth.conciseSubmissionScope).toBe(true);
+    expect(gr.defaultDepth.technicalRecord).toBe(false);
+
+    // Case D remains neutral without editorializing or write-through labels
     expect(factualCopy(briefing)).not.toMatch(
-      /canonical|expected solution|chose write-through|missing cache/i,
+      /canonical|expected solution|chose write-through|write-through|missing cache/i,
+    );
+    expect(factualCopy(eng.briefing)).not.toMatch(
+      /canonical|expected solution|chose write-through|write-through|missing cache/i,
+    );
+  });
+
+  it('proves role projection does not inspect or interpret raw diff content (regression guard)', () => {
+    const fixture = readBriefingFixture('D');
+    const briefing = buildEvaluatorBriefing(
+      fixture.evidence,
+      fixture.reconstruction,
+    );
+
+    // Tamper with the raw diff inside evidenceIndex to contain set_cached_stock and arbitrary keywords
+    const tamperedBriefing: EvaluatorBriefing = {
+      ...briefing,
+      evidenceIndex: briefing.evidenceIndex.map((entry) =>
+        entry.kind === 'final_diff' &&
+        entry.sourceData.kind === 'submitted_diff'
+          ? {
+              ...entry,
+              sourceData: {
+                ...entry.sourceData,
+                diff: 'diff --git a/inventory/service.py b/inventory/service.py\n+set_cached_stock(wh, p, q)\n+arbitrary_write_through_hook()',
+              },
+            }
+          : entry,
+      ),
+    };
+
+    const engTampered = projectBriefing(tamperedBriefing, 'ENGINEER');
+    const engUntampered = projectBriefing(briefing, 'ENGINEER');
+
+    // Projection is deterministic and strictly dependent on structured briefing data, ignoring raw diff content
+    expect(engTampered.briefing.submittedState).toEqual(
+      briefing.submittedState,
+    );
+    expect(engTampered.briefing.submittedState).toEqual(
+      engUntampered.briefing.submittedState,
+    );
+    expect(engTampered.briefing.submittedState.text).toBe(
+      'The submission includes changes to 1 file.',
     );
   });
 

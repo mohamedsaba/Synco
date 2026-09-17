@@ -310,7 +310,7 @@ Core recorded activity and verification copy:
 
 Submitted state copy:
 
-- The submitted diff writes the updated quantity to the storefront Redis key after the database commit.
+- The submission includes changes to 1 file.
 
 All 10 source entries remain accessible. Material limitations and attributed guidance remain identical to the base briefing.
 

@@ -3572,9 +3572,10 @@
             "session:ddd5ad93-4144-407e-a11f-5934044ebcfa:final-diff"
           ],
           "wording": {
-            "key": "write_through_service_update"
+            "key": "submitted_files",
+            "count": 1
           },
-          "text": "The submitted diff writes the updated quantity to the storefront Redis key after the database commit.",
+          "text": "The submission includes changes to 1 file.",
           "changedPaths": ["inventory/service.py"],
           "fileCount": 1,
           "additions": 4,

@@ -130,27 +130,6 @@ const groupGeneralistActivity = (
   return result;
 };
 
-const projectSubmittedStateForRole = (
-  submittedState: EvaluatorBriefing['submittedState'],
-  profile: BriefingDepthProfile,
-  diff?: string,
-) => {
-  if (
-    profile === 'ENGINEER' &&
-    diff &&
-    diff.includes('set_cached_stock') &&
-    submittedState.changedPaths.includes('inventory/service.py')
-  ) {
-    const wording = { key: 'write_through_service_update' as const };
-    return {
-      ...submittedState,
-      wording,
-      text: renderBriefingWording(wording),
-    };
-  }
-  return submittedState;
-};
-
 const sanitizeProvenanceForRole = (
   provenance: BriefingProvenance,
   profile: BriefingDepthProfile,
@@ -201,31 +180,16 @@ export const projectBriefing = (
   if (!briefingDepthProfiles.includes(profile))
     throw new Error('Unsupported briefing depth profile.');
 
-  const diffEntry = briefing.evidenceIndex.find(
-    (entry) =>
-      entry.kind === 'final_diff' && entry.sourceData.kind === 'submitted_diff',
-  );
-  const rawDiff =
-    diffEntry && diffEntry.sourceData.kind === 'submitted_diff'
-      ? diffEntry.sourceData.diff
-      : undefined;
-
   const roleObservedActivity =
     profile === 'GENERALIST_RECRUITER'
       ? groupGeneralistActivity(briefing.observedActivity)
       : briefing.observedActivity;
 
-  const roleSubmittedState = projectSubmittedStateForRole(
-    briefing.submittedState,
-    profile,
-    rawDiff,
-  );
-
   const roleBriefing: EvaluatorBriefing = {
     ...briefing,
     provenance: sanitizeProvenanceForRole(briefing.provenance, profile),
     observedActivity: roleObservedActivity,
-    submittedState: roleSubmittedState,
+    submittedState: briefing.submittedState,
     artifactAvailability: sanitizeArtifactAvailabilityForRole(
       briefing.artifactAvailability,
       profile,

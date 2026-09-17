@@ -43,13 +43,7 @@ export const EvaluatorExperience = ({
         activeRole={activeRole}
       />
 
-      <section
-        id={`lens-panel-${activeRole}`}
-        role="tabpanel"
-        aria-labelledby={`lens-tab-${activeRole}`}
-        tabIndex={0}
-        className="evaluator-main-layout"
-      >
+      <div className="evaluator-main-layout">
         {/* Platform Limitation Notices */}
         <PlatformNotice limitations={briefing.evidenceLimitations} />
 
@@ -105,7 +99,7 @@ export const EvaluatorExperience = ({
             />
           </div>
         ) : null}
-      </section>
+      </div>
     </div>
   );
 };

@@ -412,27 +412,41 @@ const mockReview: EvaluatorReviewPresentation = {
 
 describe('Evaluator Experience V2 Component & Projection Suite', () => {
   describe('RoleLensSwitcher', () => {
-    it('renders all 4 depth profiles in a tablist with correct aria attributes', () => {
+    it('renders all 4 depth profiles as navigation links with correct ?depth= and aria-current', () => {
       const html = renderToStaticMarkup(
-        <RoleLensSwitcher
-          activeRole="GENERALIST_RECRUITER"
-          onRoleChange={() => {}}
-        />,
+        <RoleLensSwitcher activeRole="GENERALIST_RECRUITER" />,
       );
 
-      expect(html).toContain('role="tablist"');
-      expect(html).toContain('aria-label="Evaluation depth profiles"');
+      expect(html).toContain('aria-label="Evaluator perspective"');
       expect(html).toContain('Generalist Recruiter');
       expect(html).toContain('Technical Recruiter');
       expect(html).toContain('Engineer');
       expect(html).toContain('Engineering Manager');
-      expect(html).toContain('aria-selected="true"');
+      // Navigation links for all 4 profiles
+      expect(html).toContain(
+        'href="/evaluator/sessions/session-c-12345678?depth=GENERALIST_RECRUITER"',
+      );
+      expect(html).toContain(
+        'href="/evaluator/sessions/session-c-12345678?depth=TECHNICAL_RECRUITER"',
+      );
+      expect(html).toContain(
+        'href="/evaluator/sessions/session-c-12345678?depth=ENGINEER"',
+      );
+      expect(html).toContain(
+        'href="/evaluator/sessions/session-c-12345678?depth=ENGINEERING_MANAGER"',
+      );
+      // Active role has aria-current="page"
+      expect(html).toContain('aria-current="page"');
       expect(html).toContain('lens-tab-active');
-      expect(html).toContain('aria-controls="lens-panel-GENERALIST_RECRUITER"');
-      expect(html).toContain('aria-controls="lens-panel-ENGINEER"');
       // Copy requirement: "recorded tooling" rather than "verified tooling"
       expect(html).toContain('recorded tooling');
       expect(html).not.toContain('verified tooling');
+      // Strict removal of tab widget semantics
+      expect(html).not.toContain('role="tablist"');
+      expect(html).not.toContain('role="tab"');
+      expect(html).not.toContain('aria-controls');
+      expect(html).not.toContain('aria-selected');
+      expect(html).not.toContain('tabindex');
     });
   });
 
@@ -717,11 +731,12 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
 
       expect(html).toContain('Generalist Recruiter');
       expect(html).toContain('What happened');
-      // Tabpanel accessibility semantics
-      expect(html).toContain('id="lens-panel-GENERALIST_RECRUITER"');
-      expect(html).toContain('role="tabpanel"');
-      expect(html).toContain('aria-labelledby="lens-tab-GENERALIST_RECRUITER"');
-      expect(html).toContain('tabindex="0"');
+      // No tab/tabpanel semantics in layout
+      expect(html).not.toContain('role="tabpanel"');
+      expect(html).not.toContain('role="tablist"');
+      expect(html).not.toContain('role="tab"');
+      expect(html).not.toContain('lens-panel');
+      expect(html).not.toContain('aria-controls="lens-panel');
       // Progressive disclosure: diff behind toggle
       expect(html).toContain('View submitted changes');
       // Technical record must NOT be mounted
@@ -737,7 +752,7 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       expect(html).not.toContain('Additional invariant checks passed');
     });
 
-    it('Engineer: prominent technical record, direct diff view, and matching tabpanel semantics', () => {
+    it('Engineer: prominent technical record, direct diff view, and navigation semantics', () => {
       const html = renderToStaticMarkup(
         <EvaluatorExperience
           sessionId="session-c-12345678"
@@ -748,11 +763,12 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
         />,
       );
 
-      // Tabpanel accessibility semantics
-      expect(html).toContain('id="lens-panel-ENGINEER"');
-      expect(html).toContain('role="tabpanel"');
-      expect(html).toContain('aria-labelledby="lens-tab-ENGINEER"');
-      expect(html).toContain('tabindex="0"');
+      // No tab/tabpanel semantics
+      expect(html).not.toContain('role="tabpanel"');
+      expect(html).not.toContain('role="tablist"');
+      expect(html).not.toContain('role="tab"');
+      expect(html).not.toContain('lens-panel');
+      expect(html).not.toContain('aria-controls="lens-panel');
       // Prominent diff directly visible
       expect(html).not.toContain('View submitted changes');
       expect(html).toContain('Submitted changes');
@@ -773,10 +789,10 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
         />,
       );
 
-      expect(html).toContain('id="lens-panel-TECHNICAL_RECRUITER"');
       expect(html).toContain('Verification progression');
       expect(html).toContain('View evidence');
       expect(html).not.toContain('Open technical chronology');
+      expect(html).not.toContain('role="tabpanel"');
     });
 
     it('Engineering Manager: review guidance and synthesis without capability scores', () => {
@@ -790,11 +806,11 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
         />,
       );
 
-      expect(html).toContain('id="lens-panel-ENGINEERING_MANAGER"');
       expect(html).toContain('Review guidance');
       expect(html).not.toContain('Open technical chronology');
       expect(html).not.toContain('Candidate rank:');
       expect(html).not.toContain('Performance score:');
+      expect(html).not.toContain('role="tabpanel"');
     });
   });
 });

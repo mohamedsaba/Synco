@@ -1250,10 +1250,14 @@ details[open] > summary > .disclosure-chevron {
 }
 
 .lens-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.55rem 1.1rem;
   border: 1px solid transparent;
   background: transparent;
   color: var(--muted);
+  text-decoration: none;
   font-family: var(--font-body);
   font-size: 0.88rem;
   font-weight: 600;
@@ -1271,7 +1275,8 @@ details[open] > summary > .disclosure-chevron {
   outline-offset: 2px;
 }
 
-.lens-tab-active {
+.lens-tab-active,
+.lens-tab[aria-current='page'] {
   background: var(--surface);
   color: var(--ink);
   border-color: var(--ink);

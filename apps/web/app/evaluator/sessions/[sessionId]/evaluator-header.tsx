@@ -9,7 +9,6 @@ type EvaluatorHeaderProps = Readonly<{
   sessionDuration?: BriefingSessionDuration;
   submittedAt: string;
   activeRole: BriefingDepthProfile;
-  onRoleChange?: (role: BriefingDepthProfile) => void;
 }>;
 
 export const EvaluatorHeader = ({
@@ -18,7 +17,6 @@ export const EvaluatorHeader = ({
   sessionDuration,
   submittedAt,
   activeRole,
-  onRoleChange,
 }: EvaluatorHeaderProps) => {
   return (
     <header className="evaluator-v2-header">
@@ -70,7 +68,7 @@ export const EvaluatorHeader = ({
       </div>
 
       <div className="header-lens-control">
-        <RoleLensSwitcher activeRole={activeRole} onRoleChange={onRoleChange} />
+        <RoleLensSwitcher activeRole={activeRole} />
       </div>
     </header>
   );

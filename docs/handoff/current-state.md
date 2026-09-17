@@ -85,7 +85,7 @@ Key completed capabilities:
    - `ENGINEER`: Full technical workspace, authoritative diff viewer, command lines, execution logs, and cryptographic SHA-256 provenance.
    - `ENGINEERING_MANAGER`: High-level synthesis, concise submission scope, platform limitation notices, and evaluation policy guidance.
 2. **Accessible Role Lens Switcher**:
-   - Keyboard navigation (Arrow keys, Home/End), ARIA tablist/tab roles, live description updates, and URL query synchronization (`?depth=...`).
+   - Server-rendered role-depth navigation, semantic HTML (`<nav aria-label="Evaluator perspective">` with Next.js `<Link>`), `aria-current="page"`, live description updates, and query-param preservation (`?depth=...`).
 3. **Editorial Visual Design**:
    - Bright, calm, tactile, restrained aesthetic in `apps/web/app/workspace.css`. No dark hacker terminals, glowing AI effects, or generic analytics dashboards.
 4. **Epistemic Invariants Strictly Preserved**:

@@ -61,7 +61,7 @@ The route server component projects the requested role (`?depth=...`), passing o
 Key architectural components:
 
 1. `EvaluatorHeader`: Delimit branding, session reference, scenario title, submitted status badge, deterministic elapsed duration, and `RoleLensSwitcher`.
-2. `RoleLensSwitcher`: Accessible ARIA tablist with arrow-key keyboard navigation and query-param synchronization (`?depth=...`).
+2. `RoleLensSwitcher`: Accessible server-rendered role-depth navigation (`<nav aria-label="Evaluator perspective">`) with native links and query-param preservation (`?depth=...`).
 3. `PlatformNotice`: Non-alarmist callouts for platform-owned limitations (such as `workspace_capture_gap`).
 4. `TaskBrief`: Immutable scenario brief, system invariants, and verification targets, with graceful fallback for legacy sessions lacking evaluation context.
 5. `VerificationSummary`: Factual progression of recorded test runs without scorecards or verdict badges.

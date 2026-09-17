@@ -1,7 +1,5 @@
-'use client';
-
+import type { UrlObject } from 'url';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
 import type { BriefingDepthProfile } from '../../../../src/evaluator/project-evaluator-briefing';
 import { briefingDepthProfiles } from '../../../../src/evaluator/project-evaluator-briefing';
 
@@ -23,20 +21,54 @@ const roleDescriptions: Record<BriefingDepthProfile, string> = {
     'Synthesis view, submission scope, limitation disclosures, and review policy',
 };
 
+export type RoleLensSearchParams =
+  Record<string, string | string[] | undefined> | URLSearchParams;
+
+export const buildRoleLensHref = (
+  role: BriefingDepthProfile,
+  options?: {
+    sessionId?: string;
+    searchParams?: RoleLensSearchParams;
+  },
+): UrlObject => {
+  const query: Record<string, string | string[]> = {};
+
+  if (options?.searchParams) {
+    if (options.searchParams instanceof URLSearchParams) {
+      options.searchParams.forEach((value, key) => {
+        if (key !== 'depth' && key !== 'role') {
+          query[key] = value;
+        }
+      });
+    } else {
+      for (const [key, value] of Object.entries(options.searchParams)) {
+        if (key === 'depth' || key === 'role' || value === undefined) continue;
+        query[key] = value;
+      }
+    }
+  }
+
+  query.depth = role;
+
+  return {
+    ...(options?.sessionId
+      ? { pathname: `/evaluator/sessions/${options.sessionId}` }
+      : {}),
+    query,
+  };
+};
+
 type RoleLensSwitcherProps = Readonly<{
   activeRole: BriefingDepthProfile;
+  sessionId?: string;
+  searchParams?: RoleLensSearchParams;
 }>;
 
-export const RoleLensSwitcher = ({ activeRole }: RoleLensSwitcherProps) => {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const createRoleHref = (role: BriefingDepthProfile) => {
-    const params = new URLSearchParams(searchParams?.toString() ?? '');
-    params.set('depth', role);
-    return `${pathname ?? ''}?${params.toString()}`;
-  };
-
+export const RoleLensSwitcher = ({
+  activeRole,
+  sessionId,
+  searchParams,
+}: RoleLensSwitcherProps) => {
   return (
     <nav className="role-lens-nav" aria-label="Evaluator perspective">
       <div className="role-lens-switcher">
@@ -45,7 +77,7 @@ export const RoleLensSwitcher = ({ activeRole }: RoleLensSwitcherProps) => {
           return (
             <Link
               key={role}
-              href={createRoleHref(role)}
+              href={buildRoleLensHref(role, { sessionId, searchParams })}
               aria-current={isSelected ? 'page' : undefined}
               className={`lens-tab ${isSelected ? 'lens-tab-active' : ''}`}
               title={roleDescriptions[role]}

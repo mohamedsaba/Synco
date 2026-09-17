@@ -14,12 +14,6 @@ import { projectBriefing } from '../../apps/web/src/evaluator/project-evaluator-
 import type { EvaluatorBriefing } from '../../apps/web/src/evaluator/evaluator-briefing';
 import type { EvaluatorReviewPresentation } from '../../apps/web/src/evaluator/evaluator-review-presentation';
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
-  usePathname: () => '/evaluator/sessions/session-c-12345678',
-  useSearchParams: () => new URLSearchParams(),
-}));
-
 const mockBriefing: EvaluatorBriefing = {
   schemaVersion: 1,
   sessionId: 'session-c-12345678',
@@ -412,9 +406,12 @@ const mockReview: EvaluatorReviewPresentation = {
 
 describe('Evaluator Experience V2 Component & Projection Suite', () => {
   describe('RoleLensSwitcher', () => {
-    it('renders all 4 depth profiles as navigation links with correct ?depth= and aria-current', () => {
+    it('renders all 4 depth profiles as navigation links with session pathname and correct ?depth=', () => {
       const html = renderToStaticMarkup(
-        <RoleLensSwitcher activeRole="GENERALIST_RECRUITER" />,
+        <RoleLensSwitcher
+          activeRole="GENERALIST_RECRUITER"
+          sessionId="session-c-12345678"
+        />,
       );
 
       expect(html).toContain('aria-label="Evaluator perspective"');
@@ -438,15 +435,74 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       // Active role has aria-current="page"
       expect(html).toContain('aria-current="page"');
       expect(html).toContain('lens-tab-active');
+      // Inactive roles do NOT have aria-current
+      expect(html).not.toMatch(/href="[^"]*depth=ENGINEER"[^>]*aria-current/);
+      expect(html).not.toMatch(
+        /href="[^"]*depth=TECHNICAL_RECRUITER"[^>]*aria-current/,
+      );
+      expect(html).not.toMatch(
+        /href="[^"]*depth=ENGINEERING_MANAGER"[^>]*aria-current/,
+      );
       // Copy requirement: "recorded tooling" rather than "verified tooling"
       expect(html).toContain('recorded tooling');
       expect(html).not.toContain('verified tooling');
       // Strict removal of tab widget semantics
       expect(html).not.toContain('role="tablist"');
       expect(html).not.toContain('role="tab"');
+      expect(html).not.toContain('role="tabpanel"');
       expect(html).not.toContain('aria-controls');
       expect(html).not.toContain('aria-selected');
       expect(html).not.toContain('tabindex');
+    });
+
+    it('renders native relative query links when sessionId is omitted', () => {
+      const html = renderToStaticMarkup(
+        <RoleLensSwitcher activeRole="ENGINEER" />,
+      );
+
+      expect(html).toContain('href="?depth=GENERALIST_RECRUITER"');
+      expect(html).toContain('href="?depth=TECHNICAL_RECRUITER"');
+      expect(html).toContain('href="?depth=ENGINEER"');
+      expect(html).toContain('href="?depth=ENGINEERING_MANAGER"');
+
+      // Engineer is active, others are not
+      expect(html).toMatch(
+        /href="\?depth=ENGINEER"[^>]*aria-current="page"|aria-current="page"[^>]*href="\?depth=ENGINEER"/,
+      );
+      expect(html).not.toMatch(
+        /href="\?depth=GENERALIST_RECRUITER"[^>]*aria-current/,
+      );
+    });
+
+    it('preserves unrelated query parameters and strips obsolete role param when switching profiles', () => {
+      const html = renderToStaticMarkup(
+        <RoleLensSwitcher
+          activeRole="TECHNICAL_RECRUITER"
+          sessionId="session-c-12345678"
+          searchParams={{
+            filter: 'failed',
+            view: 'compact',
+            role: 'ENGINEER',
+          }}
+        />,
+      );
+
+      // Preserves existing query params
+      expect(html).toContain('filter=failed');
+      expect(html).toContain('view=compact');
+      // Strips deprecated role param
+      expect(html).not.toContain('role=');
+      // Active role is Technical Recruiter with aria-current="page"
+      expect(html).toContain(
+        'href="/evaluator/sessions/session-c-12345678?filter=failed&amp;view=compact&amp;depth=TECHNICAL_RECRUITER"',
+      );
+      expect(html).toMatch(
+        /<a\s+(?:[^>]*?\s+)?aria-current="page"(?:[^>]*?\s+)?href="\/evaluator\/sessions\/session-c-12345678\?[^"]*depth=TECHNICAL_RECRUITER"/,
+      );
+      // Inactive role (Generalist) does not have aria-current
+      expect(html).toMatch(
+        /<a\s+(?!aria-current)[^>]*href="\/evaluator\/sessions\/session-c-12345678\?[^"]*depth=GENERALIST_RECRUITER"/,
+      );
     });
   });
 
@@ -459,7 +515,6 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
           sessionDuration={mockBriefing.sessionDuration}
           submittedAt="2026-09-16T17:12:34.000Z"
           activeRole="GENERALIST_RECRUITER"
-          onRoleChange={() => {}}
         />,
       );
 

@@ -15,6 +15,7 @@ import { SubmittedWork } from './submitted-work';
 import { ReviewGuidance } from './review-guidance';
 import { ArtifactAvailabilityCard } from './artifact-availability-card';
 import { TechnicalRecord } from './technical-record';
+import type { RoleLensSearchParams } from './role-lens-switcher';
 
 type EvaluatorExperienceProps = Readonly<{
   sessionId: string;
@@ -22,6 +23,7 @@ type EvaluatorExperienceProps = Readonly<{
   review: EvaluatorReviewPresentation;
   projection: ProjectedBriefing;
   activeRole: BriefingDepthProfile;
+  searchParams?: RoleLensSearchParams;
 }>;
 
 export const EvaluatorExperience = ({
@@ -30,6 +32,7 @@ export const EvaluatorExperience = ({
   review,
   projection,
   activeRole,
+  searchParams,
 }: EvaluatorExperienceProps) => {
   const { briefing, defaultDepth } = projection;
 
@@ -41,6 +44,7 @@ export const EvaluatorExperience = ({
         sessionDuration={briefing.sessionDuration}
         submittedAt={evidence.submittedAt}
         activeRole={activeRole}
+        searchParams={searchParams}
       />
 
       <div className="evaluator-main-layout">

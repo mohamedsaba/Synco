@@ -24,7 +24,7 @@ export const dynamic = 'force-dynamic';
 
 type EvidencePageProps = Readonly<{
   params: Promise<{ sessionId: string }>;
-  searchParams?: Promise<{ depth?: string; role?: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }>;
 
 const EvidencePage = async ({ params, searchParams }: EvidencePageProps) => {
@@ -33,7 +33,7 @@ const EvidencePage = async ({ params, searchParams }: EvidencePageProps) => {
     cookies(),
     searchParams
       ? searchParams
-      : Promise.resolve({} as { depth?: string; role?: string }),
+      : Promise.resolve({} as Record<string, string | string[] | undefined>),
   ]);
 
   const evaluatorCookie = cookieStore.get(evaluatorCookieName)?.value;
@@ -78,8 +78,8 @@ const EvidencePage = async ({ params, searchParams }: EvidencePageProps) => {
   const briefing = buildEvaluatorBriefing(evidence, reconstruction);
   const review = buildEvaluatorReviewPresentation(evidence, reconstruction);
 
-  const requestedRole =
-    resolvedSearchParams?.depth || resolvedSearchParams?.role;
+  const rawRole = resolvedSearchParams?.depth || resolvedSearchParams?.role;
+  const requestedRole = Array.isArray(rawRole) ? rawRole[0] : rawRole;
   const activeRole: BriefingDepthProfile =
     requestedRole &&
     briefingDepthProfiles.includes(requestedRole as BriefingDepthProfile)
@@ -96,6 +96,7 @@ const EvidencePage = async ({ params, searchParams }: EvidencePageProps) => {
         review={review}
         projection={projection}
         activeRole={activeRole}
+        searchParams={resolvedSearchParams}
       />
     </main>
   );

@@ -1,7 +1,10 @@
 import Link from 'next/link';
 import type { BriefingDepthProfile } from '../../../../src/evaluator/project-evaluator-briefing';
 import type { BriefingSessionDuration } from '../../../../src/evaluator/evaluator-briefing';
-import { RoleLensSwitcher } from './role-lens-switcher';
+import {
+  RoleLensSwitcher,
+  type RoleLensSearchParams,
+} from './role-lens-switcher';
 
 type EvaluatorHeaderProps = Readonly<{
   sessionId: string;
@@ -9,6 +12,7 @@ type EvaluatorHeaderProps = Readonly<{
   sessionDuration?: BriefingSessionDuration;
   submittedAt: string;
   activeRole: BriefingDepthProfile;
+  searchParams?: RoleLensSearchParams;
 }>;
 
 export const EvaluatorHeader = ({
@@ -17,6 +21,7 @@ export const EvaluatorHeader = ({
   sessionDuration,
   submittedAt,
   activeRole,
+  searchParams,
 }: EvaluatorHeaderProps) => {
   return (
     <header className="evaluator-v2-header">
@@ -68,7 +73,11 @@ export const EvaluatorHeader = ({
       </div>
 
       <div className="header-lens-control">
-        <RoleLensSwitcher activeRole={activeRole} />
+        <RoleLensSwitcher
+          activeRole={activeRole}
+          sessionId={sessionId}
+          searchParams={searchParams}
+        />
       </div>
     </header>
   );

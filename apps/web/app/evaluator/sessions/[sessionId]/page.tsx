@@ -89,7 +89,7 @@ const EvidencePage = async ({ params, searchParams }: EvidencePageProps) => {
   const projection = projectBriefing(briefing, activeRole);
 
   return (
-    <main className="evaluator-review-shell" id={submittedChangesAnchor}>
+    <main className="evaluator-review-shell">
       <EvaluatorExperience
         sessionId={sessionId}
         evidence={evidence}

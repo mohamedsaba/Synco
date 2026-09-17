@@ -34,6 +34,7 @@ export const buildReconstructionView = (
       id: candidate.id,
       status: candidate.status,
       promptVersion: candidate.promptVersion,
+      generatorVersion: candidate.promptVersion,
       providerId: candidate.providerId,
       modelId: candidate.modelId,
       createdAt: candidate.createdAt,
@@ -47,9 +48,17 @@ export const buildReconstructionView = (
     };
   }
 
-  const { attemptToken, ...safeRecord } = record;
+  const { attemptToken, promptVersion, ...safeRecord } = record;
   void attemptToken;
-  return { status: safeRecord.status, record: safeRecord, legacyArtifacts };
+  return {
+    status: safeRecord.status,
+    record: {
+      ...safeRecord,
+      promptVersion,
+      generatorVersion: promptVersion,
+    },
+    legacyArtifacts,
+  };
 };
 
 export const createConfiguredEvidenceReconstructionService = () => {

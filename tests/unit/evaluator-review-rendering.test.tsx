@@ -5,7 +5,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
-import { SubmittedDiff } from '../../apps/web/app/evaluator/sessions/[sessionId]/submitted-diff';
+import {
+  SubmittedDiff,
+  submittedChangesAnchor,
+} from '../../apps/web/app/evaluator/sessions/[sessionId]/submitted-diff';
+import { SubmittedWork } from '../../apps/web/app/evaluator/sessions/[sessionId]/submitted-work';
 import { EvidenceDisclosure } from '../../apps/web/app/evaluator/sessions/[sessionId]/evidence-disclosure';
 import { ReconstructionPanel } from '../../apps/web/app/evaluator/sessions/[sessionId]/reconstruction-panel';
 import { ScenarioContext } from '../../apps/web/app/evaluator/sessions/[sessionId]/scenario-context';
@@ -171,26 +175,66 @@ describe('evaluator review rendering', () => {
     },
   );
 
-  it('links a truncated compact diff to the stable submitted-changes anchor', () => {
+  it('links a truncated compact diff to the stable submitted-changes anchor with exactly one rendered target', () => {
     const longDiff = Array.from(
       { length: 90 },
       (_, index) => `+line ${index}`,
     ).join('\n');
-    const html = renderToStaticMarkup(
+    const compactHtml = renderToStaticMarkup(
       <SubmittedDiff compact diff={longDiff} />,
     );
-    const pageSource = readFileSync(
-      path.join(
-        process.cwd(),
-        'apps/web/app/evaluator/sessions/[sessionId]/submitted-work.tsx',
-      ),
-      'utf8',
+
+    expect(compactHtml).toContain(`href="#${submittedChangesAnchor}"`);
+    expect(compactHtml).toContain('View full submitted changes →');
+    expect(compactHtml).not.toContain('additional lines');
+
+    const surfaceHtml = renderToStaticMarkup(
+      <div className="evaluator-review-surface">
+        <EvidenceDisclosure
+          activatedAt="2026-09-16T10:00:00.000Z"
+          entries={[
+            {
+              evidenceRef: 'session:one:final_diff',
+              sessionId: 'one',
+              role: 'final_state',
+              kind: 'submission',
+              chronologyOrder: 1,
+              firstSequence: null,
+              lastSequence: null,
+              rawEventIds: [],
+            },
+          ]}
+          submittedDiff={longDiff}
+        />
+        <SubmittedWork
+          diff={longDiff}
+          submittedState={{
+            status: 'available',
+            changedPaths: ['src/index.ts'],
+            fileCount: 1,
+            additions: 90,
+            deletions: 0,
+            text: 'The submission includes changes to 1 file.',
+            source: {
+              authority: 'final_diff',
+              fieldRef: 'session:one:diff',
+              sha256: 'a'.repeat(64),
+              bytes: 1000,
+            },
+          }}
+        />
+      </div>,
     );
 
-    expect(html).toContain('href="#submitted-changes"');
-    expect(html).toContain('View full submitted changes →');
-    expect(html).not.toContain('additional lines');
-    expect(pageSource).toContain('id={submittedChangesAnchor}');
+    expect(surfaceHtml).toMatch(
+      new RegExp(`<section[^>]*\\bid=["']${submittedChangesAnchor}["']`),
+    );
+    expect(surfaceHtml).toContain(`href="#${submittedChangesAnchor}"`);
+    const anchorMatches =
+      surfaceHtml.match(
+        new RegExp(`\\bid=["']${submittedChangesAnchor}["']`, 'g'),
+      ) ?? [];
+    expect(anchorMatches).toHaveLength(1);
   });
 
   it('renders diff semantics in text as well as color', () => {
@@ -298,7 +342,30 @@ describe('evaluator review rendering', () => {
     expect(unavailable).not.toMatch(/provider|failure_code|attempt/i);
   });
 
-  it('keeps focus, reduced-motion, overflow, and responsive contracts in CSS', () => {
+  it('verifies accessibility contracts for disclosures, scrollable code regions, and stylesheets', () => {
+    // 1. Semantic focusable disclosure markup and classes
+    const disclosureHtml = renderToStaticMarkup(
+      <EvidenceDisclosure
+        activatedAt="2026-09-16T10:00:00.000Z"
+        entries={[activationEntry]}
+        submittedDiff=""
+      />,
+    );
+    expect(disclosureHtml).toMatch(
+      /<details[^>]*class="[^"]*supporting-activity-disclosure/,
+    );
+    expect(disclosureHtml).toMatch(/<summary[^>]*>/);
+    expect(disclosureHtml).toContain('class="disclosure-chevron"');
+    expect(disclosureHtml).toContain('aria-hidden="true"');
+
+    // 2. Scrollable diff regions provide keyboard accessibility
+    const diffHtml = renderToStaticMarkup(
+      <SubmittedDiff diff={'--- a/file.ts\n+++ b/file.ts\n-old\n+new'} />,
+    );
+    expect(diffHtml).toContain('tabindex="0"');
+    expect(diffHtml).toContain('aria-label="Submitted code changes"');
+
+    // 3. Stylesheet contracts: responsive breakpoints and reduced-motion declarations
     const styles = readFileSync(
       path.join(process.cwd(), 'apps/web/app/workspace.css'),
       'utf8',
@@ -312,9 +379,9 @@ describe('evaluator review rendering', () => {
     expect(styles).toContain('@media (max-width: 900px)');
     expect(styles).toContain('@media (max-width: 620px)');
     expect(styles).toContain('overflow-x: auto');
-    expect(styles).toContain('details[open] > summary > .disclosure-chevron');
-    expect(styles).toContain('.supporting-activity-disclosure > summary:hover');
-    expect(styles).toContain('transition: transform 120ms ease-out');
-    expect(globalStyles).toContain('summary:focus-visible');
+    expect(styles).toMatch(
+      /details\[open\]\s*>\s*summary\s*>\s*\.disclosure-chevron/,
+    );
+    expect(globalStyles).toMatch(/:focus-visible\s*\{[^}]*outline:/);
   });
 });

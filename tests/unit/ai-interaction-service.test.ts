@@ -20,7 +20,9 @@ import { SessionService } from '../../apps/web/src/sessions/session-service';
 import { SqliteSessionStore } from '../../apps/web/src/sessions/sqlite-session-store';
 
 describe('AiInteractionService (Slice 6B Foundation)', () => {
-  const createTestContext = (aiCapability?: AiCapabilitySnapshot | null) => {
+  const createTestContext = (
+    aiCapability: AiCapabilitySnapshot | null = defaultAiCapabilitySnapshot,
+  ) => {
     const dbPath = path.join(
       tmpdir(),
       `test-ai-service-${randomUUID()}.sqlite`,
@@ -563,7 +565,7 @@ describe('AiInteractionService (Slice 6B Foundation)', () => {
   });
 
   describe('7. Capability Snapshot Immutability & Legacy Compatibility', () => {
-    it('persists immutable capability snapshot with session', () => {
+    it('createSession with explicit enabled capability preserves configuration and enabled = true', () => {
       const customCapability: AiCapabilitySnapshot = {
         enabled: true,
         contractVersion: 'slice-6b-v1',
@@ -577,9 +579,51 @@ describe('AiInteractionService (Slice 6B Foundation)', () => {
 
       const session = sessionService.getCandidateSession(candidateToken);
       expect(session.aiCapabilitySnapshot).toEqual(customCapability);
+      expect(session.aiCapabilitySnapshot?.enabled).toBe(true);
+      expect(session.aiCapabilitySnapshot?.configuredProviderId).toBe(
+        'custom-provider',
+      );
+      expect(session.aiCapabilitySnapshot?.configuredModelId).toBe(
+        'custom-model-v2',
+      );
     });
 
-    it('handles legacy sessions predating AI capability (null snapshot)', () => {
+    it('createSession with explicit disabled capability sets enabled = false', () => {
+      const { sessionService, candidateToken } = createTestContext(
+        disabledAiCapabilitySnapshot,
+      );
+
+      const session = sessionService.getCandidateSession(candidateToken);
+      expect(session.aiCapabilitySnapshot).toEqual(
+        disabledAiCapabilitySnapshot,
+      );
+      expect(session.aiCapabilitySnapshot?.enabled).toBe(false);
+    });
+
+    it('createSession with omitted capability defaults to disabled snapshot with enabled = false', () => {
+      const dbPath = path.join(
+        tmpdir(),
+        `test-ai-omitted-${randomUUID()}.sqlite`,
+      );
+      const sessionStore = new SqliteSessionStore(dbPath);
+      const sessionService = new SessionService(sessionStore);
+
+      // Call createSession() with completely omitted options
+      const { session } = sessionService.createSession();
+      expect(session.aiCapabilitySnapshot).toEqual(
+        disabledAiCapabilitySnapshot,
+      );
+      expect(session.aiCapabilitySnapshot?.enabled).toBe(false);
+
+      // Verify it persists and deserializes cleanly as disabled
+      const loaded = sessionStore.findById(session.id);
+      expect(loaded?.aiCapabilitySnapshot).toEqual(
+        disabledAiCapabilitySnapshot,
+      );
+      expect(loaded?.aiCapabilitySnapshot?.enabled).toBe(false);
+    });
+
+    it('handles legacy sessions predating AI capability (null snapshot in DB)', () => {
       const {
         sessionService,
         aiService,
@@ -593,11 +637,50 @@ describe('AiInteractionService (Slice 6B Foundation)', () => {
       const loaded = sessionService.getCandidateSession(candidateToken);
       expect(loaded.aiCapabilitySnapshot).toBeNull();
 
-      // Attempting to admit interaction for a legacy session must be rejected with AI_NOT_ENABLED
+      // Legacy null capability row is NOT treated as enabled; admitInteraction rejects with AI_NOT_ENABLED
       expect(() =>
         aiService.admitInteraction(session.id, {
           clientRequestId: 'req_legacy',
           candidatePromptText: 'Legacy attempt',
+        }),
+      ).toThrowError(
+        expect.objectContaining({
+          code: 'AI_NOT_ENABLED',
+        }),
+      );
+    });
+
+    it('admitInteraction rejects omitted/default-disabled session with AI_NOT_ENABLED', () => {
+      const dbPath = path.join(
+        tmpdir(),
+        `test-ai-service-disabled-${randomUUID()}.sqlite`,
+      );
+      const sessionStore = new SqliteSessionStore(dbPath);
+      const eventStore = new SqliteEventStore(dbPath);
+      const aiInteractionStore = new SqliteAiInteractionStore(dbPath);
+      const runner = new SqliteTransactionRunner(dbPath);
+      runner.registerInitializer(SqliteEventStore.ensureSchema);
+      runner.registerInitializer(SqliteAiInteractionStore.ensureSchema);
+
+      const sessionService = new SessionService(sessionStore, { eventStore });
+      const aiService = new AiInteractionService({
+        sessionStore,
+        eventStore,
+        aiInteractionStore,
+        transactionRunner: runner,
+      });
+
+      // createSession without options -> default disabled
+      const { session } = sessionService.createSession();
+      sessionStore.activate(
+        session.candidateTokenHash,
+        new Date().toISOString(),
+      );
+
+      expect(() =>
+        aiService.admitInteraction(session.id, {
+          clientRequestId: 'req_default_disabled',
+          candidatePromptText: 'Candidate prompt on default disabled session',
         }),
       ).toThrowError(
         expect.objectContaining({

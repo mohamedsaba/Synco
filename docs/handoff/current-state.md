@@ -134,12 +134,12 @@ Key completed capabilities:
 1. **`SqliteTransactionRunner`**:
    - Manages SQLite connection lifecycle, WAL journal mode, 5000ms busy timeout, and atomic multi-store transactions via `database.transaction.immediate()`.
 2. **Operational `ai_interactions` Store**:
-   - Schema enforcing `UNIQUE(session_id, client_request_id)`, indexes on `session_id` and `(session_id, client_request_id)`, storing full prompts, context attachments, response texts, token usage, durations, and error metadata.
+   - Schema enforcing `UNIQUE(session_id, client_request_id)` (which natively supports `session_id` leading column lookups without a redundant separate index), storing full prompts, context attachments, response texts, token usage, durations, and error metadata.
    - Strict state machine: `ADMITTED → DISPATCH_STARTED → COMPLETED | CANCELLED | FAILED`.
 3. **Immutable Event Evidence**:
    - Append-only event store integration via `appendWithDatabase`, assigning monotonic server sequences within the session for `AI_REQUEST_STARTED`, `AI_RESPONSE_COMPLETED`, `AI_REQUEST_CANCELLED`, and `AI_REQUEST_FAILED`.
 4. **Immutable Per-Session AI Capability Snapshot**:
-   - Persisted in `assessment_sessions.ai_capability_snapshot` at session creation time, ensuring capability configuration is frozen for the duration of the evaluation.
+   - Persisted in `assessment_sessions.ai_capability_snapshot` at session creation time, defaulting to disabled when omitted, ensuring capability configuration is frozen for the duration of the evaluation.
 5. **Atomic Operations in `AiInteractionService`**:
    - Admission atomically writes `ai_interactions` and `AI_REQUEST_STARTED`.
    - Completion, cancellation, and failure atomically update interaction status and append their corresponding terminal events.

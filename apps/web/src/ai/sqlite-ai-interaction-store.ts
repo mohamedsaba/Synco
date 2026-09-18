@@ -32,9 +32,6 @@ export const aiInteractionsSchema = `
     terminal_sequence INTEGER,
     UNIQUE(session_id, client_request_id)
   );
-
-  CREATE INDEX IF NOT EXISTS idx_ai_interactions_session_id
-    ON ai_interactions(session_id);
 `;
 
 type AiInteractionRow = Readonly<{

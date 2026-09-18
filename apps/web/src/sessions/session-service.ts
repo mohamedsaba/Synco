@@ -1,6 +1,6 @@
 import {
   type AiCapabilitySnapshot,
-  defaultAiCapabilitySnapshot,
+  disabledAiCapabilitySnapshot,
 } from '../ai/ai-interaction';
 import { cloneScenarioSemanticSnapshot } from '../scenarios/scenario-semantic-snapshot';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -178,7 +178,7 @@ export class SessionService {
       aiCapabilitySnapshot:
         options?.aiCapability !== undefined
           ? options.aiCapability
-          : defaultAiCapabilitySnapshot,
+          : disabledAiCapabilitySnapshot,
     };
 
     this.store.create(session);

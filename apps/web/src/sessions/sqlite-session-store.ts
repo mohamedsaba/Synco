@@ -35,6 +35,7 @@ type SessionRow = Readonly<{
   submitted_diff: string | null;
   scenario_evaluation_context: string | null;
   scenario_semantic_snapshot: string | null;
+  ai_capability_snapshot: string | null;
 }>;
 
 const schema = `
@@ -57,7 +58,8 @@ const schema = `
     scenario_type TEXT DEFAULT 'single_file',
     submitted_diff TEXT,
     scenario_evaluation_context TEXT,
-    scenario_semantic_snapshot TEXT
+    scenario_semantic_snapshot TEXT,
+    ai_capability_snapshot TEXT
   );
 `;
 
@@ -96,6 +98,11 @@ const toSession = (row: SessionRow): AssessmentSession => ({
   submittedAt: row.submitted_at,
   scenarioType: row.scenario_type ?? 'single_file',
   submittedDiff: row.submitted_diff,
+  aiCapabilitySnapshot: row.ai_capability_snapshot
+    ? (JSON.parse(
+        row.ai_capability_snapshot,
+      ) as AssessmentSession['aiCapabilitySnapshot'])
+    : null,
 });
 
 export class SqliteSessionStore {
@@ -110,8 +117,9 @@ export class SqliteSessionStore {
             scenario_title, scenario_brief, acceptance_criteria, file_path,
             original_content, status, working_content, submitted_content,
             created_at, activated_at, submitted_at, scenario_type, submitted_diff,
-            scenario_evaluation_context, scenario_semantic_snapshot
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            scenario_evaluation_context, scenario_semantic_snapshot,
+            ai_capability_snapshot
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           session.id,
@@ -141,6 +149,9 @@ export class SqliteSessionStore {
                   session.scenario.semanticSnapshot,
                 ),
               ),
+          session.aiCapabilitySnapshot
+            ? JSON.stringify(session.aiCapabilitySnapshot)
+            : null,
         );
 
       return session;
@@ -253,6 +264,7 @@ export class SqliteSessionStore {
           ['submitted_diff', 'TEXT'],
           ['scenario_evaluation_context', 'TEXT'],
           ['scenario_semantic_snapshot', 'TEXT'],
+          ['ai_capability_snapshot', 'TEXT'],
         ] as const;
         for (const [name, definition] of additions) {
           if (!columns.some((column) => column.name === name)) {

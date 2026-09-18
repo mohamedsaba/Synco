@@ -3,7 +3,11 @@ export type SessionEventType =
   | 'COMMAND_FINISHED'
   | 'WORKSPACE_CHANGED'
   | 'WORKSPACE_CAPTURE_FAILED'
-  | 'SANDBOX_CLEANUP_FAILED';
+  | 'SANDBOX_CLEANUP_FAILED'
+  | 'AI_REQUEST_STARTED'
+  | 'AI_RESPONSE_COMPLETED'
+  | 'AI_REQUEST_CANCELLED'
+  | 'AI_REQUEST_FAILED';
 
 export type CommandStartedPayload = Readonly<{
   commandId: string;
@@ -39,6 +43,8 @@ export type WorkspaceChangedPayload = Readonly<{
   changeId: string;
   origin: 'browser_save' | 'command_execution' | 'out_of_band';
   commandId?: string;
+  interactionId?: string;
+  applicationRequestId?: string;
   beforeTree: string;
   afterTree: string;
   files: readonly WorkspaceFileChange[];
@@ -58,12 +64,73 @@ export type SandboxCleanupFailedPayload = Readonly<{
   errorMessage: string;
 }>;
 
+export type AiRequestStartedPayload = Readonly<{
+  interactionId: string;
+  clientRequestId: string;
+  configuredProviderId: string;
+  configuredModelId: string;
+  candidateInputExcerpt: string;
+  candidateInputBytes: number;
+  candidateContext?: readonly Readonly<{
+    filePath: string;
+    startLine?: number;
+    endLine?: number;
+  }>[];
+  delimitContext?: Readonly<{
+    scenarioId: string;
+    scenarioVersion: string;
+    configurationVersion: string;
+    injectedBriefingIncluded?: boolean;
+  }>;
+}>;
+
+export type AiResponseCompletedPayload = Readonly<{
+  interactionId: string;
+  durationMs: number;
+  reportedModelId: string;
+  providerRequestId?: string;
+  responseExcerpt: string;
+  responseBytes: number;
+  finishReason?: string;
+  tokenUsage?: Readonly<{
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  }>;
+}>;
+
+export type AiRequestCancelledPayload = Readonly<{
+  interactionId: string;
+  durationMs: number;
+  cancelReason:
+    | 'candidate_requested_cancel'
+    | 'session_ended'
+    | 'platform_policy_abort'
+    | string;
+}>;
+
+export type AiRequestFailedPayload = Readonly<{
+  interactionId: string;
+  durationMs: number;
+  failureReason:
+    | 'provider_error'
+    | 'provider_disconnected'
+    | 'server_timeout'
+    | 'server_error'
+    | string;
+  errorMessageExcerpt: string;
+}>;
+
 export type SessionEventPayload =
   | CommandStartedPayload
   | CommandFinishedPayload
   | WorkspaceChangedPayload
   | WorkspaceCaptureFailedPayload
-  | SandboxCleanupFailedPayload;
+  | SandboxCleanupFailedPayload
+  | AiRequestStartedPayload
+  | AiResponseCompletedPayload
+  | AiRequestCancelledPayload
+  | AiRequestFailedPayload;
 
 export type SessionEvent = Readonly<{
   id: string;

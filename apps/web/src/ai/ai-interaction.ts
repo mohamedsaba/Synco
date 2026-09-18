@@ -1,0 +1,120 @@
+export type AiInteractionStatus =
+  'ADMITTED' | 'DISPATCH_STARTED' | 'COMPLETED' | 'CANCELLED' | 'FAILED';
+
+export type CandidateContextAttachment = Readonly<{
+  filePath: string;
+  startLine?: number;
+  endLine?: number;
+}>;
+
+export type DelimitContextMetadata = Readonly<{
+  scenarioId: string;
+  scenarioVersion: string;
+  configurationVersion: string;
+  injectedBriefingIncluded?: boolean;
+}>;
+
+export type AiCapabilitySnapshot = Readonly<{
+  enabled: boolean;
+  contractVersion: string;
+  configuredProviderId: string;
+  configuredModelId: string;
+  configurationVersion: string;
+}>;
+
+export const defaultAiCapabilitySnapshot: AiCapabilitySnapshot = {
+  enabled: true,
+  contractVersion: 'slice-6b-v1',
+  configuredProviderId: 'mock-ai',
+  configuredModelId: 'mock-chat-v1',
+  configurationVersion: '1.0.0',
+};
+
+export const disabledAiCapabilitySnapshot: AiCapabilitySnapshot = {
+  enabled: false,
+  contractVersion: 'slice-6b-v1',
+  configuredProviderId: 'none',
+  configuredModelId: 'none',
+  configurationVersion: '1.0.0',
+};
+
+export const MAXIMUM_PROMPT_LENGTH = 32_768; // 32 KiB
+export const MAXIMUM_EXCERPT_LENGTH = 500;
+
+export const boundExcerpt = (
+  text: string,
+  maxLength: number = MAXIMUM_EXCERPT_LENGTH,
+): string => {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.slice(0, maxLength);
+};
+
+export type AiInteraction = Readonly<{
+  id: string;
+  sessionId: string;
+  clientRequestId: string;
+  status: AiInteractionStatus;
+  configuredProviderId: string;
+  configuredModelId: string;
+  candidatePromptText: string;
+  candidateContext?: readonly CandidateContextAttachment[];
+  delimitContext?: DelimitContextMetadata;
+  capturedResponseText?: string | null;
+  terminalReason?: string | null;
+  errorMessage?: string | null;
+  durationMs?: number | null;
+  createdAt: string;
+  terminalAt?: string | null;
+  startedSequence?: number | null;
+  terminalSequence?: number | null;
+}>;
+
+export class AiInteractionError extends Error {
+  constructor(
+    readonly code:
+      | 'SESSION_NOT_FOUND'
+      | 'SESSION_NOT_ACTIVE'
+      | 'AI_NOT_ENABLED'
+      | 'INVALID_INPUT'
+      | 'INPUT_TOO_LARGE'
+      | 'INVALID_STATE_TRANSITION'
+      | 'INTERACTION_NOT_FOUND',
+    message: string,
+  ) {
+    super(message);
+    this.name = 'AiInteractionError';
+  }
+}
+
+export const isValidAiInteractionTransition = (
+  currentStatus: AiInteractionStatus,
+  nextStatus: AiInteractionStatus,
+): boolean => {
+  if (
+    currentStatus === 'COMPLETED' ||
+    currentStatus === 'CANCELLED' ||
+    currentStatus === 'FAILED'
+  ) {
+    return false;
+  }
+
+  if (currentStatus === 'ADMITTED') {
+    return (
+      nextStatus === 'DISPATCH_STARTED' ||
+      nextStatus === 'CANCELLED' ||
+      nextStatus === 'FAILED'
+    );
+  }
+
+  if (currentStatus === 'DISPATCH_STARTED') {
+    return (
+      nextStatus === 'COMPLETED' ||
+      nextStatus === 'CANCELLED' ||
+      nextStatus === 'FAILED'
+    );
+  }
+
+  return false;
+};

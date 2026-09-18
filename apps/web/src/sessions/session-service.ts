@@ -1,3 +1,7 @@
+import {
+  type AiCapabilitySnapshot,
+  defaultAiCapabilitySnapshot,
+} from '../ai/ai-interaction';
 import { cloneScenarioSemanticSnapshot } from '../scenarios/scenario-semantic-snapshot';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -139,7 +143,10 @@ export class SessionService {
     this.sandboxAdapter = options.sandboxAdapter;
   }
 
-  createSession(options?: { scenarioId?: string }) {
+  createSession(options?: {
+    scenarioId?: string;
+    aiCapability?: AiCapabilitySnapshot | null;
+  }) {
     const candidateToken = this.createToken();
     const scenario =
       options?.scenarioId === scenario001.id ||
@@ -168,6 +175,10 @@ export class SessionService {
       submittedAt: null,
       scenarioType: scenario.type ?? 'single_file',
       submittedDiff: null,
+      aiCapabilitySnapshot:
+        options?.aiCapability !== undefined
+          ? options.aiCapability
+          : defaultAiCapabilitySnapshot,
     };
 
     this.store.create(session);

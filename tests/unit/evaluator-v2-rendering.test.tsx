@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { RoleLensSwitcher } from '../../apps/web/app/evaluator/sessions/[sessionId]/role-lens-switcher';
 import { EvaluatorHeader } from '../../apps/web/app/evaluator/sessions/[sessionId]/evaluator-header';
 import { PlatformNotice } from '../../apps/web/app/evaluator/sessions/[sessionId]/platform-notice';

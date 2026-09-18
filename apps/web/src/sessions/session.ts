@@ -1,3 +1,4 @@
+import type { AiCapabilitySnapshot } from '../ai/ai-interaction';
 import type { ScenarioSnapshot } from '../scenarios/slice-one-scenario';
 
 export type SessionStatus = 'CREATED' | 'ACTIVE' | 'SUBMITTED';
@@ -14,6 +15,7 @@ export type AssessmentSession = Readonly<{
   submittedAt: string | null;
   scenarioType?: 'single_file' | 'multi_file';
   submittedDiff?: string | null;
+  aiCapabilitySnapshot?: AiCapabilitySnapshot | null;
 }>;
 
 export type SubmittedSession = AssessmentSession &

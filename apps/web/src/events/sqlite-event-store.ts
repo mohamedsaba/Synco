@@ -37,37 +37,48 @@ export const eventsSchema = `
 export class SqliteEventStore {
   constructor(private readonly databasePath: string) {}
 
+  static ensureSchema(database: Database.Database): void {
+    database.exec(eventsSchema);
+  }
+
+  appendWithDatabase(
+    database: Database.Database,
+    event: NewSessionEvent,
+  ): SessionEvent {
+    const row = database
+      .prepare(
+        'SELECT COALESCE(MAX(sequence), 0) + 1 AS next_seq FROM assessment_events WHERE session_id = ?',
+      )
+      .get(event.sessionId) as { next_seq: number };
+
+    const sequence = row.next_seq;
+
+    database
+      .prepare(
+        `INSERT INTO assessment_events (
+          id, session_id, sequence, type, timestamp, source, payload
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        event.id,
+        event.sessionId,
+        sequence,
+        event.type,
+        event.timestamp,
+        event.source,
+        JSON.stringify(event.payload),
+      );
+
+    return {
+      ...event,
+      sequence,
+    };
+  }
+
   append(event: NewSessionEvent): SessionEvent {
     return this.withDatabase((database) => {
       const transaction = database.transaction(() => {
-        const row = database
-          .prepare(
-            'SELECT COALESCE(MAX(sequence), 0) + 1 AS next_seq FROM assessment_events WHERE session_id = ?',
-          )
-          .get(event.sessionId) as { next_seq: number };
-
-        const sequence = row.next_seq;
-
-        database
-          .prepare(
-            `INSERT INTO assessment_events (
-              id, session_id, sequence, type, timestamp, source, payload
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          )
-          .run(
-            event.id,
-            event.sessionId,
-            sequence,
-            event.type,
-            event.timestamp,
-            event.source,
-            JSON.stringify(event.payload),
-          );
-
-        return {
-          ...event,
-          sequence,
-        };
+        return this.appendWithDatabase(database, event);
       });
 
       return transaction.immediate();

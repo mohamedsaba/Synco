@@ -97,15 +97,66 @@ Key completed capabilities:
 
 ## Verification evidence
 
-The `npm run verify` pipeline passed on 17 September 2026:
+## Slice 6B completion state
+
+Slice 6B — Candidate AI Evidence Foundation is complete on the working tree. It implements the transactional persistence model and immutable event evidence pipeline for candidate AI interactions:
+
+```text
+candidate AI request
+       │
+       ▼
+AiInteractionService.admitInteraction()
+       │
+       ▼ (atomic SQLite transaction via SqliteTransactionRunner)
+┌──────────────────────────────────────┬──────────────────────────────────────┐
+│  ai_interactions table               │  assessment_events table             │
+│  - status: 'ADMITTED'                │  - type: 'AI_REQUEST_STARTED'        │
+│  - UNIQUE(session_id, client_req_id) │  - monotonically increasing sequence │
+└──────────────────────────────────────┴──────────────────────────────────────┘
+       │
+       ▼ (dispatch transition)
+status: 'DISPATCH_STARTED'
+       │
+       ├───────────────────────────────┬───────────────────────────────┐
+       ▼                               ▼                               ▼
+recordCompletion()              recordCancellation()            recordFailure()
+       │                               │                               │
+       ▼ (atomic transaction)          ▼ (atomic transaction)          ▼ (atomic transaction)
+┌─────────────────────────────┐ ┌─────────────────────────────┐ ┌─────────────────────────────┐
+│ ai_interactions: COMPLETED  │ │ ai_interactions: CANCELLED  │ │ ai_interactions: FAILED     │
+│ events:                     │ │ events:                     │ │ events:                     │
+│  AI_RESPONSE_COMPLETED      │ │  AI_REQUEST_CANCELLED       │ │  AI_REQUEST_FAILED          │
+└─────────────────────────────┘ └─────────────────────────────┘ └─────────────────────────────┘
+```
+
+Key completed capabilities:
+
+1. **`SqliteTransactionRunner`**:
+   - Manages SQLite connection lifecycle, WAL journal mode, 5000ms busy timeout, and atomic multi-store transactions via `database.transaction.immediate()`.
+2. **Operational `ai_interactions` Store**:
+   - Schema enforcing `UNIQUE(session_id, client_request_id)`, indexes on `session_id` and `(session_id, client_request_id)`, storing full prompts, context attachments, response texts, token usage, durations, and error metadata.
+   - Strict state machine: `ADMITTED → DISPATCH_STARTED → COMPLETED | CANCELLED | FAILED`.
+3. **Immutable Event Evidence**:
+   - Append-only event store integration via `appendWithDatabase`, assigning monotonic server sequences within the session for `AI_REQUEST_STARTED`, `AI_RESPONSE_COMPLETED`, `AI_REQUEST_CANCELLED`, and `AI_REQUEST_FAILED`.
+4. **Immutable Per-Session AI Capability Snapshot**:
+   - Persisted in `assessment_sessions.ai_capability_snapshot` at session creation time, ensuring capability configuration is frozen for the duration of the evaluation.
+5. **Atomic Operations in `AiInteractionService`**:
+   - Admission atomically writes `ai_interactions` and `AI_REQUEST_STARTED`.
+   - Completion, cancellation, and failure atomically update interaction status and append their corresponding terminal events.
+   - Comprehensive validation: active session enforcement, capability checks, prompt/excerpt length caps, and idempotency guarantees.
+
+## Verification evidence
+
+The `npm run verify` pipeline passed on 18 September 2026:
 
 - Prettier (`format:check`): passed.
 - ESLint (`lint`): passed with 0 errors and 0 warnings.
 - TypeScript (`typecheck`): passed with 0 errors.
-- Vitest (`test`): 30 test files and 193 tests passed; 5 live LLM integration test files skipped as designed.
+- Vitest (`test`): 32 test files and 226 tests passed; 5 live LLM integration test files skipped as designed.
 - Next.js production build (`build`): passed, optimizing all static routes and dynamic session routes.
 
 ## Accepted limitations and next work
 
 - Evaluator briefings are decision-support artifacts; the human evaluator owns the evaluation verdict.
-- Candidate AI interaction capture (Slice 6) remains unimplemented and requires a separate product contract.
+- Slice 6B implements the persistence, transaction, and event foundation only.
+- Live provider dispatch (Anthropic, OpenAI, NVIDIA NIM), candidate editor sidecar UI, streaming/SSE, patch application, and reconstruction integration remain deferred to Slice 6C.

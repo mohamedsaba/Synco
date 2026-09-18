@@ -441,19 +441,23 @@ The candidate workspace should feel like a working environment, not a questionna
 
 ## 8.1 Minimum Raw Event Types
 
-| **Event Type**       | **Minimum Payload**                                           |
-| -------------------- | ------------------------------------------------------------- |
-| SESSION_STARTED      | session_id, scenario_version, started_at                      |
-| FILE_OPENED          | path                                                          |
-| FILE_CHANGED         | path, change reference or diff reference                      |
-| COMMAND_STARTED      | command_id, command, cwd                                      |
-| COMMAND_FINISHED     | command_id, exit_code, output_ref, duration                   |
-| TEST_RUN             | command_id or test_run_id, framework if known, result summary |
-| AI_PROMPT_SENT       | message_id, text/context refs                                 |
-| AI_RESPONSE_RECEIVED | message_id, parent prompt id, response text/ref               |
-| AI_CONTENT_INSERTED  | message_id, target path/location, inserted content/ref        |
-| SESSION_SUBMITTED    | submitted_at                                                  |
-| SESSION_EXPIRED      | expired_at                                                    |
+| **Event Type**        | **Minimum Payload**                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------------- |
+| SESSION_STARTED       | session_id, scenario_version, started_at                                                    |
+| FILE_OPENED           | path                                                                                        |
+| FILE_CHANGED          | path, change reference or diff reference                                                    |
+| COMMAND_STARTED       | command_id, command, cwd                                                                    |
+| COMMAND_FINISHED      | command_id, exit_code, output_ref, duration                                                 |
+| TEST_RUN              | command_id or test_run_id, framework if known, result summary                               |
+| AI_REQUEST_STARTED    | interactionId, clientRequestId, provider, model, prompt, candidateContext, delimitContext   |
+| AI_RESPONSE_COMPLETED | interactionId, provider, model, promptTokens, completionTokens, durationMs, responseExcerpt |
+| AI_REQUEST_CANCELLED  | interactionId, reason, cancelledAt                                                          |
+| AI_REQUEST_FAILED     | interactionId, errorCode, errorMessage, failedAt                                            |
+| AI_PROMPT_SENT        | (Legacy conceptual) message_id, text/context refs                                           |
+| AI_RESPONSE_RECEIVED  | (Legacy conceptual) message_id, parent prompt id, response text/ref                         |
+| AI_CONTENT_INSERTED   | (Deferred) message_id, target path/location, inserted content/ref                           |
+| SESSION_SUBMITTED     | submitted_at                                                                                |
+| SESSION_EXPIRED       | expired_at                                                                                  |
 
 ## 8.2 Permitted Derived Signals
 
@@ -864,7 +868,7 @@ Illustrative fields; exact database design remains an implementation decision.
 
 - Tests: TEST_RUN, TEST_RESULT or normalized test metadata attached to command completion
 
-- AI: AI_PROMPT_SENT, AI_RESPONSE_RECEIVED, AI_CONTENT_INSERTED
+- AI: AI_REQUEST_STARTED, AI_RESPONSE_COMPLETED, AI_REQUEST_CANCELLED, AI_REQUEST_FAILED (Slice 6B frozen runtime events; legacy conceptual: AI_PROMPT_SENT, AI_RESPONSE_RECEIVED, AI_CONTENT_INSERTED)
 
 - System: SANDBOX_READY, SANDBOX_TERMINATED, PLATFORM_ERROR
 

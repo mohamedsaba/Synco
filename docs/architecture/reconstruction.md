@@ -27,6 +27,15 @@ An authoritative `test_summary` fact is presented as a `Test run` milestone with
 
 Every statement is constructed by Delimit from typed data and carries the exact evidence references that produced that fact. Candidate Work presents short milestone copy; exact commands, output, exit status, tree hashes, sequences, and patches stay in evidence expansion. A multi-reference statement is permitted only for one maximal consecutive run of ordinary workspace transitions; its count, affected paths, and membership are deterministic, and evidence expansion exposes every contributing reference. Aggregation never crosses a command, reversion, out-of-band change, or evidence gap. There is no entry point for arbitrary factual prose. Repeated template text is valid when distinct references record repeated actions.
 
+### Candidate AI Evidence in Reconstruction (Slice 6B Boundary)
+
+Slice 6B introduces the foundational persistence layer (`ai_interactions`) and four raw event types (`AI_REQUEST_STARTED`, `AI_RESPONSE_COMPLETED`, `AI_REQUEST_CANCELLED`, `AI_REQUEST_FAILED`). However, Slice 6B deliberately preserves the existing reconstruction and briefing pipeline without modification:
+
+- `TypedEvidenceFact` and semantic fact extraction do not yet parse AI events.
+- Candidate Work generation continues to reflect workspace transitions, command executions, test runs, evidence gaps, and session milestones.
+- Role projections in Evaluator Experience v2 remain unchanged.
+- AI events are recorded in append-only event storage and operational interaction tables, awaiting subsequent integration in the reconstruction layer.
+
 ## Lifecycles and persistence
 
 Candidate-session state and reconstruction state remain separate. A successful candidate session follows `CREATED → ACTIVE → SUBMITTED`; submission freezes final evidence and closes candidate mutation.

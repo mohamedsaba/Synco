@@ -318,6 +318,19 @@ const mockBriefing: EvaluatorBriefing = {
       },
     },
   ],
+  aiSummary: {
+    capabilityState: 'active',
+    configuredModelId: 'claude-3-5-sonnet',
+    configuredProviderId: 'mock-provider',
+    totalInteractions: 0,
+    completedCount: 0,
+    failedCount: 0,
+    cancelledCount: 0,
+    providerInterruptionNotice: null,
+    interleaved: false,
+    summaryText:
+      'AI capability was active for this assessment. No integrated AI interactions were recorded.',
+  },
 };
 
 const mockReview: EvaluatorReviewPresentation = {

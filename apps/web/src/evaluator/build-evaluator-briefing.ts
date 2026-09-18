@@ -28,10 +28,144 @@ import type {
   EvaluatorBriefing,
   ObservedStatement,
   BriefingSessionDuration,
+  BriefingAiSummary,
 } from './evaluator-briefing';
+import type { ReconstructionItem } from '../evidence/chronological-reconstruction';
+import type { EvidenceCatalogEntry } from '../reconstruction/evidence-reference-catalog';
+import type { TypedEvidenceFact } from '../reconstruction/typed-evidence-fact';
+import type { AiCapabilitySnapshot } from '../ai/ai-interaction';
 
 export const briefingBuilderVersion = 'evaluator-briefing-v2';
 export const briefingProjectionVersion = 'briefing-depth-v2';
+
+export const buildBriefingAiSummary = (
+  snapshot: AiCapabilitySnapshot | null | undefined,
+  facts: readonly {
+    entry: EvidenceCatalogEntry;
+    fact: TypedEvidenceFact | null;
+  }[],
+  chronology: readonly ReconstructionItem[],
+): BriefingAiSummary => {
+  if (snapshot === undefined || snapshot === null) {
+    return {
+      capabilityState: 'legacy',
+      configuredModelId: null,
+      configuredProviderId: null,
+      totalInteractions: 0,
+      completedCount: 0,
+      failedCount: 0,
+      cancelledCount: 0,
+      providerInterruptionNotice: null,
+      interleaved: false,
+      summaryText: 'AI capture was not available for this session version.',
+    };
+  }
+
+  if (!snapshot.enabled) {
+    return {
+      capabilityState: 'disabled',
+      configuredModelId: snapshot.configuredModelId ?? null,
+      configuredProviderId: snapshot.configuredProviderId ?? null,
+      totalInteractions: 0,
+      completedCount: 0,
+      failedCount: 0,
+      cancelledCount: 0,
+      providerInterruptionNotice: null,
+      interleaved: false,
+      summaryText: 'Integrated AI capability was disabled for this assessment.',
+    };
+  }
+
+  const interactionIds = new Set<string>();
+  let completedCount = 0;
+  let failedCount = 0;
+  let cancelledCount = 0;
+  let hasProviderError = false;
+  let hasTimeout = false;
+
+  for (const { fact } of facts) {
+    if (!fact) continue;
+    if (fact.kind === 'ai_request_started') {
+      interactionIds.add(fact.interactionId);
+    } else if (fact.kind === 'ai_response_completed') {
+      interactionIds.add(fact.interactionId);
+      completedCount++;
+    } else if (fact.kind === 'ai_request_cancelled') {
+      interactionIds.add(fact.interactionId);
+      cancelledCount++;
+    } else if (fact.kind === 'ai_request_failed') {
+      interactionIds.add(fact.interactionId);
+      failedCount++;
+      if (
+        fact.failureReason === 'provider_error' ||
+        fact.failureReason === 'provider_disconnected'
+      ) {
+        hasProviderError = true;
+      } else if (
+        fact.failureReason === 'timeout' ||
+        fact.failureReason === 'server_timeout'
+      ) {
+        hasTimeout = true;
+      }
+    }
+  }
+
+  const totalInteractions = interactionIds.size;
+  const providerInterruptionNotice = hasProviderError
+    ? 'An external AI provider error was recorded during this session.'
+    : hasTimeout
+      ? 'An external AI provider timeout was recorded during this session.'
+      : null;
+
+  const isAiItem = (item: ReconstructionItem) =>
+    item.kind === 'AI_REQUEST_STARTED' ||
+    item.kind === 'AI_RESPONSE_COMPLETED' ||
+    item.kind === 'AI_REQUEST_CANCELLED' ||
+    item.kind === 'AI_REQUEST_FAILED';
+
+  const isCandidateWorkItem = (item: ReconstructionItem) =>
+    item.kind === 'WORKSPACE_CHANGE' || item.kind === 'COMMAND_EXECUTION';
+
+  const activityItems = chronology.filter(
+    (item) => isAiItem(item) || isCandidateWorkItem(item),
+  );
+  let transitions = 0;
+  for (let i = 1; i < activityItems.length; i++) {
+    if (isAiItem(activityItems[i]) !== isAiItem(activityItems[i - 1])) {
+      transitions++;
+    }
+  }
+  const interleaved = transitions >= 1 && totalInteractions > 0;
+
+  let summaryText =
+    'AI capability was active for this assessment. No integrated AI interactions were recorded.';
+  if (totalInteractions > 0) {
+    const parts = [
+      `${totalInteractions} recorded AI interaction${totalInteractions === 1 ? '' : 's'}`,
+      `${completedCount} completed`,
+    ];
+    if (cancelledCount > 0) {
+      parts.push(`${cancelledCount} cancelled`);
+    }
+    if (failedCount > 0) {
+      parts.push(`${failedCount} failed`);
+    }
+    summaryText = parts.join(' · ');
+  }
+
+  return {
+    capabilityState: 'active',
+    configuredModelId: snapshot.configuredModelId ?? null,
+    configuredProviderId: snapshot.configuredProviderId ?? null,
+    totalInteractions,
+    completedCount,
+    failedCount,
+    cancelledCount,
+    providerInterruptionNotice,
+    interleaved,
+    summaryText,
+  };
+};
 
 export const formatSessionDuration = (
   activatedAt: string | null,
@@ -243,5 +377,10 @@ export const buildEvaluatorBriefing = (
         ? { kind: 'chronology' as const, item: entry.item }
         : { kind: 'submitted_diff' as const, diff: evidence.diff },
     })),
+    aiSummary: buildBriefingAiSummary(
+      evidence.aiCapabilitySnapshot,
+      facts,
+      chronology,
+    ),
   });
 };

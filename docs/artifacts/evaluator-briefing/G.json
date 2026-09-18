@@ -615,7 +615,19 @@
           "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
         }
       }
-    ]
+    ],
+    "aiSummary": {
+      "capabilityState": "legacy",
+      "configuredModelId": null,
+      "configuredProviderId": null,
+      "totalInteractions": 0,
+      "completedCount": 0,
+      "failedCount": 0,
+      "cancelledCount": 0,
+      "providerInterruptionNotice": null,
+      "interleaved": false,
+      "summaryText": "AI capture was not available for this session version."
+    }
   },
   "projections": {
     "GENERALIST_RECRUITER": {
@@ -1190,7 +1202,19 @@
               "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
             }
           }
-        ]
+        ],
+        "aiSummary": {
+          "capabilityState": "legacy",
+          "configuredModelId": null,
+          "configuredProviderId": null,
+          "totalInteractions": 0,
+          "completedCount": 0,
+          "failedCount": 0,
+          "cancelledCount": 0,
+          "providerInterruptionNotice": null,
+          "interleaved": false,
+          "summaryText": "AI capture was not available for this session version."
+        }
       },
       "defaultDepth": {
         "structuredEvidence": false,
@@ -1202,7 +1226,10 @@
         "evidenceLimitations": false,
         "artifactAvailability": false,
         "reviewGuidance": true,
-        "directEvidenceLinks": false
+        "directEvidenceLinks": false,
+        "aiSummary": true,
+        "aiConfiguredModel": false,
+        "aiTokenTelemetry": false
       },
       "expandedEvidenceRefs": []
     },
@@ -1824,7 +1851,19 @@
               "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
             }
           }
-        ]
+        ],
+        "aiSummary": {
+          "capabilityState": "legacy",
+          "configuredModelId": null,
+          "configuredProviderId": null,
+          "totalInteractions": 0,
+          "completedCount": 0,
+          "failedCount": 0,
+          "cancelledCount": 0,
+          "providerInterruptionNotice": null,
+          "interleaved": false,
+          "summaryText": "AI capture was not available for this session version."
+        }
       },
       "defaultDepth": {
         "structuredEvidence": true,
@@ -1836,7 +1875,10 @@
         "evidenceLimitations": false,
         "artifactAvailability": false,
         "reviewGuidance": true,
-        "directEvidenceLinks": true
+        "directEvidenceLinks": true,
+        "aiSummary": true,
+        "aiConfiguredModel": true,
+        "aiTokenTelemetry": false
       },
       "expandedEvidenceRefs": []
     },
@@ -2458,7 +2500,19 @@
               "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
             }
           }
-        ]
+        ],
+        "aiSummary": {
+          "capabilityState": "legacy",
+          "configuredModelId": null,
+          "configuredProviderId": null,
+          "totalInteractions": 0,
+          "completedCount": 0,
+          "failedCount": 0,
+          "cancelledCount": 0,
+          "providerInterruptionNotice": null,
+          "interleaved": false,
+          "summaryText": "AI capture was not available for this session version."
+        }
       },
       "defaultDepth": {
         "structuredEvidence": true,
@@ -2470,7 +2524,10 @@
         "evidenceLimitations": true,
         "artifactAvailability": true,
         "reviewGuidance": true,
-        "directEvidenceLinks": true
+        "directEvidenceLinks": true,
+        "aiSummary": true,
+        "aiConfiguredModel": true,
+        "aiTokenTelemetry": true
       },
       "expandedEvidenceRefs": [
         "session:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:activated",
@@ -3073,7 +3130,19 @@
               "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..8a9818c 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -31,3 +31,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+# evaluator gate fixture note\n"
             }
           }
-        ]
+        ],
+        "aiSummary": {
+          "capabilityState": "legacy",
+          "configuredModelId": null,
+          "configuredProviderId": null,
+          "totalInteractions": 0,
+          "completedCount": 0,
+          "failedCount": 0,
+          "cancelledCount": 0,
+          "providerInterruptionNotice": null,
+          "interleaved": false,
+          "summaryText": "AI capture was not available for this session version."
+        }
       },
       "defaultDepth": {
         "structuredEvidence": false,
@@ -3085,7 +3154,10 @@
         "evidenceLimitations": true,
         "artifactAvailability": true,
         "reviewGuidance": true,
-        "directEvidenceLinks": true
+        "directEvidenceLinks": true,
+        "aiSummary": true,
+        "aiConfiguredModel": true,
+        "aiTokenTelemetry": false
       },
       "expandedEvidenceRefs": []
     }

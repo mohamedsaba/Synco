@@ -47,6 +47,48 @@ export const mapBriefingObservation = (
       wording: { key: 'workspace_gap' },
       unsupportedReadMapping: false,
     };
+  if (fact.kind === 'ai_request_started') {
+    return {
+      kind: 'recorded_ai_request',
+      scope: 'recorded_execution',
+      mapping: genericMapping,
+      wording: { key: 'ai_request_started' },
+      unsupportedReadMapping: false,
+    };
+  }
+  if (fact.kind === 'ai_response_completed') {
+    return {
+      kind: 'recorded_ai_response',
+      scope: 'recorded_execution',
+      mapping: genericMapping,
+      wording: { key: 'ai_response_completed' },
+      unsupportedReadMapping: false,
+    };
+  }
+  if (fact.kind === 'ai_request_cancelled') {
+    return {
+      kind: 'recorded_ai_cancellation',
+      scope: 'recorded_execution',
+      mapping: genericMapping,
+      wording: {
+        key: 'ai_request_cancelled',
+        cancelReason: fact.cancelReason,
+      },
+      unsupportedReadMapping: false,
+    };
+  }
+  if (fact.kind === 'ai_request_failed') {
+    return {
+      kind: 'recorded_ai_failure',
+      scope: 'recorded_execution',
+      mapping: genericMapping,
+      wording: {
+        key: 'ai_request_failed',
+        failureReason: fact.failureReason,
+      },
+      unsupportedReadMapping: false,
+    };
+  }
   if (fact.kind === 'workspace_change') {
     if (returnedToPriorTree)
       return {

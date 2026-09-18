@@ -213,7 +213,10 @@ Default detail:
   "evidenceLimitations": false,
   "artifactAvailability": false,
   "reviewGuidance": true,
-  "directEvidenceLinks": false
+  "directEvidenceLinks": false,
+  "aiSummary": true,
+  "aiConfiguredModel": false,
+  "aiTokenTelemetry": false
 }
 ```
 
@@ -251,7 +254,10 @@ Default detail:
   "evidenceLimitations": false,
   "artifactAvailability": false,
   "reviewGuidance": true,
-  "directEvidenceLinks": true
+  "directEvidenceLinks": true,
+  "aiSummary": true,
+  "aiConfiguredModel": true,
+  "aiTokenTelemetry": false
 }
 ```
 
@@ -291,7 +297,10 @@ Default detail:
   "evidenceLimitations": true,
   "artifactAvailability": true,
   "reviewGuidance": true,
-  "directEvidenceLinks": true
+  "directEvidenceLinks": true,
+  "aiSummary": true,
+  "aiConfiguredModel": true,
+  "aiTokenTelemetry": true
 }
 ```
 
@@ -331,7 +340,10 @@ Default detail:
   "evidenceLimitations": true,
   "artifactAvailability": true,
   "reviewGuidance": true,
-  "directEvidenceLinks": true
+  "directEvidenceLinks": true,
+  "aiSummary": true,
+  "aiConfiguredModel": true,
+  "aiTokenTelemetry": false
 }
 ```
 

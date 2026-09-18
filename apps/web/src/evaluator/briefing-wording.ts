@@ -24,8 +24,12 @@ export type BriefingWording =
         | 'terminal_activity_before_edit'
         | 'terminal_activity_after_edit'
         | 'terminal_activity'
-        | 'test_run_before_submission';
+        | 'test_run_before_submission'
+        | 'ai_request_started'
+        | 'ai_response_completed';
     }
+  | { key: 'ai_request_cancelled'; cancelReason?: string }
+  | { key: 'ai_request_failed'; failureReason?: string }
   | { key: 'workspace_edit'; path?: string }
   | { key: 'bound_read' | 'related_edit'; subject: NeutralSubject }
   | {
@@ -71,6 +75,8 @@ const literalTemplates = {
     'Recorded terminal activity occurred after the code change.',
   terminal_activity: 'Recorded terminal activity occurred.',
   test_run_before_submission: 'A test run was recorded before submission.',
+  ai_request_started: 'An AI request was recorded.',
+  ai_response_completed: 'An AI response was recorded.',
 } as const;
 
 const count = (value: number) => {
@@ -116,6 +122,33 @@ export const renderBriefingWording = (wording: BriefingWording): string => {
           ? `${failed} failures`
           : `${failed} failures and ${passed} passes`;
     return `${position} recorded test run reported ${result}.`;
+  }
+  if (wording.key === 'ai_request_cancelled') {
+    if (wording.cancelReason === 'candidate_requested_cancel') {
+      return 'Candidate requested cancellation of the AI request.';
+    }
+    if (wording.cancelReason === 'session_ended') {
+      return 'An AI request was cancelled when the session ended.';
+    }
+    return 'An AI request was cancelled.';
+  }
+  if (wording.key === 'ai_request_failed') {
+    if (
+      wording.failureReason === 'provider_error' ||
+      wording.failureReason === 'provider_disconnected'
+    ) {
+      return 'An AI request ended with a provider error.';
+    }
+    if (
+      wording.failureReason === 'server_timeout' ||
+      wording.failureReason === 'timeout'
+    ) {
+      return 'An AI request timed out.';
+    }
+    if (wording.failureReason === 'server_error') {
+      return 'An AI request ended with a server error.';
+    }
+    return 'An AI request ended with a recorded error.';
   }
   return literalTemplates[wording.key];
 };

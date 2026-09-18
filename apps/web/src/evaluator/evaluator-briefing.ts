@@ -2,12 +2,16 @@ import type { SessionService } from '../sessions/session-service';
 import type { EvidenceReconstructionRecord } from '../reconstruction/evidence-reconstruction';
 import type { ReconstructionItem } from '../evidence/chronological-reconstruction';
 import type { TypedEvidenceFact } from '../reconstruction/typed-evidence-fact';
+import type { AiCapabilitySnapshot } from '../ai/ai-interaction';
 import type { BriefingWording } from './briefing-wording';
 
 export type BriefingEvidenceInput = Pick<
   ReturnType<SessionService['getSubmittedEvidence']>,
   'sessionId' | 'scenario' | 'activatedAt' | 'submittedAt' | 'diff' | 'events'
->;
+> &
+  Readonly<{
+    aiCapabilitySnapshot?: AiCapabilitySnapshot | null;
+  }>;
 export type BriefingReconstructionInput = Readonly<{
   status: 'NOT_STARTED' | 'PENDING' | 'AVAILABLE' | 'FAILED';
   record:
@@ -44,7 +48,26 @@ export type ObservationKind =
   | 'recorded_workspace_edit'
   | 'recorded_return_to_prior_tree'
   | 'recorded_submission'
-  | 'workspace_capture_gap';
+  | 'workspace_capture_gap'
+  | 'recorded_ai_request'
+  | 'recorded_ai_response'
+  | 'recorded_ai_cancellation'
+  | 'recorded_ai_failure';
+
+export type BriefingAiCapabilityState = 'active' | 'disabled' | 'legacy';
+
+export type BriefingAiSummary = Readonly<{
+  capabilityState: BriefingAiCapabilityState;
+  configuredModelId: string | null;
+  configuredProviderId: string | null;
+  totalInteractions: number;
+  completedCount: number;
+  failedCount: number;
+  cancelledCount: number;
+  providerInterruptionNotice: string | null;
+  interleaved: boolean;
+  summaryText: string;
+}>;
 export type ObservedStatement = GroundedText &
   Readonly<{
     kind: ObservationKind;
@@ -202,4 +225,5 @@ export type EvaluatorBriefing = Readonly<{
   artifactAvailability: ArtifactAvailability;
   reviewGuidance: readonly PolicyGuidance[];
   evidenceIndex: EvidenceReferenceIndex;
+  aiSummary: BriefingAiSummary;
 }>;

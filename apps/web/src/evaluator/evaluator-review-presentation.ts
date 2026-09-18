@@ -39,6 +39,8 @@ export type EvaluatorReviewEvidence = Readonly<{
   submittedAt: string;
   diff: string;
   events: readonly SessionEvent[];
+  aiCapabilitySnapshot?:
+    import('../ai/ai-interaction').AiCapabilitySnapshot | null;
 }>;
 
 export type SummaryMilestoneKind =
@@ -50,7 +52,11 @@ export type SummaryMilestoneKind =
   | 'capture_incomplete'
   | 'submitted'
   | 'submitted_state'
-  | 'recorded_activity';
+  | 'recorded_activity'
+  | 'ai_request'
+  | 'ai_response'
+  | 'ai_cancellation'
+  | 'ai_failure';
 
 export type SummaryMilestone = Readonly<{
   id: string;
@@ -89,6 +95,8 @@ export type EvaluatorReviewPresentation = Readonly<{
   chronology: readonly ReconstructionItem[];
   evidenceEntries: readonly EvidenceCatalogEntry[];
   submittedDiff: string;
+  aiCapabilitySnapshot?:
+    import('../ai/ai-interaction').AiCapabilitySnapshot | null;
 }>;
 
 export const notObservedExplanation =
@@ -200,6 +208,18 @@ const classifyStatement = (
   ) {
     return { kind: 'command' as const, text: statement.text };
   }
+  if (entries.some((entry) => entry.kind === 'ai_request_started')) {
+    return { kind: 'ai_request' as const, text: statement.text };
+  }
+  if (entries.some((entry) => entry.kind === 'ai_response_completed')) {
+    return { kind: 'ai_response' as const, text: statement.text };
+  }
+  if (entries.some((entry) => entry.kind === 'ai_request_cancelled')) {
+    return { kind: 'ai_cancellation' as const, text: statement.text };
+  }
+  if (entries.some((entry) => entry.kind === 'ai_request_failed')) {
+    return { kind: 'ai_failure' as const, text: statement.text };
+  }
   return { kind: 'recorded_activity' as const, text: statement.text };
 };
 
@@ -229,6 +249,10 @@ const milestoneLabel = (
     submitted: 'Submitted',
     submitted_state: 'Submitted state',
     recorded_activity: 'Recorded activity',
+    ai_request: 'AI request',
+    ai_response: 'AI response',
+    ai_cancellation: 'AI cancellation',
+    ai_failure: 'AI failure',
   };
   return labels[kind];
 };
@@ -352,5 +376,6 @@ export const buildEvaluatorReviewPresentation = (
     chronology,
     evidenceEntries: catalog.entries,
     submittedDiff: evidence.diff,
+    aiCapabilitySnapshot: evidence.aiCapabilitySnapshot ?? null,
   };
 };

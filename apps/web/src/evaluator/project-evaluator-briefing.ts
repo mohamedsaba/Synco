@@ -27,6 +27,9 @@ export type BriefingDefaultDepth = Readonly<{
   artifactAvailability: boolean;
   reviewGuidance: boolean;
   directEvidenceLinks: boolean;
+  aiSummary: boolean;
+  aiConfiguredModel: boolean;
+  aiTokenTelemetry: boolean;
 }>;
 
 const depth: Record<BriefingDepthProfile, BriefingDefaultDepth> = {
@@ -41,6 +44,9 @@ const depth: Record<BriefingDepthProfile, BriefingDefaultDepth> = {
     artifactAvailability: false,
     reviewGuidance: true,
     directEvidenceLinks: false,
+    aiSummary: true,
+    aiConfiguredModel: false,
+    aiTokenTelemetry: false,
   },
   TECHNICAL_RECRUITER: {
     structuredEvidence: true,
@@ -53,6 +59,9 @@ const depth: Record<BriefingDepthProfile, BriefingDefaultDepth> = {
     artifactAvailability: false,
     reviewGuidance: true,
     directEvidenceLinks: true,
+    aiSummary: true,
+    aiConfiguredModel: true,
+    aiTokenTelemetry: false,
   },
   ENGINEER: {
     structuredEvidence: true,
@@ -65,6 +74,9 @@ const depth: Record<BriefingDepthProfile, BriefingDefaultDepth> = {
     artifactAvailability: true,
     reviewGuidance: true,
     directEvidenceLinks: true,
+    aiSummary: true,
+    aiConfiguredModel: true,
+    aiTokenTelemetry: true,
   },
   ENGINEERING_MANAGER: {
     structuredEvidence: false,
@@ -77,6 +89,9 @@ const depth: Record<BriefingDepthProfile, BriefingDefaultDepth> = {
     artifactAvailability: true,
     reviewGuidance: true,
     directEvidenceLinks: true,
+    aiSummary: true,
+    aiConfiguredModel: true,
+    aiTokenTelemetry: false,
   },
 } as const;
 
@@ -173,6 +188,26 @@ const sanitizeEvidenceIndexForRole = (
   return index;
 };
 
+const sanitizeAiSummaryForRole = (
+  summary: EvaluatorBriefing['aiSummary'],
+  profile: BriefingDepthProfile,
+): EvaluatorBriefing['aiSummary'] => {
+  if (profile === 'GENERALIST_RECRUITER') {
+    return {
+      ...summary,
+      configuredModelId: null,
+      configuredProviderId: null,
+    };
+  }
+  if (profile === 'TECHNICAL_RECRUITER' || profile === 'ENGINEERING_MANAGER') {
+    return {
+      ...summary,
+      configuredProviderId: null,
+    };
+  }
+  return summary;
+};
+
 export const projectBriefing = (
   briefing: EvaluatorBriefing,
   profile: BriefingDepthProfile,
@@ -198,6 +233,7 @@ export const projectBriefing = (
       briefing.evidenceIndex,
       profile,
     ),
+    aiSummary: sanitizeAiSummaryForRole(briefing.aiSummary, profile),
   };
 
   return {
@@ -206,7 +242,9 @@ export const projectBriefing = (
     profile,
     briefing: roleBriefing,
     defaultDepth: depth[profile],
-    // All profiles retain the full index and direct source access. Expansion is presentation only.
+    // Presentation contract: The abstraction level may change. The underlying truth may not.
+    // All profiles retain the full index and direct source access. Technical evidence remains available
+    // through the technical record even if the role projection does not display every field by default.
     expandedEvidenceRefs: depth[profile].technicalRecord
       ? briefing.evidenceIndex.map((entry) => entry.evidenceRef)
       : [],

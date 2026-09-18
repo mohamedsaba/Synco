@@ -773,6 +773,7 @@ export class SessionService {
       submittedContent: submitted.submittedContent,
       diff,
       events,
+      aiCapabilitySnapshot: submitted.aiCapabilitySnapshot ?? null,
     };
   }
 

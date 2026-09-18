@@ -71,6 +71,11 @@ export const EvaluatorExperience = ({
           activities={briefing.observedActivity}
           evidenceEntries={review.evidenceEntries}
           showDetailedTechnical={defaultDepth.technicalFootprint}
+          aiSummary={defaultDepth.aiSummary ? briefing.aiSummary : undefined}
+          showConfiguredModel={defaultDepth.aiConfiguredModel}
+          showTokenTelemetry={defaultDepth.aiTokenTelemetry}
+          activeRole={activeRole}
+          activatedAt={evidence.activatedAt}
         />
 
         {/* 4. Submitted Code Changes */}

@@ -1074,7 +1074,19 @@
           "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..f988329 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -1,27 +1,23 @@\n from inventory.db import query_one, execute\n-from inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n+from inventory.cache import get_cached_stock, set_cached_stock, normalize_storefront_warehouse\n \n def get_stock(warehouse_id: str, product_id: str) -> int:\n-    # 1. Check storefront cache\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     cached = get_cached_stock(warehouse_id, product_id)\n     if cached is not None:\n         return cached\n-\n-    # 2. Cache miss -> query authoritative database\n     row = query_one(\n         \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n         (warehouse_id, product_id)\n     )\n     if not row:\n         return 0\n-\n     quantity = int(row[\"quantity\"])\n-    # 3. Cache for subsequent reads\n     set_cached_stock(warehouse_id, product_id, quantity)\n     return quantity\n \n def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n-    # Update authoritative database record\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     execute(\n         \"\"\"\n         INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n@@ -31,3 +27,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+    set_cached_stock(warehouse_id, product_id, new_quantity)\n"
         }
       }
-    ]
+    ],
+    "aiSummary": {
+      "capabilityState": "legacy",
+      "configuredModelId": null,
+      "configuredProviderId": null,
+      "totalInteractions": 0,
+      "completedCount": 0,
+      "failedCount": 0,
+      "cancelledCount": 0,
+      "providerInterruptionNotice": null,
+      "interleaved": false,
+      "summaryText": "AI capture was not available for this session version."
+    }
   },
   "projections": {
     "GENERALIST_RECRUITER": {
@@ -2080,7 +2092,19 @@
               "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..f988329 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -1,27 +1,23 @@\n from inventory.db import query_one, execute\n-from inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n+from inventory.cache import get_cached_stock, set_cached_stock, normalize_storefront_warehouse\n \n def get_stock(warehouse_id: str, product_id: str) -> int:\n-    # 1. Check storefront cache\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     cached = get_cached_stock(warehouse_id, product_id)\n     if cached is not None:\n         return cached\n-\n-    # 2. Cache miss -> query authoritative database\n     row = query_one(\n         \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n         (warehouse_id, product_id)\n     )\n     if not row:\n         return 0\n-\n     quantity = int(row[\"quantity\"])\n-    # 3. Cache for subsequent reads\n     set_cached_stock(warehouse_id, product_id, quantity)\n     return quantity\n \n def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n-    # Update authoritative database record\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     execute(\n         \"\"\"\n         INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n@@ -31,3 +27,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+    set_cached_stock(warehouse_id, product_id, new_quantity)\n"
             }
           }
-        ]
+        ],
+        "aiSummary": {
+          "capabilityState": "legacy",
+          "configuredModelId": null,
+          "configuredProviderId": null,
+          "totalInteractions": 0,
+          "completedCount": 0,
+          "failedCount": 0,
+          "cancelledCount": 0,
+          "providerInterruptionNotice": null,
+          "interleaved": false,
+          "summaryText": "AI capture was not available for this session version."
+        }
       },
       "defaultDepth": {
         "structuredEvidence": false,
@@ -2092,7 +2116,10 @@
         "evidenceLimitations": false,
         "artifactAvailability": false,
         "reviewGuidance": true,
-        "directEvidenceLinks": false
+        "directEvidenceLinks": false,
+        "aiSummary": true,
+        "aiConfiguredModel": false,
+        "aiTokenTelemetry": false
       },
       "expandedEvidenceRefs": []
     },
@@ -3173,7 +3200,19 @@
               "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..f988329 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -1,27 +1,23 @@\n from inventory.db import query_one, execute\n-from inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n+from inventory.cache import get_cached_stock, set_cached_stock, normalize_storefront_warehouse\n \n def get_stock(warehouse_id: str, product_id: str) -> int:\n-    # 1. Check storefront cache\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     cached = get_cached_stock(warehouse_id, product_id)\n     if cached is not None:\n         return cached\n-\n-    # 2. Cache miss -> query authoritative database\n     row = query_one(\n         \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n         (warehouse_id, product_id)\n     )\n     if not row:\n         return 0\n-\n     quantity = int(row[\"quantity\"])\n-    # 3. Cache for subsequent reads\n     set_cached_stock(warehouse_id, product_id, quantity)\n     return quantity\n \n def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n-    # Update authoritative database record\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     execute(\n         \"\"\"\n         INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n@@ -31,3 +27,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+    set_cached_stock(warehouse_id, product_id, new_quantity)\n"
             }
           }
-        ]
+        ],
+        "aiSummary": {
+          "capabilityState": "legacy",
+          "configuredModelId": null,
+          "configuredProviderId": null,
+          "totalInteractions": 0,
+          "completedCount": 0,
+          "failedCount": 0,
+          "cancelledCount": 0,
+          "providerInterruptionNotice": null,
+          "interleaved": false,
+          "summaryText": "AI capture was not available for this session version."
+        }
       },
       "defaultDepth": {
         "structuredEvidence": true,
@@ -3185,7 +3224,10 @@
         "evidenceLimitations": false,
         "artifactAvailability": false,
         "reviewGuidance": true,
-        "directEvidenceLinks": true
+        "directEvidenceLinks": true,
+        "aiSummary": true,
+        "aiConfiguredModel": true,
+        "aiTokenTelemetry": false
       },
       "expandedEvidenceRefs": []
     },
@@ -4266,7 +4308,19 @@
               "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..f988329 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -1,27 +1,23 @@\n from inventory.db import query_one, execute\n-from inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n+from inventory.cache import get_cached_stock, set_cached_stock, normalize_storefront_warehouse\n \n def get_stock(warehouse_id: str, product_id: str) -> int:\n-    # 1. Check storefront cache\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     cached = get_cached_stock(warehouse_id, product_id)\n     if cached is not None:\n         return cached\n-\n-    # 2. Cache miss -> query authoritative database\n     row = query_one(\n         \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n         (warehouse_id, product_id)\n     )\n     if not row:\n         return 0\n-\n     quantity = int(row[\"quantity\"])\n-    # 3. Cache for subsequent reads\n     set_cached_stock(warehouse_id, product_id, quantity)\n     return quantity\n \n def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n-    # Update authoritative database record\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     execute(\n         \"\"\"\n         INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n@@ -31,3 +27,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+    set_cached_stock(warehouse_id, product_id, new_quantity)\n"
             }
           }
-        ]
+        ],
+        "aiSummary": {
+          "capabilityState": "legacy",
+          "configuredModelId": null,
+          "configuredProviderId": null,
+          "totalInteractions": 0,
+          "completedCount": 0,
+          "failedCount": 0,
+          "cancelledCount": 0,
+          "providerInterruptionNotice": null,
+          "interleaved": false,
+          "summaryText": "AI capture was not available for this session version."
+        }
       },
       "defaultDepth": {
         "structuredEvidence": true,
@@ -4278,7 +4332,10 @@
         "evidenceLimitations": true,
         "artifactAvailability": true,
         "reviewGuidance": true,
-        "directEvidenceLinks": true
+        "directEvidenceLinks": true,
+        "aiSummary": true,
+        "aiConfiguredModel": true,
+        "aiTokenTelemetry": true
       },
       "expandedEvidenceRefs": [
         "session:ddd5ad93-4144-407e-a11f-5934044ebcfa:activated",
@@ -5334,7 +5391,19 @@
               "diff": "diff --git a/inventory/service.py b/inventory/service.py\nindex 68e77d1..f988329 100644\n--- a/inventory/service.py\n+++ b/inventory/service.py\n@@ -1,27 +1,23 @@\n from inventory.db import query_one, execute\n-from inventory.cache import get_cached_stock, set_cached_stock, invalidate_cached_stock\n+from inventory.cache import get_cached_stock, set_cached_stock, normalize_storefront_warehouse\n \n def get_stock(warehouse_id: str, product_id: str) -> int:\n-    # 1. Check storefront cache\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     cached = get_cached_stock(warehouse_id, product_id)\n     if cached is not None:\n         return cached\n-\n-    # 2. Cache miss -> query authoritative database\n     row = query_one(\n         \"SELECT quantity FROM inventory WHERE warehouse_id = %s AND product_id = %s\",\n         (warehouse_id, product_id)\n     )\n     if not row:\n         return 0\n-\n     quantity = int(row[\"quantity\"])\n-    # 3. Cache for subsequent reads\n     set_cached_stock(warehouse_id, product_id, quantity)\n     return quantity\n \n def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n-    # Update authoritative database record\n+    warehouse_id = normalize_storefront_warehouse(warehouse_id).upper()\n     execute(\n         \"\"\"\n         INSERT INTO inventory (warehouse_id, product_id, quantity, updated_at)\n@@ -31,3 +27,4 @@ def update_stock(warehouse_id: str, product_id: str, new_quantity: int) -> None:\n         \"\"\",\n         (warehouse_id, product_id, new_quantity)\n     )\n+    set_cached_stock(warehouse_id, product_id, new_quantity)\n"
             }
           }
-        ]
+        ],
+        "aiSummary": {
+          "capabilityState": "legacy",
+          "configuredModelId": null,
+          "configuredProviderId": null,
+          "totalInteractions": 0,
+          "completedCount": 0,
+          "failedCount": 0,
+          "cancelledCount": 0,
+          "providerInterruptionNotice": null,
+          "interleaved": false,
+          "summaryText": "AI capture was not available for this session version."
+        }
       },
       "defaultDepth": {
         "structuredEvidence": false,
@@ -5346,7 +5415,10 @@
         "evidenceLimitations": true,
         "artifactAvailability": true,
         "reviewGuidance": true,
-        "directEvidenceLinks": true
+        "directEvidenceLinks": true,
+        "aiSummary": true,
+        "aiConfiguredModel": true,
+        "aiTokenTelemetry": false
       },
       "expandedEvidenceRefs": []
     }

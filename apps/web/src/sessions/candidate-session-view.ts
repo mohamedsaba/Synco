@@ -1,5 +1,9 @@
 import type { AssessmentSession } from './session';
 
+export type CandidateAiCapability = Readonly<{
+  enabled: boolean;
+}>;
+
 export const toCandidateSessionView = (session: AssessmentSession) => ({
   id: session.id,
   scenario: session.scenario,
@@ -9,4 +13,9 @@ export const toCandidateSessionView = (session: AssessmentSession) => ({
   activatedAt: session.activatedAt,
   submittedAt: session.submittedAt,
   scenarioType: session.scenarioType ?? session.scenario.type ?? 'single_file',
+  aiCapability: session.aiCapabilitySnapshot
+    ? ({
+        enabled: Boolean(session.aiCapabilitySnapshot.enabled),
+      } as const satisfies CandidateAiCapability)
+    : null,
 });

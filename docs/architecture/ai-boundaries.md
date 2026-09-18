@@ -66,15 +66,52 @@ Slice 6D integrates candidate AI events into chronological reconstruction:
 - Typed facts extract bounded excerpts and mechanical metadata without psychological, evaluative, or reliance fields.
 - Deterministic statements use neutral, non-inferential templates. Temporal adjacency between an AI response and subsequent code modifications never implies causality or suggestion application.
 
+### Evaluator AI Evidence Presentation (Slice 6E)
+
+Slice 6E implements the frozen presentation architecture for candidate AI evidence in the Evaluator V2 experience:
+
+- Compact AI Summary card within Observed Activity displaying status, interaction counts, configured model, and burst notices.
+- Chronological milestone cards interleaved with workspace and command activity.
+- Progressive disclosure: Level 0 Overview -> Level 1 Interaction Details -> Level 2 Technical Details -> Level 3 Technical Record. Prompt and response excerpts remain collapsed by default across all role profiles.
+- Presentation-only burst grouping for 3+ consecutive successful interactions, expandable to full chronological order.
+- Epistemic invariants strictly preserved: no candidate scores, rankings, or competence inferences.
+
+### Candidate Integrated AI Surface (Slice 6F)
+
+Slice 6F implements the candidate-facing integrated AI interaction surface within the active assessment workspace:
+
+1. **Engineering Assistant Surface**:
+   - Compact side panel docked in the candidate workspace.
+   - Available during ACTIVE assessment without obscuring the editor, file selector, or terminal console.
+   - Preserves candidate workspace concurrency: in-flight AI requests do not lock the editor or command console.
+   - Factual capability states: handles enabled, disabled, legacy/missing capability, inactive (CREATED), and submitted states without fabricating availability.
+
+2. **Prompt Composer & Context Selection**:
+   - Accessible multiline textarea with native submit button and polite screen reader announcements.
+   - Candidate selects workspace context references (file paths only); the browser never reads or sends authoritative file contents.
+   - Candidate-authored prompts only: no templates, suggestions, auto-complete, or prompt scoring.
+
+3. **Client Idempotency & Error Handling**:
+   - Each candidate submission receives a stable `clientRequestId` reused across re-renders and in-flight states.
+   - Server remains authoritative for duplicate handling and provider dispatch.
+   - Truthful terminal mapping: completed responses, provider errors, timeouts, and ambiguous dispatches (HTTP 409) are presented factually.
+   - Strictly no automatic retries: new attempts require explicit candidate action, generating a fresh `clientRequestId`.
+
+4. **Epistemic Invariants & Zero Causal Claims**:
+   - Strictly forbidden terms and concepts: "applied", "copied", "AI-authored", "generated change", "accepted suggestion".
+   - AI response is presented purely as readable technical text; manual code editing remains manual workspace activity.
+
 ### Scope Boundaries and Deferred Features
 
 The following remain intentionally unimplemented:
 
-- **Candidate AI UI**: Editor sidecars, chat panels, and context selection affordances are deferred.
-- **Evaluator AI UI / Presentation**: Evaluator React presentation components, role-profile adjustments, and UI cards for AI interactions remain deferred.
-- **Commercial Network Providers**: Real network adapters (Anthropic, OpenAI) are deferred.
+- **Commercial Network Providers**: Real network adapters (Anthropic, OpenAI) are deferred; mock provider remains authoritative.
 - **Streaming / SSE**: Server-sent events, token streaming, and chunk persistence are deferred.
-- **Apply Workflow / Patch Application**: Diff parsing and patch application (`WORKSPACE_CHANGED` correlation) remain deferred.
+- **Apply Workflow / Patch Auto-Application**: Direct patch application, diff merging, and automated code mutation remain deferred.
+- **Multi-Turn Memory**: Conversational memory subsystems and automatic multi-turn context accumulation are deferred.
+- **Autonomous Agents & Tooling**: Subagents, autonomous tool invocation, and recursive agent loops are deferred.
+- **Voice & Multimodal**: Voice input, audio transcription, and image generation are deferred.
+- **Candidate Provider/Model Selection**: Candidate model pickers, provider selectors, API key inputs, and hyperparameter controls are strictly prohibited.
 - **AI Scoring & Competence Metrics**: Scoring, quality grading, prompt evaluation, reliance measurement, and authorship inference are strictly prohibited and deferred.
 
 ## Authoritative evaluator reconstruction

@@ -7,6 +7,7 @@ import type {
   WorkspaceFileInfo,
 } from '../../../src/sandbox/sandbox';
 import type { toCandidateSessionView } from '../../../src/sessions/candidate-session-view';
+import { CandidateAiPanel } from './candidate-ai-panel';
 
 type CandidateSessionView = ReturnType<typeof toCandidateSessionView>;
 
@@ -38,6 +39,16 @@ export const CandidateWorkspace = ({
   >([]);
   const [selectedFile, setSelectedFile] = useState<string>(
     session.scenario.filePath || 'inventory/service.py',
+  );
+
+  const availableFiles = Array.from(
+    new Set(
+      [
+        ...workspaceFiles.map((f) => f.path),
+        selectedFile,
+        session.scenario.filePath,
+      ].filter((p): p is string => Boolean(p && typeof p === 'string')),
+    ),
   );
 
   const [content, setContent] = useState(initialSession.workingContent);
@@ -322,11 +333,18 @@ export const CandidateWorkspace = ({
           </ul>
 
           <div className="capture-note">
-            This scenario records saved workspace file mutations and
-            authoritative command lifecycle events inside an isolated
-            multi-service sandbox container. It does not include AI assistance
-            or automated candidate evaluation.
+            This scenario records saved workspace file mutations, authoritative
+            command lifecycle events, and integrated AI interactions inside an
+            isolated multi-service sandbox container. It does not include
+            automated candidate evaluation.
           </div>
+
+          <CandidateAiPanel
+            token={token}
+            sessionStatus={session.status}
+            aiCapability={session.aiCapability}
+            availableFiles={availableFiles}
+          />
         </section>
 
         <section className="editor-panel" aria-labelledby="file-name">

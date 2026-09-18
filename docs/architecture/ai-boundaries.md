@@ -30,14 +30,41 @@ Each assessment session captures an `AiCapabilitySnapshot` at session creation t
 - Persisted immutably in `assessment_sessions.ai_capability_snapshot`.
 - Subsequent changes to global or scenario AI configuration do not alter the rules or capabilities assigned to an existing session.
 
+### Provider Execution Lifecycle (Slice 6C)
+
+Slice 6C implements the synchronous candidate AI provider execution lifecycle:
+
+1. **Provider Abstraction (`AiProvider`)**:
+   - Smallest interface required for normalized text completion: `execute(request: NormalizedAiRequest, options?: { signal?: AbortSignal }): Promise<NormalizedAiResult>`.
+   - Distinct authorship boundaries preserved: candidate-authored input, candidate-selected context, and Delimit-supplied context remain separated without concatenation.
+   - Deterministic in-process `MockAiProvider` for testing and local execution without external network dependencies.
+   - Provider registry resolves provider solely from immutable `session.aiCapabilitySnapshot.configuredProviderId`. Candidate input cannot select or override provider, model, or parameters.
+
+2. **Synchronous Candidate API Endpoint**:
+   - `POST /api/candidate/sessions/[token]/ai/interactions`.
+   - Candidate provides `clientRequestId`, prompt, and context attachments.
+   - Context attachments are validated against path traversal (`..`), absolute paths, and invalid ranges.
+   - Returns a normalized execution response with status, response text, model, terminal reason, and error message.
+
+3. **Dispatch Ambiguity & Idempotency**:
+   - `DISPATCH_STARTED` is persisted atomically BEFORE calling the provider.
+   - `DISPATCH_STARTED` means only that Delimit initiated outbound dispatch; it does not prove the provider received or processed the request.
+   - For duplicate requests where current status is `DISPATCH_STARTED`, Delimit does not automatically call the provider again, returning an explicit ambiguous non-replayable state.
+   - Terminal states (`COMPLETED`, `FAILED`, `CANCELLED`) return existing results without re-invoking the provider.
+
+4. **Failure & Timeout Semantics**:
+   - Timeout aborts provider execution via `AbortController` and records `FAILED` with `TIMEOUT` terminal reason (never `CANCELLED`).
+   - Provider errors transition to `FAILED` with `PROVIDER_ERROR` and append `AI_REQUEST_FAILED`.
+   - If terminal persistence fails after provider returns, Delimit throws a platform persistence error and never reports false success to the client.
+
 ### Scope Boundaries and Deferred Features
 
-Slice 6B implements the operational and event persistence foundation only. The following remain intentionally unimplemented:
+The following remain intentionally unimplemented:
 
-- **Live Provider Integration**: Network dispatch to external LLM providers (Anthropic, OpenAI, NVIDIA NIM) is deferred to Slice 6C.
-- **Candidate AI UI**: Editor sidecar, chat panels, and context selection affordances are deferred.
-- **Streaming / SSE**: Server-sent events and incremental token delivery are deferred.
-- **Evaluator Reconstruction Integration**: Candidate Work reconstruction and evaluator briefing projections are unchanged in Slice 6B; raw AI events are not yet synthesized into reconstruction milestones.
+- **Streaming / SSE**: Server-sent events, token streaming, and chunk persistence are deferred.
+- **Candidate AI UI**: Editor sidecars, chat panels, and context selection affordances are deferred.
+- **Commercial Network Providers**: Real network adapters (Anthropic, OpenAI) are deferred.
+- **Evaluator AI Integration**: AI scoring, quality metrics, prompt grades, and reconstruction synthesis remain deferred.
 - **Patch Application**: Diff parsing and patch application (`WORKSPACE_CHANGED` correlation) remain deferred.
 
 ## Authoritative evaluator reconstruction

@@ -39,6 +39,7 @@ export const disabledAiCapabilitySnapshot: AiCapabilitySnapshot = {
 };
 
 export const MAXIMUM_PROMPT_LENGTH = 32_768; // 32 KiB
+export const MAXIMUM_RESPONSE_LENGTH = 65_536; // 64 KiB
 export const MAXIMUM_EXCERPT_LENGTH = 500;
 
 export const boundExcerpt = (
@@ -50,6 +51,81 @@ export const boundExcerpt = (
   }
   return text.slice(0, maxLength);
 };
+
+export const validateCandidateContextAttachments = (
+  attachments?: readonly CandidateContextAttachment[],
+): void => {
+  if (!attachments) {
+    return;
+  }
+  if (!Array.isArray(attachments)) {
+    throw new AiInteractionError(
+      'INVALID_INPUT',
+      'Candidate context attachments must be an array.',
+    );
+  }
+  for (const attachment of attachments) {
+    if (!attachment || typeof attachment !== 'object') {
+      throw new AiInteractionError(
+        'INVALID_INPUT',
+        'Candidate context attachment must be an object.',
+      );
+    }
+    const { filePath, startLine, endLine } = attachment;
+    if (typeof filePath !== 'string' || filePath.trim().length === 0) {
+      throw new AiInteractionError(
+        'INVALID_INPUT',
+        'Candidate context attachment filePath must be a non-empty string.',
+      );
+    }
+    if (filePath.startsWith('/') || filePath.includes('\\')) {
+      throw new AiInteractionError(
+        'INVALID_INPUT',
+        `Candidate context attachment filePath must be a relative path within workspace: ${filePath}`,
+      );
+    }
+    const segments = filePath.split('/');
+    if (segments.some((segment) => segment === '..')) {
+      throw new AiInteractionError(
+        'INVALID_INPUT',
+        `Candidate context attachment path cannot contain traversal segments: ${filePath}`,
+      );
+    }
+    if (startLine !== undefined) {
+      if (!Number.isInteger(startLine) || startLine < 1) {
+        throw new AiInteractionError(
+          'INVALID_INPUT',
+          `startLine must be an integer >= 1: ${startLine}`,
+        );
+      }
+    }
+    if (endLine !== undefined) {
+      if (!Number.isInteger(endLine) || endLine < 1) {
+        throw new AiInteractionError(
+          'INVALID_INPUT',
+          `endLine must be an integer >= 1: ${endLine}`,
+        );
+      }
+      if (startLine !== undefined && endLine < startLine) {
+        throw new AiInteractionError(
+          'INVALID_INPUT',
+          `endLine (${endLine}) cannot be less than startLine (${startLine})`,
+        );
+      }
+    }
+  }
+};
+
+export type ExecuteAiInteractionResult = Readonly<{
+  interactionId: string;
+  status: AiInteractionStatus;
+  responseText: string | null;
+  configuredModelId: string;
+  reportedModelId: string | null;
+  terminalReason: string | null;
+  errorMessage: string | null;
+  durationMs: number | null;
+}>;
 
 export type AiInteraction = Readonly<{
   id: string;
@@ -80,7 +156,10 @@ export class AiInteractionError extends Error {
       | 'INVALID_INPUT'
       | 'INPUT_TOO_LARGE'
       | 'INVALID_STATE_TRANSITION'
-      | 'INTERACTION_NOT_FOUND',
+      | 'INTERACTION_NOT_FOUND'
+      | 'PROVIDER_NOT_CONFIGURED'
+      | 'PLATFORM_PERSISTENCE_FAILED'
+      | 'AMBIGUOUS_DISPATCH',
     message: string,
   ) {
     super(message);

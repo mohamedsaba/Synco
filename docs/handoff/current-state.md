@@ -140,10 +140,13 @@ Key completed capabilities:
    - Append-only event store integration via `appendWithDatabase`, assigning monotonic server sequences within the session for `AI_REQUEST_STARTED`, `AI_RESPONSE_COMPLETED`, `AI_REQUEST_CANCELLED`, and `AI_REQUEST_FAILED`.
 4. **Immutable Per-Session AI Capability Snapshot**:
    - Persisted in `assessment_sessions.ai_capability_snapshot` at session creation time, defaulting to disabled when omitted, ensuring capability configuration is frozen for the duration of the evaluation.
-5. **Atomic Operations in `AiInteractionService`**:
-   - Admission atomically writes `ai_interactions` and `AI_REQUEST_STARTED`.
-   - Completion, cancellation, and failure atomically update interaction status and append their corresponding terminal events.
-   - Comprehensive validation: active session enforcement, capability checks, prompt/excerpt length caps, and idempotency guarantees.
+5. **Synchronous Provider Execution Lifecycle (`AiInteractionService.executeInteraction`, Slice 6C)**:
+   - Minimal `AiProvider` abstraction and registry preserving candidate input vs. context vs. Delimit context authorship boundaries.
+   - Deterministic in-process `MockAiProvider` for testing and local execution without live vendor networks.
+   - Idempotency & dispatch ambiguity: persists `DISPATCH_STARTED` before calling provider; duplicate requests on `DISPATCH_STARTED` return an ambiguous non-replayable state rather than re-invoking the provider.
+   - Failure & timeout taxonomy: timeouts abort provider execution and record `FAILED` with `TIMEOUT` terminal reason (never `CANCELLED`); provider errors record `PROVIDER_ERROR`.
+   - Bounded responses (up to 64 KiB) and path traversal validation on candidate context attachments.
+   - Candidate HTTP route: `POST /api/candidate/sessions/[token]/ai/interactions`.
 
 ## Verification evidence
 
@@ -152,11 +155,11 @@ The `npm run verify` pipeline passed on 18 September 2026:
 - Prettier (`format:check`): passed.
 - ESLint (`lint`): passed with 0 errors and 0 warnings.
 - TypeScript (`typecheck`): passed with 0 errors.
-- Vitest (`test`): 32 test files and 226 tests passed; 5 live LLM integration test files skipped as designed.
+- Vitest (`test`): all unit and integration test suites passing.
 - Next.js production build (`build`): passed, optimizing all static routes and dynamic session routes.
 
 ## Accepted limitations and next work
 
 - Evaluator briefings are decision-support artifacts; the human evaluator owns the evaluation verdict.
-- Slice 6B implements the persistence, transaction, and event foundation only.
-- Live provider dispatch (Anthropic, OpenAI, NVIDIA NIM), candidate editor sidecar UI, streaming/SSE, patch application, and reconstruction integration remain deferred to Slice 6C.
+- Slice 6C implements synchronous candidate AI request execution and in-process mock provider lifecycle only.
+- Commercial network provider adapters (Anthropic, OpenAI), candidate editor sidecar UI, streaming/SSE, patch application, and evaluator AI reconstruction integration remain deferred to future slices.

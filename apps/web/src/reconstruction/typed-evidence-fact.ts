@@ -56,6 +56,43 @@ export type TypedEvidenceFact =
       kind: 'evidence_gap';
       phase: string;
       commandId?: string;
+    }>
+  | Readonly<{
+      kind: 'ai_request_started';
+      interactionId: string;
+      configuredProviderId: string;
+      configuredModelId: string;
+      promptExcerpt: string;
+      promptBytes: number;
+      promptTruncated: boolean;
+      contextAttachmentsCount: number;
+    }>
+  | Readonly<{
+      kind: 'ai_response_completed';
+      interactionId: string;
+      reportedModelId: string;
+      durationMs: number;
+      responseExcerpt: string;
+      responseBytes: number;
+      responseTruncated: boolean;
+      tokenUsage?: Readonly<{
+        promptTokens?: number;
+        completionTokens?: number;
+        totalTokens?: number;
+      }>;
+    }>
+  | Readonly<{
+      kind: 'ai_request_cancelled';
+      interactionId: string;
+      durationMs: number;
+      cancelReason: string;
+    }>
+  | Readonly<{
+      kind: 'ai_request_failed';
+      interactionId: string;
+      durationMs: number;
+      failureReason: string;
+      errorMessageExcerpt: string;
     }>;
 
 const byteLength = (value: string) => Buffer.byteLength(value, 'utf8');
@@ -203,6 +240,63 @@ export const buildTypedEvidenceFact = (
       kind: 'evidence_gap',
       phase: item.phase,
       ...(item.commandId ? { commandId: item.commandId } : {}),
+    };
+  }
+  if (item.kind === 'AI_REQUEST_STARTED') {
+    const prompt = boundEvidenceText(
+      item.candidateInputExcerpt,
+      limits.maximumCommandOutputBytes,
+    );
+    return {
+      kind: 'ai_request_started',
+      interactionId: item.interactionId,
+      configuredProviderId: item.configuredProviderId,
+      configuredModelId: item.configuredModelId,
+      promptExcerpt: prompt.excerpt,
+      promptBytes: item.candidateInputBytes,
+      promptTruncated:
+        item.candidateInputBytes > prompt.totalBytes ||
+        prompt.excerpt !== item.candidateInputExcerpt,
+      contextAttachmentsCount: item.contextAttachmentsCount,
+    };
+  }
+  if (item.kind === 'AI_RESPONSE_COMPLETED') {
+    const response = boundEvidenceText(
+      item.responseExcerpt,
+      limits.maximumCommandOutputBytes,
+    );
+    return {
+      kind: 'ai_response_completed',
+      interactionId: item.interactionId,
+      reportedModelId: item.reportedModelId,
+      durationMs: item.durationMs,
+      responseExcerpt: response.excerpt,
+      responseBytes: item.responseBytes,
+      responseTruncated:
+        item.responseBytes > response.totalBytes ||
+        response.excerpt !== item.responseExcerpt,
+      ...(item.tokenUsage ? { tokenUsage: item.tokenUsage } : {}),
+    };
+  }
+  if (item.kind === 'AI_REQUEST_CANCELLED') {
+    return {
+      kind: 'ai_request_cancelled',
+      interactionId: item.interactionId,
+      durationMs: item.durationMs,
+      cancelReason: item.cancelReason,
+    };
+  }
+  if (item.kind === 'AI_REQUEST_FAILED') {
+    const err = boundEvidenceText(
+      item.errorMessageExcerpt,
+      limits.maximumCommandOutputBytes,
+    );
+    return {
+      kind: 'ai_request_failed',
+      interactionId: item.interactionId,
+      durationMs: item.durationMs,
+      failureReason: item.failureReason,
+      errorMessageExcerpt: err.excerpt,
     };
   }
   return null;

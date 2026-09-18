@@ -1,4 +1,8 @@
 import type {
+  AiRequestCancelledPayload,
+  AiRequestFailedPayload,
+  AiRequestStartedPayload,
+  AiResponseCompletedPayload,
   CommandFinishedPayload,
   CommandStartedPayload,
   SandboxCleanupFailedPayload,
@@ -74,13 +78,72 @@ export type SandboxCleanupFailureItem = Readonly<{
   rawEvent: SessionEvent;
 }>;
 
+export type AiRequestStartedItem = Readonly<{
+  kind: 'AI_REQUEST_STARTED';
+  interactionId: string;
+  configuredProviderId: string;
+  configuredModelId: string;
+  candidateInputExcerpt: string;
+  candidateInputBytes: number;
+  contextAttachmentsCount: number;
+  timestamp: string;
+  sequence: number;
+  rawEventId: string;
+  rawEvent: SessionEvent;
+}>;
+
+export type AiResponseCompletedItem = Readonly<{
+  kind: 'AI_RESPONSE_COMPLETED';
+  interactionId: string;
+  durationMs: number;
+  reportedModelId: string;
+  responseExcerpt: string;
+  responseBytes: number;
+  tokenUsage?: Readonly<{
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  }>;
+  timestamp: string;
+  sequence: number;
+  rawEventId: string;
+  rawEvent: SessionEvent;
+}>;
+
+export type AiRequestCancelledItem = Readonly<{
+  kind: 'AI_REQUEST_CANCELLED';
+  interactionId: string;
+  durationMs: number;
+  cancelReason: string;
+  timestamp: string;
+  sequence: number;
+  rawEventId: string;
+  rawEvent: SessionEvent;
+}>;
+
+export type AiRequestFailedItem = Readonly<{
+  kind: 'AI_REQUEST_FAILED';
+  interactionId: string;
+  durationMs: number;
+  failureReason: string;
+  errorMessageExcerpt: string;
+  timestamp: string;
+  sequence: number;
+  rawEventId: string;
+  rawEvent: SessionEvent;
+}>;
+
 export type ReconstructionItem =
   | SessionActivationItem
   | CommandExecutionItem
   | WorkspaceChangeItem
   | WorkspaceGapItem
   | SessionSubmittedItem
-  | SandboxCleanupFailureItem;
+  | SandboxCleanupFailureItem
+  | AiRequestStartedItem
+  | AiResponseCompletedItem
+  | AiRequestCancelledItem
+  | AiRequestFailedItem;
 
 export type SessionReconstructionInput = Readonly<{
   activatedAt: string | null;
@@ -104,7 +167,14 @@ export function buildChronologicalReconstruction(
   const startedMap = new Map<string, SessionEvent>();
   const middleItems: Array<{
     sequence: number;
-    item: CommandExecutionItem | WorkspaceChangeItem | WorkspaceGapItem;
+    item:
+      | CommandExecutionItem
+      | WorkspaceChangeItem
+      | WorkspaceGapItem
+      | AiRequestStartedItem
+      | AiResponseCompletedItem
+      | AiRequestCancelledItem
+      | AiRequestFailedItem;
   }> = [];
   const cleanupFailures: SandboxCleanupFailureItem[] = [];
 
@@ -172,6 +242,73 @@ export function buildChronologicalReconstruction(
           errorMessage: payload.errorMessage,
           rawEventId: event.id,
           sequence: event.sequence,
+          rawEvent: event,
+        },
+      });
+    } else if (event.type === 'AI_REQUEST_STARTED') {
+      const payload = event.payload as AiRequestStartedPayload;
+      middleItems.push({
+        sequence: event.sequence,
+        item: {
+          kind: 'AI_REQUEST_STARTED',
+          interactionId: payload.interactionId,
+          configuredProviderId: payload.configuredProviderId,
+          configuredModelId: payload.configuredModelId,
+          candidateInputExcerpt: payload.candidateInputExcerpt,
+          candidateInputBytes: payload.candidateInputBytes,
+          contextAttachmentsCount: payload.candidateContext?.length ?? 0,
+          timestamp: event.timestamp,
+          sequence: event.sequence,
+          rawEventId: event.id,
+          rawEvent: event,
+        },
+      });
+    } else if (event.type === 'AI_RESPONSE_COMPLETED') {
+      const payload = event.payload as AiResponseCompletedPayload;
+      middleItems.push({
+        sequence: event.sequence,
+        item: {
+          kind: 'AI_RESPONSE_COMPLETED',
+          interactionId: payload.interactionId,
+          durationMs: payload.durationMs,
+          reportedModelId: payload.reportedModelId,
+          responseExcerpt: payload.responseExcerpt,
+          responseBytes: payload.responseBytes,
+          tokenUsage: payload.tokenUsage,
+          timestamp: event.timestamp,
+          sequence: event.sequence,
+          rawEventId: event.id,
+          rawEvent: event,
+        },
+      });
+    } else if (event.type === 'AI_REQUEST_CANCELLED') {
+      const payload = event.payload as AiRequestCancelledPayload;
+      middleItems.push({
+        sequence: event.sequence,
+        item: {
+          kind: 'AI_REQUEST_CANCELLED',
+          interactionId: payload.interactionId,
+          durationMs: payload.durationMs,
+          cancelReason: payload.cancelReason,
+          timestamp: event.timestamp,
+          sequence: event.sequence,
+          rawEventId: event.id,
+          rawEvent: event,
+        },
+      });
+    } else if (event.type === 'AI_REQUEST_FAILED') {
+      const payload = event.payload as AiRequestFailedPayload;
+      middleItems.push({
+        sequence: event.sequence,
+        item: {
+          kind: 'AI_REQUEST_FAILED',
+          interactionId: payload.interactionId,
+          durationMs: payload.durationMs,
+          failureReason: payload.failureReason,
+          errorMessageExcerpt: payload.errorMessageExcerpt,
+          timestamp: event.timestamp,
+          sequence: event.sequence,
+          rawEventId: event.id,
           rawEvent: event,
         },
       });

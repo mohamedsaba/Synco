@@ -27,14 +27,20 @@ An authoritative `test_summary` fact is presented as a `Test run` milestone with
 
 Every statement is constructed by Delimit from typed data and carries the exact evidence references that produced that fact. Candidate Work presents short milestone copy; exact commands, output, exit status, tree hashes, sequences, and patches stay in evidence expansion. A multi-reference statement is permitted only for one maximal consecutive run of ordinary workspace transitions; its count, affected paths, and membership are deterministic, and evidence expansion exposes every contributing reference. Aggregation never crosses a command, reversion, out-of-band change, or evidence gap. There is no entry point for arbitrary factual prose. Repeated template text is valid when distinct references record repeated actions.
 
-### Candidate AI Evidence in Reconstruction (Slice 6B Boundary)
+### Candidate AI Evidence Reconstruction Integration (Slice 6D)
 
-Slice 6B introduces the foundational persistence layer (`ai_interactions`) and four raw event types (`AI_REQUEST_STARTED`, `AI_RESPONSE_COMPLETED`, `AI_REQUEST_CANCELLED`, `AI_REQUEST_FAILED`). However, Slice 6B deliberately preserves the existing reconstruction and briefing pipeline without modification:
+Slice 6D integrates candidate AI interaction events into the evidence reconstruction layer:
 
-- `TypedEvidenceFact` and semantic fact extraction do not yet parse AI events.
-- Candidate Work generation continues to reflect workspace transitions, command executions, test runs, evidence gaps, and session milestones.
-- Role projections in Evaluator Experience v2 remain unchanged.
-- AI events are recorded in append-only event storage and operational interaction tables, awaiting subsequent integration in the reconstruction layer.
+- **Distinct Chronological Milestones**: Start (`AI_REQUEST_STARTED`) and terminal (`AI_RESPONSE_COMPLETED`, `AI_REQUEST_CANCELLED`, `AI_REQUEST_FAILED`) events are preserved as separate milestones ordered strictly by `assessment_events.sequence`. Start and completion are never collapsed into a single milestone. Unterminated requests are tolerated without synthesizing missing terminal events.
+- **Evidence Reference Catalog**: Deterministic canonical references retain raw event provenance:
+  - `ai_request:${sessionId}:${interactionId}:started`
+  - `ai_response:${sessionId}:${interactionId}:completed`
+  - `ai_request:${sessionId}:${interactionId}:cancelled`
+  - `ai_request:${sessionId}:${interactionId}:failed`
+- **Typed Evidence Facts**: Narrow, factual representations (`ai_request_started`, `ai_response_completed`, `ai_request_cancelled`, `ai_request_failed`) capturing configured provider/model, bounded excerpts, durations, token usage, and terminal reasons. Evaluative, psychological, or reliance fields are strictly prohibited.
+- **Neutral Deterministic Rendering**: Statements use neutral templates ending with terminal punctuation. Cancellation wording distinguishes explicit candidate cancellation (`candidate_requested_cancel`) from platform or session closure cancellation (`session_ended`). Temporal adjacency between an AI response and a subsequent workspace change establishes order only, never causality, suggestion application, or code copying.
+- **Coverage Policy**: AI events are available as typed facts in `evidenceItems` without automatically becoming mandatory un-droppable coverage anchors, preventing high-frequency AI calls from displacing critical workspace and command evidence.
+- **Scope Boundary**: Evaluator React components, role projections, candidate UI, streaming, Apply button workflows, and AI judgment/quality metrics remain deferred.
 
 ## Lifecycles and persistence
 

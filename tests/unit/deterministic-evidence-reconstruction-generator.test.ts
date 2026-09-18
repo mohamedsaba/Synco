@@ -11,6 +11,7 @@ import type {
   EvidencePacketV1,
   ModelEvidenceItem,
 } from '../../apps/web/src/reconstruction/evidence-packet';
+import { renderChronologyFact } from '../../apps/web/src/reconstruction/deterministic-reconstruction-renderer';
 import type { TypedEvidenceFact } from '../../apps/web/src/reconstruction/typed-evidence-fact';
 
 const sessionId = 'deterministic-session';
@@ -25,7 +26,15 @@ const item = (
       ? `session:${sessionId}:submitted`
       : fact.kind === 'command_execution'
         ? `command:${sessionId}:${suffix}`
-        : `event:${sessionId}:${suffix}`,
+        : fact.kind === 'ai_request_started'
+          ? `ai_request:${sessionId}:${suffix}:started`
+          : fact.kind === 'ai_response_completed'
+            ? `ai_response:${sessionId}:${suffix}:completed`
+            : fact.kind === 'ai_request_cancelled'
+              ? `ai_request:${sessionId}:${suffix}:cancelled`
+              : fact.kind === 'ai_request_failed'
+                ? `ai_request:${sessionId}:${suffix}:failed`
+                : `event:${sessionId}:${suffix}`,
   role: 'chronology',
   chronologyOrder,
   kind:
@@ -37,7 +46,15 @@ const item = (
           ? 'workspace_change'
           : fact.kind === 'evidence_gap'
             ? 'evidence_gap'
-            : 'activation',
+            : fact.kind === 'ai_request_started'
+              ? 'ai_request_started'
+              : fact.kind === 'ai_response_completed'
+                ? 'ai_response_completed'
+                : fact.kind === 'ai_request_cancelled'
+                  ? 'ai_request_cancelled'
+                  : fact.kind === 'ai_request_failed'
+                    ? 'ai_request_failed'
+                    : 'activation',
   fact,
 });
 
@@ -461,5 +478,215 @@ describe('deterministic evidence reconstruction generator', () => {
       '`inventory/service.py` changed between recorded actions.',
     );
     expect(scenarioD).not.toEqual(scenarioC);
+  });
+
+  describe('Slice 6D — Deterministic AI Statement Rendering', () => {
+    it('Matrix C & Case 9: temporal adjacency between AI response and workspace change does not infer causality', () => {
+      const aiResponse = item('inter-1', 1, {
+        kind: 'ai_response_completed',
+        interactionId: 'inter-1',
+        reportedModelId: 'mock-model',
+        durationMs: 2500,
+        responseExcerpt: 'Add return statement',
+        responseBytes: 20,
+        responseTruncated: false,
+      });
+      const edit = item('edit-1', 2, {
+        kind: 'workspace_change',
+        origin: 'browser_save',
+        beforeTree: 'tree-1',
+        afterTree: 'tree-2',
+        files: [
+          {
+            path: 'inventory/service.py',
+            status: 'modified',
+            additions: 1,
+            deletions: 0,
+            patchExcerpt: '+ return True',
+            patchBytes: 13,
+            patchTruncated: false,
+          },
+        ],
+      });
+
+      const src = packet(
+        [aiResponse, edit, submission],
+        [
+          { kind: 'workspace_progression', evidenceRefs: [edit.evidenceRef] },
+          {
+            kind: 'submission_boundary',
+            evidenceRefs: [submission.evidenceRef],
+          },
+        ],
+      );
+
+      // Explicitly check direct rendering of chronological facts
+      const responseTrace = renderChronologyFact(aiResponse, new Set());
+      const editTrace = renderChronologyFact(edit, new Set());
+
+      expect(responseTrace.text).toBe('An AI response was recorded.');
+      expect(editTrace.text).toBe('Modified `inventory/service.py`.');
+
+      const built = buildDeterministicReconstruction({
+        ...src,
+        coverageAnchors: [
+          {
+            id: 'a1',
+            kind: 'submission_boundary' as const,
+            evidenceRefs: [submission.evidenceRef],
+          },
+        ],
+      });
+
+      const prose = JSON.stringify(built.output);
+      expect(prose).not.toMatch(
+        /applied|copied|used ai|ai suggestion|candidate used|based on ai|from ai/i,
+      );
+    });
+
+    it('Matrix D & Case 11: maps failure reasons neutrally without negative judgment', () => {
+      const providerFail = item('fail-1', 1, {
+        kind: 'ai_request_failed',
+        interactionId: 'fail-1',
+        durationMs: 1000,
+        failureReason: 'provider_error',
+        errorMessageExcerpt: 'Provider unavailable',
+      });
+      const timeoutFail = item('fail-2', 2, {
+        kind: 'ai_request_failed',
+        interactionId: 'fail-2',
+        durationMs: 30000,
+        failureReason: 'server_timeout',
+        errorMessageExcerpt: 'Timeout exceeded',
+      });
+      const serverFail = item('fail-3', 3, {
+        kind: 'ai_request_failed',
+        interactionId: 'fail-3',
+        durationMs: 500,
+        failureReason: 'server_error',
+        errorMessageExcerpt: 'Internal error',
+      });
+      const otherFail = item('fail-4', 4, {
+        kind: 'ai_request_failed',
+        interactionId: 'fail-4',
+        durationMs: 500,
+        failureReason: 'custom_failure',
+        errorMessageExcerpt: 'Unknown',
+      });
+
+      expect(renderChronologyFact(providerFail, new Set()).text).toBe(
+        'An AI request ended with a provider error.',
+      );
+      expect(renderChronologyFact(timeoutFail, new Set()).text).toBe(
+        'An AI request timed out.',
+      );
+      expect(renderChronologyFact(serverFail, new Set()).text).toBe(
+        'An AI request ended with a server error.',
+      );
+      expect(renderChronologyFact(otherFail, new Set()).text).toBe(
+        'An AI request ended with a recorded error.',
+      );
+
+      // Verify each ends with terminal punctuation and contains no evaluative judgment
+      for (const failItem of [
+        providerFail,
+        timeoutFail,
+        serverFail,
+        otherFail,
+      ]) {
+        const rendered = renderChronologyFact(failItem, new Set()).text;
+        expect(rendered).toMatch(/[.!?]$/);
+        expect(rendered).not.toMatch(/poor|mistake|bad|incompetent|wrong/i);
+      }
+    });
+
+    it('Matrix E & F & Case 12: differentiates candidate cancellation from session closure cancellation', () => {
+      const candidateCancel = item('cancel-1', 1, {
+        kind: 'ai_request_cancelled',
+        interactionId: 'cancel-1',
+        durationMs: 500,
+        cancelReason: 'candidate_requested_cancel',
+      });
+      const sessionCancel = item('cancel-2', 2, {
+        kind: 'ai_request_cancelled',
+        interactionId: 'cancel-2',
+        durationMs: 1200,
+        cancelReason: 'session_ended',
+      });
+      const platformCancel = item('cancel-3', 3, {
+        kind: 'ai_request_cancelled',
+        interactionId: 'cancel-3',
+        durationMs: 800,
+        cancelReason: 'platform_policy_abort',
+      });
+
+      expect(renderChronologyFact(candidateCancel, new Set()).text).toBe(
+        'Candidate requested cancellation of the AI request.',
+      );
+      expect(renderChronologyFact(sessionCancel, new Set()).text).toBe(
+        'An AI request was cancelled when the session ended.',
+      );
+      expect(renderChronologyFact(platformCancel, new Set()).text).toBe(
+        'An AI request was cancelled.',
+      );
+    });
+
+    it('Matrix L: deterministic across repeated execution', () => {
+      const aiStart = item('inter-1', 1, {
+        kind: 'ai_request_started',
+        interactionId: 'inter-1',
+        configuredProviderId: 'mock-ai',
+        configuredModelId: 'mock-model',
+        promptExcerpt: 'Help',
+        promptBytes: 4,
+        promptTruncated: false,
+        contextAttachmentsCount: 0,
+      });
+      const aiComplete = item('inter-1', 2, {
+        kind: 'ai_response_completed',
+        interactionId: 'inter-1',
+        reportedModelId: 'mock-model',
+        durationMs: 1500,
+        responseExcerpt: 'Result',
+        responseBytes: 6,
+        responseTruncated: false,
+      });
+      const change = item('change-1', 3, {
+        kind: 'workspace_change',
+        origin: 'browser_save',
+        beforeTree: 'tree-a',
+        afterTree: 'tree-b',
+        files: [
+          {
+            path: 'app.py',
+            status: 'modified',
+            additions: 1,
+            deletions: 0,
+            patchExcerpt: 'patch',
+            patchBytes: 5,
+            patchTruncated: false,
+          },
+        ],
+      });
+
+      const testPacket = packet(
+        [aiStart, aiComplete, change, submission],
+        [
+          { kind: 'workspace_progression', evidenceRefs: [change.evidenceRef] },
+          {
+            kind: 'submission_boundary',
+            evidenceRefs: [submission.evidenceRef],
+          },
+        ],
+        'diff --git a/app.py b/app.py\n',
+      );
+
+      const run1 = buildDeterministicReconstruction(testPacket);
+      const run2 = buildDeterministicReconstruction(testPacket);
+      const run3 = buildDeterministicReconstruction(testPacket);
+
+      expect(run1).toEqual(run2);
+      expect(run2).toEqual(run3);
+    });
   });
 });

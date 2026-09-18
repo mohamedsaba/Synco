@@ -57,15 +57,25 @@ Slice 6C implements the synchronous candidate AI provider execution lifecycle:
    - Provider errors transition to `FAILED` with `PROVIDER_ERROR` and append `AI_REQUEST_FAILED`.
    - If terminal persistence fails after provider returns, Delimit throws a platform persistence error and never reports false success to the client.
 
+### AI Evidence Reconstruction Integration (Slice 6D)
+
+Slice 6D integrates candidate AI events into chronological reconstruction:
+
+- Distinct start and terminal milestones preserve exact order based on server-assigned sequences.
+- Canonical evidence references retain provenance to raw event IDs without collapsing interactions.
+- Typed facts extract bounded excerpts and mechanical metadata without psychological, evaluative, or reliance fields.
+- Deterministic statements use neutral, non-inferential templates. Temporal adjacency between an AI response and subsequent code modifications never implies causality or suggestion application.
+
 ### Scope Boundaries and Deferred Features
 
 The following remain intentionally unimplemented:
 
-- **Streaming / SSE**: Server-sent events, token streaming, and chunk persistence are deferred.
 - **Candidate AI UI**: Editor sidecars, chat panels, and context selection affordances are deferred.
+- **Evaluator AI UI / Presentation**: Evaluator React presentation components, role-profile adjustments, and UI cards for AI interactions remain deferred.
 - **Commercial Network Providers**: Real network adapters (Anthropic, OpenAI) are deferred.
-- **Evaluator AI Integration**: AI scoring, quality metrics, prompt grades, and reconstruction synthesis remain deferred.
-- **Patch Application**: Diff parsing and patch application (`WORKSPACE_CHANGED` correlation) remain deferred.
+- **Streaming / SSE**: Server-sent events, token streaming, and chunk persistence are deferred.
+- **Apply Workflow / Patch Application**: Diff parsing and patch application (`WORKSPACE_CHANGED` correlation) remain deferred.
+- **AI Scoring & Competence Metrics**: Scoring, quality grading, prompt evaluation, reliance measurement, and authorship inference are strictly prohibited and deferred.
 
 ## Authoritative evaluator reconstruction
 

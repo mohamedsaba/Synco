@@ -148,6 +148,44 @@ Key completed capabilities:
    - Bounded responses (up to 64 KiB) and path traversal validation on candidate context attachments.
    - Candidate HTTP route: `POST /api/candidate/sessions/[token]/ai/interactions`.
 
+## Slice 6D completion state
+
+Slice 6D — AI Evidence Reconstruction Integration is complete on the working tree. It connects candidate AI interaction events into Delimit's evidence reconstruction layer:
+
+```text
+raw session events (AI_REQUEST_STARTED, AI_RESPONSE_COMPLETED, AI_REQUEST_CANCELLED, AI_REQUEST_FAILED)
+       │
+       ▼
+chronological reconstruction (distinct milestone items ordered strictly by assessment_events.sequence)
+       │
+       ▼
+evidence reference catalog (ai_request:...:started, ai_response:...:completed, etc.)
+       │
+       ▼
+typed evidence facts (ai_request_started, ai_response_completed, etc. with bounded excerpts)
+       │
+       ▼
+deterministic reconstruction (neutral statement templates, adjacency protection, differentiated cancellation)
+```
+
+Key completed capabilities:
+
+1. **Boundary-Preserving Chronology**:
+   - `buildChronologicalReconstruction` records `AI_REQUEST_STARTED` and terminal outcomes (`AI_RESPONSE_COMPLETED`, `AI_REQUEST_CANCELLED`, `AI_REQUEST_FAILED`) as distinct chronological milestones.
+   - Preserves exact interleaving of workspace changes, terminal commands, and AI interactions based on `assessment_events.sequence`.
+   - Start and completion are never collapsed into a single milestone. Unterminated requests are handled gracefully without inventing false terminal states.
+2. **Evidence Reference Catalog Integration**:
+   - Deterministic references (`ai_request:${sessionId}:${interactionId}:started`, `ai_response:${sessionId}:${interactionId}:completed`, `ai_request:${sessionId}:${interactionId}:cancelled`, `ai_request:${sessionId}:${interactionId}:failed`) retain raw event IDs and sequence numbers.
+3. **Narrow Typed Evidence Facts**:
+   - `buildTypedEvidenceFact` extracts bounded prompt and response excerpts, sizes, truncation indicators, token usage, durations, and terminal reasons.
+   - Evaluative, competence, quality, and reliance fields are strictly excluded.
+4. **Deterministic Neutral Statements & Temporal Adjacency Protection**:
+   - Statements end with terminal punctuation and avoid evaluative or psychological language.
+   - Explicit candidate cancellation (`candidate_requested_cancel`) is distinguished from platform/session cancellation (`session_ended`).
+   - When an edit immediately follows an AI response, chronology reflects the order without inferring that the edit was caused by or copied from AI.
+5. **Coverage Anchor Preservation**:
+   - AI milestones participate in `evidenceItems` without cluttering mandatory `coverageAnchors`, preventing frequent AI prompts from displacing material code changes or test runs.
+
 ## Verification evidence
 
 The `npm run verify` pipeline passed on 18 September 2026:
@@ -161,5 +199,4 @@ The `npm run verify` pipeline passed on 18 September 2026:
 ## Accepted limitations and next work
 
 - Evaluator briefings are decision-support artifacts; the human evaluator owns the evaluation verdict.
-- Slice 6C implements synchronous candidate AI request execution and in-process mock provider lifecycle only.
-- Commercial network provider adapters (Anthropic, OpenAI), candidate editor sidecar UI, streaming/SSE, patch application, and evaluator AI reconstruction integration remain deferred to future slices.
+- Slice 6D integrates reconstruction and evidence truth for AI events; candidate UI, evaluator presentation cards, role-profile adjustments, streaming, Apply button workflows, and AI judgment metrics remain deferred to future slices.

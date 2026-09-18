@@ -7,7 +7,11 @@ export type EvidenceCatalogKind =
   | 'workspace_change'
   | 'evidence_gap'
   | 'submission'
-  | 'final_diff';
+  | 'final_diff'
+  | 'ai_request_started'
+  | 'ai_response_completed'
+  | 'ai_request_cancelled'
+  | 'ai_request_failed';
 
 export type EvidenceCatalogEntry = Readonly<{
   evidenceRef: string;
@@ -81,6 +85,66 @@ export const buildEvidenceReferenceCatalog = (
           item.kind === 'WORKSPACE_CHANGE'
             ? 'workspace_change'
             : 'evidence_gap',
+        chronologyOrder,
+        firstSequence: item.sequence,
+        lastSequence: item.sequence,
+        rawEventIds: [item.rawEventId],
+        item,
+      });
+      return;
+    }
+
+    if (item.kind === 'AI_REQUEST_STARTED') {
+      entries.push({
+        evidenceRef: `ai_request:${sessionId}:${item.interactionId}:started`,
+        sessionId,
+        role: 'chronology',
+        kind: 'ai_request_started',
+        chronologyOrder,
+        firstSequence: item.sequence,
+        lastSequence: item.sequence,
+        rawEventIds: [item.rawEventId],
+        item,
+      });
+      return;
+    }
+
+    if (item.kind === 'AI_RESPONSE_COMPLETED') {
+      entries.push({
+        evidenceRef: `ai_response:${sessionId}:${item.interactionId}:completed`,
+        sessionId,
+        role: 'chronology',
+        kind: 'ai_response_completed',
+        chronologyOrder,
+        firstSequence: item.sequence,
+        lastSequence: item.sequence,
+        rawEventIds: [item.rawEventId],
+        item,
+      });
+      return;
+    }
+
+    if (item.kind === 'AI_REQUEST_CANCELLED') {
+      entries.push({
+        evidenceRef: `ai_request:${sessionId}:${item.interactionId}:cancelled`,
+        sessionId,
+        role: 'chronology',
+        kind: 'ai_request_cancelled',
+        chronologyOrder,
+        firstSequence: item.sequence,
+        lastSequence: item.sequence,
+        rawEventIds: [item.rawEventId],
+        item,
+      });
+      return;
+    }
+
+    if (item.kind === 'AI_REQUEST_FAILED') {
+      entries.push({
+        evidenceRef: `ai_request:${sessionId}:${item.interactionId}:failed`,
+        sessionId,
+        role: 'chronology',
+        kind: 'ai_request_failed',
         chronologyOrder,
         firstSequence: item.sequence,
         lastSequence: item.sequence,

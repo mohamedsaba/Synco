@@ -136,6 +136,46 @@ export const renderChronologyFact = (
       text: commandStatement(item.fact),
     };
   }
+  if (item.fact.kind === 'ai_request_started') {
+    return {
+      ...basis,
+      text: 'An AI request was recorded.',
+    };
+  }
+  if (item.fact.kind === 'ai_response_completed') {
+    return {
+      ...basis,
+      text: 'An AI response was recorded.',
+    };
+  }
+  if (item.fact.kind === 'ai_request_cancelled') {
+    const text =
+      item.fact.cancelReason === 'candidate_requested_cancel'
+        ? 'Candidate requested cancellation of the AI request.'
+        : item.fact.cancelReason === 'session_ended'
+          ? 'An AI request was cancelled when the session ended.'
+          : 'An AI request was cancelled.';
+    return {
+      ...basis,
+      text,
+    };
+  }
+  if (item.fact.kind === 'ai_request_failed') {
+    const text =
+      item.fact.failureReason === 'provider_error' ||
+      item.fact.failureReason === 'provider_disconnected'
+        ? 'An AI request ended with a provider error.'
+        : item.fact.failureReason === 'server_timeout' ||
+            item.fact.failureReason === 'timeout'
+          ? 'An AI request timed out.'
+          : item.fact.failureReason === 'server_error'
+            ? 'An AI request ended with a server error.'
+            : 'An AI request ended with a recorded error.';
+    return {
+      ...basis,
+      text,
+    };
+  }
 
   const detail = workspaceDetail(item.fact);
   if (anchorKinds.has('reversion') && item.fact.origin === 'out_of_band') {

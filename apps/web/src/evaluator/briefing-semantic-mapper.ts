@@ -84,6 +84,7 @@ export const mapBriefingObservation = (
       unsupportedReadMapping: false,
     };
   }
+  if (fact.kind !== 'command_execution') return null;
   const argv = directCommandArgv(fact.command);
   if (
     isDirectPytest(argv) &&

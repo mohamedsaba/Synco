@@ -239,7 +239,9 @@ export const buildEvidencePacket = (
     const encoded = JSON.stringify(item.fact);
     return encoded.includes('"stdoutTruncated":true') ||
       encoded.includes('"stderrTruncated":true') ||
-      encoded.includes('"patchTruncated":true')
+      encoded.includes('"patchTruncated":true') ||
+      encoded.includes('"promptTruncated":true') ||
+      encoded.includes('"responseTruncated":true')
       ? [item.evidenceRef]
       : [];
   });

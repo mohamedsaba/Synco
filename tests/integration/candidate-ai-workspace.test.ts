@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { POST as executeAiInteraction } from '../../apps/web/app/api/candidate/sessions/[token]/ai/interactions/route';
 import { POST as activateSession } from '../../apps/web/app/api/candidate/sessions/[token]/activate/route';
@@ -10,6 +10,8 @@ import {
   defaultAiCapabilitySnapshot,
   disabledAiCapabilitySnapshot,
 } from '../../apps/web/src/ai/ai-interaction';
+import { DockerSandboxAdapter } from '../../apps/web/src/sandbox/docker-sandbox-adapter';
+import { SandboxError } from '../../apps/web/src/sandbox/sandbox';
 import { toCandidateSessionView } from '../../apps/web/src/sessions/candidate-session-view';
 import { SessionService } from '../../apps/web/src/sessions/session-service';
 import { SqliteSessionStore } from '../../apps/web/src/sessions/sqlite-session-store';
@@ -143,5 +145,76 @@ describe('Candidate AI Workspace End-to-End Integration', () => {
     expect(aiRes.status).toBe(409);
     const aiData = await aiRes.json();
     expect(aiData.error?.code).toBe('AI_NOT_ENABLED');
+  });
+
+  it('returns HTTP 503 and leaves session in CREATED state when sandbox creation fails with SandboxError', async () => {
+    const sessionStore = new SqliteSessionStore(databasePath);
+    const sessionService = new SessionService(sessionStore);
+    const { candidateToken } = sessionService.createSession();
+
+    const createSpy = vi
+      .spyOn(DockerSandboxAdapter.prototype, 'createAndVerify')
+      .mockRejectedValueOnce(
+        new SandboxError(
+          'SANDBOX_CREATION_FAILED',
+          'Simulated platform container daemon failure',
+        ),
+      );
+
+    try {
+      const activateReq = createRequest(
+        `http://localhost:3000/api/candidate/sessions/${candidateToken}/activate`,
+      );
+      const activateRes = await activateSession(activateReq, {
+        params: Promise.resolve({ token: candidateToken }),
+      });
+
+      expect(activateRes.status).toBe(503);
+      const data = await activateRes.json();
+      expect(data).toEqual({
+        error: {
+          code: 'SANDBOX_CREATION_FAILED',
+          message: 'Simulated platform container daemon failure',
+        },
+      });
+
+      // Session must remain in CREATED state and activatedAt must remain null
+      const sessionAfterFailure =
+        sessionService.getCandidateSession(candidateToken);
+      expect(sessionAfterFailure.status).toBe('CREATED');
+      expect(sessionAfterFailure.activatedAt).toBeNull();
+    } finally {
+      createSpy.mockRestore();
+    }
+  });
+
+  it('returns HTTP 500 when unexpected internal failure occurs during activation', async () => {
+    const sessionStore = new SqliteSessionStore(databasePath);
+    const sessionService = new SessionService(sessionStore);
+    const { candidateToken } = sessionService.createSession();
+
+    const unexpectedSpy = vi
+      .spyOn(DockerSandboxAdapter.prototype, 'createAndVerify')
+      .mockRejectedValueOnce(new Error('Unexpected disk fault'));
+
+    try {
+      const activateReq = createRequest(
+        `http://localhost:3000/api/candidate/sessions/${candidateToken}/activate`,
+      );
+      const activateRes = await activateSession(activateReq, {
+        params: Promise.resolve({ token: candidateToken }),
+      });
+
+      expect(activateRes.status).toBe(500);
+      const data = await activateRes.json();
+      expect(data).toEqual({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'The request could not be completed.',
+        },
+      });
+    } finally {
+      unexpectedSpy.mockRestore();
+    }
   });
 });

@@ -1,4 +1,7 @@
-import type { CandidateContextAttachment } from '../../../src/ai/ai-interaction';
+import {
+  type CandidateContextAttachment,
+  MAXIMUM_PROMPT_LENGTH,
+} from '../../../src/ai/ai-interaction';
 
 export type SubmissionState =
   'idle' | 'submitting' | 'completed' | 'failed' | 'ambiguous';
@@ -26,7 +29,7 @@ export const INITIAL_CANDIDATE_AI_STATE: CandidateAiState = {
   completedInteraction: null,
 };
 
-export const MAXIMUM_PROMPT_CHARS = 32_768;
+export const MAXIMUM_PROMPT_CHARS = MAXIMUM_PROMPT_LENGTH;
 
 export const generateClientRequestId = (): string => {
   if (

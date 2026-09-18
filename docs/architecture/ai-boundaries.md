@@ -26,9 +26,11 @@ Delimit strictly separates mutable operational lifecycle state from immutable ev
 
 Each assessment session captures an `AiCapabilitySnapshot` at session creation time:
 
-- Fields: `enabled`, `provider`, `model`, `streamingSupported`, `toolsSupported`, `maxPromptLength`, `maxTokens`.
+- Current implemented fields: `enabled`, `contractVersion`, `configuredProviderId`, `configuredModelId`, `configurationVersion`.
 - Persisted immutably in `assessment_sessions.ai_capability_snapshot`.
 - Subsequent changes to global or scenario AI configuration do not alter the rules or capabilities assigned to an existing session.
+- Deferred capabilities: `streamingSupported`, `toolsSupported`, and per-assessment token budgeting (`maxTokens`) are explicitly deferred and not part of the active capability snapshot.
+- Prompt length policy: The prompt length limit (`MAXIMUM_PROMPT_LENGTH = 32_768`) is a domain validation invariant and shared client contract, rather than a per-session configurable capability field.
 
 ### Provider Execution Lifecycle (Slice 6C)
 

@@ -7,12 +7,14 @@ import {
   beginSubmission,
   buildAiInteractionPayload,
   INITIAL_CANDIDATE_AI_STATE,
+  MAXIMUM_PROMPT_CHARS,
   removeContextAttachment,
   resolveSubmissionNetworkError,
   resolveSubmissionResult,
   setPromptText,
   startNewRequest,
 } from '../../apps/web/app/candidate/[token]/candidate-ai-state';
+import { MAXIMUM_PROMPT_LENGTH } from '../../apps/web/src/ai/ai-interaction';
 import { toCandidateSessionView } from '../../apps/web/src/sessions/candidate-session-view';
 import type { AssessmentSession } from '../../apps/web/src/sessions/session';
 
@@ -498,6 +500,27 @@ describe('Slice 6F — Candidate Integrated AI Surface', () => {
       expect(html).toContain('role="alert"');
       expect(html).toContain('The AI provider returned an error.');
       expect(html).toContain('Try new request');
+    });
+  });
+
+  describe('Prompt Length Contract & Single Source of Truth', () => {
+    it('uses the authoritative domain MAXIMUM_PROMPT_LENGTH as the single source of truth', () => {
+      // The UI state constant must strictly derive from the domain module constant
+      expect(MAXIMUM_PROMPT_CHARS).toBe(MAXIMUM_PROMPT_LENGTH);
+      expect(MAXIMUM_PROMPT_CHARS).toBe(32_768);
+    });
+
+    it('binds candidate textarea maxLength directly to the authoritative boundary', () => {
+      const html = renderToStaticMarkup(
+        <CandidateAiPanel
+          token="test-token"
+          sessionStatus="ACTIVE"
+          aiCapability={{ enabled: true }}
+        />,
+      );
+
+      // Verify the textarea has maxLength matching authoritative domain boundary
+      expect(html).toContain(`maxLength="${MAXIMUM_PROMPT_LENGTH}"`);
     });
   });
 });

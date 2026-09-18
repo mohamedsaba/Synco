@@ -8,6 +8,7 @@ import {
   defaultAiCapabilitySnapshot,
   disabledAiCapabilitySnapshot,
   isValidAiInteractionTransition,
+  MAXIMUM_PROMPT_LENGTH,
 } from '../../apps/web/src/ai/ai-interaction';
 import {
   AiInteractionService,
@@ -188,16 +189,31 @@ describe('AiInteractionService (Slice 6B Foundation)', () => {
       );
     });
 
-    it('rejects admission when candidate prompt exceeds maximum bounds', () => {
+    it('accepts candidate prompt at exact maximum allowed length (MAXIMUM_PROMPT_LENGTH)', () => {
       const { aiService, session, activateSession } = createTestContext();
 
       activateSession();
 
-      const hugePrompt = 'x'.repeat(33_000); // Exceeds 32 KiB
+      const exactMaxPrompt = 'x'.repeat(MAXIMUM_PROMPT_LENGTH);
+      const admitted = aiService.admitInteraction(session.id, {
+        clientRequestId: 'req_exact_max',
+        candidatePromptText: exactMaxPrompt,
+      });
+
+      expect(admitted.interaction.status).toBe('ADMITTED');
+      expect(admitted.interaction.candidatePromptText).toBe(exactMaxPrompt);
+    });
+
+    it('rejects candidate prompt when exceeding maximum allowed length by one byte', () => {
+      const { aiService, session, activateSession } = createTestContext();
+
+      activateSession();
+
+      const oversizedPrompt = 'x'.repeat(MAXIMUM_PROMPT_LENGTH + 1);
       expect(() =>
         aiService.admitInteraction(session.id, {
-          clientRequestId: 'req_oversized',
-          candidatePromptText: hugePrompt,
+          clientRequestId: 'req_oversized_boundary',
+          candidatePromptText: oversizedPrompt,
         }),
       ).toThrowError(
         expect.objectContaining({

@@ -305,18 +305,28 @@ export class SessionService {
         );
       }
 
+      const previousContent = current.workingContent;
       const normalized = normalizeLineEndings(content);
       const updated = this.store.save(tokenHash, normalized);
 
       if (this.sandboxAdapter && updated.status === 'ACTIVE') {
-        await this.sandboxAdapter
-          .writeFile(updated.id, updated.scenario.filePath, normalized)
-          .catch((err) => {
-            console.warn(
-              'Could not sync working content to active sandbox',
-              err,
+        try {
+          await this.sandboxAdapter.writeFile(
+            updated.id,
+            updated.scenario.filePath,
+            normalized,
+          );
+        } catch (error) {
+          try {
+            this.store.save(tokenHash, previousContent);
+          } catch (rollbackError) {
+            console.error(
+              'Failed to rollback session working content after sandbox write failure',
+              rollbackError,
             );
-          });
+          }
+          throw error;
+        }
       }
 
       return updated;

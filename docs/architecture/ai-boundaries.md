@@ -81,7 +81,7 @@ Slice 6C implements the synchronous candidate AI provider execution lifecycle:
 4. **Late Provider Output Isolation & Evidence Stability**:
    - If an in-flight AI provider call settles (success, error, or timeout) after the interaction has been closed as `CANCELLED / session_ended` by submission, `recordCompletion` and `recordFailure` detect the terminal state and drop the late result.
    - Late provider text is never written to `ai_interactions`, no `AI_RESPONSE_COMPLETED` or `AI_REQUEST_FAILED` event is emitted, and `executeInteraction` returns the normalized `CANCELLED / session_ended` outcome.
-   - The evaluator evidence packet and chronological reconstruction are frozen at the submission boundary; subsequent provider resolutions cannot alter the sealed evidence stream.
+   - The submitted candidate-evidence frontier is closed at the submission boundary; subsequent provider resolutions cannot alter candidate evidence, while legitimate platform and operational evidence may still be appended afterward.
 
 ### AI Evidence Reconstruction Integration (Slice 6D)
 

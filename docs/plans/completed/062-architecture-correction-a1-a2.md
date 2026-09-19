@@ -1,6 +1,6 @@
 # 062 — Delimit Architecture Correction A1/A2: Same-Session Coordination + Submission Evidence Closure
 
-Status: active.
+Status: completed.
 Baseline: `4b44690e2e88a26c66c24b80ee4351969df8f264` (origin/main).
 
 ## Objective
@@ -42,7 +42,7 @@ Strictly out of scope: F03 through F16.
 4. **Admission & Idempotency Reordering**:
    - Inside `BEGIN IMMEDIATE` transaction, look up `(sessionId, clientRequestId)` first.
    - If existing interaction found: return persisted result directly (HTTP 200), bypassing active status, capability, provider, and input validations. Zero writes, zero events, zero provider calls.
-   - If interaction does not exist: assert session is `ACTIVE`, validate capability, validate prompt and context, confirm provider, insert `ADMITTED` interaction, and append `AI_REQUEST_STARTED`.
+   - If interaction does not exist: assert session is `ACTIVE`, validate capability, validate prompt and context, insert `ADMITTED` interaction, and append `AI_REQUEST_STARTED` (configured provider is confirmed upon subsequent dispatch claim).
    - Brand-new request against a closed/submitted session returns 409 `SESSION_NOT_ACTIVE`.
 
 5. **Dispatch Claim & Late Provider Results**:

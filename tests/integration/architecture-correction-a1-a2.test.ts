@@ -1411,4 +1411,80 @@ describe('Delimit Architecture Correction A1/A2 — Same-Session Coordination + 
       .filter((e) => e.type === 'AI_REQUEST_CANCELLED');
     expect(cancelEvents).toHaveLength(0);
   });
+
+  it('Scenario Z1: save initiated before submit serializes cleanly; save completes first and submit captures saved content', async () => {
+    const sessionStore = new SqliteSessionStore(databasePath);
+    const eventStore = new SqliteEventStore(databasePath);
+    const sessionService = new SessionService(sessionStore, {
+      eventStore,
+      sandboxAdapter: new MockSandboxAdapter(),
+    });
+
+    const { candidateToken } = sessionService.createSession();
+    await sessionService.activate(candidateToken);
+
+    // Save and submit initiated in flight
+    const pSave = sessionService.save(
+      candidateToken,
+      'content saved right before submission\n',
+    );
+    const pSubmit = sessionService.submit(candidateToken);
+
+    const [savedSession, submittedSession] = await Promise.all([
+      pSave,
+      pSubmit,
+    ]);
+
+    expect(savedSession.status).toBe('ACTIVE');
+    expect(savedSession.workingContent).toBe(
+      'content saved right before submission\n',
+    );
+    expect(submittedSession.status).toBe('SUBMITTED');
+    expect(submittedSession.submittedContent).toBe(
+      'content saved right before submission\n',
+    );
+
+    const finalSession = sessionService.getCandidateSession(candidateToken);
+    expect(finalSession.status).toBe('SUBMITTED');
+    expect(finalSession.workingContent).toBe(
+      'content saved right before submission\n',
+    );
+  });
+
+  it('Scenario Z2: legitimate post-submission operational event remains appendable and visible in event store', async () => {
+    const sessionStore = new SqliteSessionStore(databasePath);
+    const eventStore = new SqliteEventStore(databasePath);
+    const sessionService = new SessionService(sessionStore, {
+      eventStore,
+      sandboxAdapter: new MockSandboxAdapter(),
+    });
+
+    const { candidateToken, session } = sessionService.createSession();
+    await sessionService.activate(candidateToken);
+    const submitted = await sessionService.submit(candidateToken);
+    expect(submitted.status).toBe('SUBMITTED');
+
+    // Append legitimate platform/operational event after submission
+    const operationalEvent = eventStore.append({
+      id: 'evt_operational_diag_1',
+      sessionId: session.id,
+      type: 'SANDBOX_CLEANUP_FAILED',
+      timestamp: '2026-09-19T12:00:00.000Z',
+      source: 'server',
+      payload: {
+        phase: 'post_submission_cleanup',
+        errorMessage: 'Container network teardown diagnostic notice',
+      },
+    });
+
+    expect(operationalEvent.sequence).toBeGreaterThan(0);
+    const allEvents = eventStore.getEvents(session.id);
+    const found = allEvents.find((e) => e.id === 'evt_operational_diag_1');
+    expect(found).toBeDefined();
+    expect(found?.type).toBe('SANDBOX_CLEANUP_FAILED');
+    expect(found?.payload).toEqual({
+      phase: 'post_submission_cleanup',
+      errorMessage: 'Container network teardown diagnostic notice',
+    });
+  });
 });

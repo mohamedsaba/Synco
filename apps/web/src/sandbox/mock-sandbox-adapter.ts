@@ -43,6 +43,7 @@ export class MockSandboxAdapter implements SandboxAdapter {
   public failCaptureTree = false;
   public failCaptureDiff = false;
   public failTeardown = false;
+  public failWrite = false;
 
   private computeTreeHash(files: Map<string, string>): string {
     const sortedEntries = Array.from(files.entries()).sort(([a], [b]) =>
@@ -351,6 +352,12 @@ export class MockSandboxAdapter implements SandboxAdapter {
     filePath: string,
     content: string,
   ): Promise<void> {
+    if (this.failWrite) {
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        `Simulated writeFile failure for session ${sessionId}`,
+      );
+    }
     const sandbox = this.activeSandboxes.get(sessionId);
     if (!sandbox) {
       throw new SandboxError(

@@ -8,6 +8,12 @@ import type {
 } from '../../../src/sandbox/sandbox';
 import type { toCandidateSessionView } from '../../../src/sessions/candidate-session-view';
 import { CandidateAiPanel } from './candidate-ai-panel';
+import {
+  executeFileSwitch,
+  executeSubmitAssessment,
+  formatSaveFailureBeforeSubmit,
+  formatSaveFailureBeforeSwitch,
+} from './candidate-workspace-actions';
 
 type CandidateSessionView = ReturnType<typeof toCandidateSessionView>;
 
@@ -77,24 +83,28 @@ export const CandidateWorkspace = ({
     }
   };
 
+  const fetchAndDisplayFile = async (filePath: string) => {
+    const response = await fetch(
+      `/api/candidate/sessions/${token}/workspace/file?path=${encodeURIComponent(filePath)}`,
+    );
+    if (!response.ok) {
+      const err = (await response.json()) as ApiError;
+      throw new Error(err.error?.message ?? `Could not read ${filePath}`);
+    }
+    const data = (await response.json()) as {
+      path: string;
+      content: string;
+    };
+    setContent(data.content);
+    setSelectedFile(data.path);
+    setIsDirty(false);
+  };
+
   const loadFile = async (filePath: string) => {
     setIsBusy(true);
     setNotice(null);
     try {
-      const response = await fetch(
-        `/api/candidate/sessions/${token}/workspace/file?path=${encodeURIComponent(filePath)}`,
-      );
-      if (!response.ok) {
-        const err = (await response.json()) as ApiError;
-        throw new Error(err.error?.message ?? `Could not read ${filePath}`);
-      }
-      const data = (await response.json()) as {
-        path: string;
-        content: string;
-      };
-      setContent(data.content);
-      setSelectedFile(data.path);
-      setIsDirty(false);
+      await fetchAndDisplayFile(filePath);
     } catch (error) {
       setNotice(
         error instanceof Error ? error.message : `Failed to load ${filePath}`,
@@ -140,23 +150,6 @@ export const CandidateWorkspace = ({
     };
   }, [session.status, isMultiFile, token, selectedFile]);
 
-  const handleSelectFile = async (filePath: string) => {
-    if (filePath === selectedFile) return;
-    if (isDirty) {
-      // Auto-save current file before switching
-      try {
-        await fetch(`/api/candidate/sessions/${token}/workspace/file`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: selectedFile, content }),
-        });
-      } catch {
-        // Continue switching even if auto-save fails
-      }
-    }
-    await loadFile(filePath);
-  };
-
   const request = async (path: string, init: RequestInit = {}) => {
     const response = await fetch(
       `/api/candidate/sessions/${token}${path}`,
@@ -172,7 +165,74 @@ export const CandidateWorkspace = ({
     return (await response.json()) as CandidateSessionView;
   };
 
+  const saveCurrentFile = async (): Promise<void> => {
+    if (isMultiFile) {
+      const res = await fetch(
+        `/api/candidate/sessions/${token}/workspace/file`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: selectedFile, content }),
+        },
+      );
+      if (!res.ok) {
+        const err = (await res.json()) as ApiError;
+        throw new Error(err.error?.message ?? 'Failed to save file.');
+      }
+      setIsDirty(false);
+      await refreshFiles();
+    } else {
+      const nextSession = await request('/file', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+      setSession(nextSession);
+      setIsDirty(false);
+    }
+  };
+
+  const handleSelectFile = async (filePath: string) => {
+    if (filePath === selectedFile || isBusy) return;
+    setIsBusy(true);
+    setNotice(null);
+    try {
+      await executeFileSwitch({
+        currentFile: selectedFile,
+        targetFile: filePath,
+        content,
+        isDirty,
+        isBusy: false,
+        saveCurrentFile,
+        loadTargetFile: async (path) => {
+          const response = await fetch(
+            `/api/candidate/sessions/${token}/workspace/file?path=${encodeURIComponent(path)}`,
+          );
+          if (!response.ok) {
+            const err = (await response.json()) as ApiError;
+            throw new Error(err.error?.message ?? `Could not read ${path}`);
+          }
+          return (await response.json()) as { path: string; content: string };
+        },
+        onSaveFailure: (error) => {
+          setNotice(formatSaveFailureBeforeSwitch(selectedFile, error));
+        },
+        onSwitchSuccess: (loaded) => {
+          setContent(loaded.content);
+          setSelectedFile(loaded.path);
+          setIsDirty(false);
+        },
+        onLoadFailure: (error) => {
+          setNotice(error.message);
+        },
+      });
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
   const runAction = async (action: () => Promise<void>) => {
+    if (isBusy) return;
     setIsBusy(true);
     setNotice(null);
     try {
@@ -213,56 +273,48 @@ export const CandidateWorkspace = ({
 
   const save = () =>
     runAction(async () => {
-      if (isMultiFile) {
-        const res = await fetch(
-          `/api/candidate/sessions/${token}/workspace/file`,
-          {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ path: selectedFile, content }),
-          },
-        );
-        if (!res.ok) {
-          const err = (await res.json()) as ApiError;
-          throw new Error(err.error?.message ?? 'Failed to save file.');
-        }
-        setIsDirty(false);
-        setNotice(`Saved ${selectedFile} to container.`);
-        await refreshFiles();
-      } else {
-        const nextSession = await request('/file', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content }),
-        });
-        setSession(nextSession);
-        setIsDirty(false);
-        setNotice('Saved to the server.');
-      }
+      await saveCurrentFile();
+      setNotice(
+        isMultiFile
+          ? `Saved ${selectedFile} to container.`
+          : 'Saved to the server.',
+      );
     });
 
   const submit = () =>
     runAction(async () => {
-      if (isDirty) {
-        if (isMultiFile) {
-          await fetch(`/api/candidate/sessions/${token}/workspace/file`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ path: selectedFile, content }),
-          });
-        } else {
-          await request('/file', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content }),
-          });
+      let saveFailedError: Error | null = null;
+      let submitFailedError: Error | null = null;
+      const success = await executeSubmitAssessment({
+        isDirty,
+        isBusy: false,
+        saveCurrentFile,
+        submitAssessment: async () => {
+          const nextSession = await request('/submit', { method: 'POST' });
+          setSession(nextSession);
+          setIsDirty(false);
+        },
+        onSaveFailure: (error) => {
+          saveFailedError = error;
+        },
+        onSubmitSuccess: () => {
+          setNotice(
+            'Submitted. Sandbox terminated and files are now immutable.',
+          );
+        },
+        onSubmitFailure: (error) => {
+          submitFailedError = error;
+        },
+      });
+
+      if (!success) {
+        if (saveFailedError) {
+          throw new Error(formatSaveFailureBeforeSubmit(saveFailedError));
+        }
+        if (submitFailedError) {
+          throw submitFailedError;
         }
       }
-
-      const nextSession = await request('/submit', { method: 'POST' });
-      setSession(nextSession);
-      setIsDirty(false);
-      setNotice('Submitted. Sandbox terminated and files are now immutable.');
     });
 
   const executeCommand = async (e?: React.FormEvent) => {

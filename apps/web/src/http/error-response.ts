@@ -9,6 +9,7 @@ const sessionStatus: Record<SessionError['code'], number> = {
   SESSION_NOT_ACTIVE: 409,
   EVIDENCE_NOT_READY: 409,
   CONTENT_TOO_LARGE: 413,
+  COMMAND_TOO_LARGE: 413,
   PLATFORM_CAPTURE_FAILED: 500,
 };
 
@@ -25,10 +26,28 @@ const aiInteractionStatus: Record<AiInteractionError['code'], number> = {
   PLATFORM_PERSISTENCE_FAILED: 500,
 };
 
+const safeSandboxMessages: Record<SandboxError['code'], string> = {
+  SANDBOX_CREATION_FAILED: 'Sandbox container creation failed.',
+  SANDBOX_READINESS_FAILED: 'Sandbox readiness check failed.',
+  SANDBOX_NOT_FOUND: 'Sandbox container was not found.',
+  SANDBOX_EXECUTION_FAILED: 'Sandbox execution failed.',
+};
+
+const hasInfrastructureDiagnostics = (message: string): boolean => {
+  return /docker|delimit-sandbox|\/usr\/local\/bin|exited with code|Command\s+'|ENOENT|ECONNREFUSED|SIGKILL|SIGTERM|spawn\s+/i.test(
+    message,
+  );
+};
+
 export const errorResponse = (error: unknown) => {
   if (error instanceof SessionError) {
+    const message =
+      error.code === 'PLATFORM_CAPTURE_FAILED' &&
+      hasInfrastructureDiagnostics(error.message)
+        ? 'Workspace capture failed.'
+        : error.message;
     return Response.json(
-      { error: { code: error.code, message: error.message } },
+      { error: { code: error.code, message } },
       { status: sessionStatus[error.code] },
     );
   }
@@ -41,8 +60,12 @@ export const errorResponse = (error: unknown) => {
   }
 
   if (error instanceof SandboxError) {
+    console.error('Sandbox infrastructure failure', error);
+    const message = hasInfrastructureDiagnostics(error.message)
+      ? safeSandboxMessages[error.code]
+      : error.message;
     return Response.json(
-      { error: { code: error.code, message: error.message } },
+      { error: { code: error.code, message } },
       { status: 503 },
     );
   }

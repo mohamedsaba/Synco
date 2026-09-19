@@ -19,6 +19,8 @@ import { DockerSandboxAdapter } from '../sandbox/docker-sandbox-adapter';
 import {
   type CommandExecResult,
   type SandboxAdapter,
+  MAX_COMMAND_LENGTH,
+  MAX_WORKSPACE_FILE_READ_BYTES,
   SandboxError,
 } from '../sandbox/sandbox';
 import { scenario001 } from '../scenarios/scenario-001';
@@ -35,7 +37,7 @@ import {
 } from './session-operation-coordinator';
 import { SqliteSessionStore } from './sqlite-session-store';
 
-const maximumContentLength = 100_000;
+const maximumContentLength = MAX_WORKSPACE_FILE_READ_BYTES;
 
 const hashCandidateToken = (candidateToken: string) =>
   createHash('sha256').update(candidateToken).digest('hex');
@@ -363,6 +365,13 @@ export class SessionService {
         );
       }
 
+      if (command.length > MAX_COMMAND_LENGTH) {
+        throw new SessionError(
+          'COMMAND_TOO_LARGE',
+          `Command exceeds the maximum limit of ${MAX_COMMAND_LENGTH} characters.`,
+        );
+      }
+
       if (!this.sandboxAdapter) {
         throw new SandboxError(
           'SANDBOX_NOT_FOUND',
@@ -519,7 +528,20 @@ export class SessionService {
     if (!this.sandboxAdapter) {
       return '';
     }
-    return this.sandboxAdapter.readFile(session.id, filePath);
+    try {
+      return await this.sandboxAdapter.readFile(session.id, filePath);
+    } catch (error) {
+      if (
+        error instanceof SandboxError &&
+        (error.message.includes('100 KB') || error.message.includes('exceeds'))
+      ) {
+        throw new SessionError(
+          'CONTENT_TOO_LARGE',
+          'The file exceeds the 100 KB limit for this scenario.',
+        );
+      }
+      throw error;
+    }
   }
 
   async saveWorkspaceFile(

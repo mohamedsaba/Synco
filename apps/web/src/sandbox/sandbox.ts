@@ -11,6 +11,15 @@ export type CommandExecResult = Readonly<{
   stderrTruncated: boolean;
 }>;
 
+export const MAX_WORKSPACE_FILE_READ_BYTES = 100_000;
+export const MAX_COMMAND_LENGTH = 4096;
+
+export type ProcessOptions = Readonly<{
+  timeoutMs?: number;
+  maxStdoutBytes?: number;
+  maxStderrBytes?: number;
+}>;
+
 export class SandboxError extends Error {
   constructor(
     readonly code:

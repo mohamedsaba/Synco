@@ -25,3 +25,22 @@ Read the relevant authoritative docs, inspect current behavior, identify require
 ## Definition of done
 
 The requested slice is demoable; important behavior and product constraints are tested; `npm run verify` passes; no unjustified abstraction or dependency was added; errors and known assumptions remain visible; and docs and plans reflect the resulting system.
+
+## Repository safety
+
+Prohibit destructive operations against developer work, including:
+
+- `git reset --hard`
+- `git clean -fd`
+- `git restore` over dirty files
+- unapproved `git stash`
+- forced checkout overwriting work
+- `git worktree remove --force`
+- force push
+- destructive cleanup of primary checkout
+
+Require:
+
+- inspect `git status` first;
+- preserve unrelated dirty work;
+- use isolated worktrees for implementation.

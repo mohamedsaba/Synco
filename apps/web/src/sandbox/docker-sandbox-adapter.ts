@@ -4,10 +4,12 @@ import type { WorkspaceFileChange } from '../events/session-event';
 import { BoundedStreamAccumulator } from './bounded-stream-accumulator';
 import {
   type CommandExecResult,
+  type ProcessOptions,
   type SandboxAdapter,
   type SandboxCreateOptions,
   type TreeDiffResult,
   type WorkspaceFileInfo,
+  MAX_WORKSPACE_FILE_READ_BYTES,
   SandboxError,
 } from './sandbox';
 
@@ -37,9 +39,11 @@ export class DockerSandboxAdapter implements SandboxAdapter {
     const containerName = this.getContainerName(sessionId);
 
     // Clean up any stale container with the same name first
-    await this.runProcess('docker', ['rm', '-f', containerName]).catch(
-      () => {},
-    );
+    await this.runProcess('docker', ['rm', '-f', containerName], {
+      timeoutMs: 15_000,
+      maxStdoutBytes: 4 * 1024,
+      maxStderrBytes: 64 * 1024,
+    }).catch(() => {});
 
     const isOptionsObject =
       options !== undefined &&
@@ -63,62 +67,79 @@ export class DockerSandboxAdapter implements SandboxAdapter {
 
     try {
       if (isMultiFile) {
-        await this.runProcess('docker', [
-          'run',
-          '-d',
-          '--name',
-          containerName,
-          '--read-only',
-          '--tmpfs',
-          '/tmp:rw,exec,nosuid,size=256m,uid=1000,gid=1000',
-          '--tmpfs',
-          '/workspace:rw,exec,nosuid,size=512m,uid=1000,gid=1000',
-          '--tmpfs',
-          '/run/delimit-evidence:rw,noexec,nosuid,size=64m,mode=0700,uid=0,gid=0',
-          '--network',
-          'none',
-          '--memory=1024m',
-          '--cpus=1.0',
-          '--pids-limit=128',
-          '--cap-drop=ALL',
-          '--security-opt=no-new-privileges:true',
-          '--user',
-          '1000:1000',
-          '-w',
-          '/workspace',
-          imageName,
-        ]);
+        await this.runProcess(
+          'docker',
+          [
+            'run',
+            '-d',
+            '--name',
+            containerName,
+            '--read-only',
+            '--tmpfs',
+            '/tmp:rw,exec,nosuid,size=256m,uid=1000,gid=1000',
+            '--tmpfs',
+            '/workspace:rw,exec,nosuid,size=512m,uid=1000,gid=1000',
+            '--tmpfs',
+            '/run/delimit-evidence:rw,noexec,nosuid,size=64m,mode=0700,uid=0,gid=0',
+            '--network',
+            'none',
+            '--memory=1024m',
+            '--cpus=1.0',
+            '--pids-limit=128',
+            '--cap-drop=ALL',
+            '--security-opt=no-new-privileges:true',
+            '--user',
+            '1000:1000',
+            '-w',
+            '/workspace',
+            imageName,
+          ],
+          {
+            timeoutMs: 30_000,
+            maxStdoutBytes: 4 * 1024,
+            maxStderrBytes: 64 * 1024,
+          },
+        );
       } else {
-        await this.runProcess('docker', [
-          'run',
-          '-d',
-          '--name',
-          containerName,
-          '--read-only',
-          '--tmpfs',
-          '/tmp:rw,noexec,nosuid,size=64m',
-          '--tmpfs',
-          '/workspace:rw,exec,nosuid,size=256m,uid=1000,gid=1000',
-          '--network',
-          'none',
-          '--memory=512m',
-          '--cpus=1.0',
-          '--pids-limit=64',
-          '--cap-drop=ALL',
-          '--security-opt=no-new-privileges:true',
-          '--user',
-          '1000:1000',
-          '-w',
-          '/workspace',
-          imageName,
-          'sleep',
-          'infinity',
-        ]);
+        await this.runProcess(
+          'docker',
+          [
+            'run',
+            '-d',
+            '--name',
+            containerName,
+            '--read-only',
+            '--tmpfs',
+            '/tmp:rw,noexec,nosuid,size=64m',
+            '--tmpfs',
+            '/workspace:rw,exec,nosuid,size=256m,uid=1000,gid=1000',
+            '--network',
+            'none',
+            '--memory=512m',
+            '--cpus=1.0',
+            '--pids-limit=64',
+            '--cap-drop=ALL',
+            '--security-opt=no-new-privileges:true',
+            '--user',
+            '1000:1000',
+            '-w',
+            '/workspace',
+            imageName,
+            'sleep',
+            'infinity',
+          ],
+          {
+            timeoutMs: 30_000,
+            maxStdoutBytes: 4 * 1024,
+            maxStderrBytes: 64 * 1024,
+          },
+        );
       }
     } catch (error) {
+      if (error instanceof SandboxError) throw error;
       throw new SandboxError(
         'SANDBOX_CREATION_FAILED',
-        `Failed to create sandbox container: ${error instanceof Error ? error.message : String(error)}`,
+        'Failed to create sandbox container.',
         error,
       );
     }
@@ -130,13 +151,23 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           ? filePath.slice(0, filePath.lastIndexOf('/'))
           : '';
         if (dir) {
-          await this.runProcess('docker', [
-            'exec',
-            containerName,
-            'mkdir',
-            '-p',
-            `/workspace/${dir}`,
-          ]);
+          await this.runProcess(
+            'docker',
+            [
+              'exec',
+              containerName,
+              'sh',
+              '-c',
+              'mkdir -p "$1"',
+              '_',
+              `/workspace/${dir}`,
+            ],
+            {
+              timeoutMs: 10_000,
+              maxStdoutBytes: 4 * 1024,
+              maxStderrBytes: 64 * 1024,
+            },
+          );
         }
 
         await this.runProcessWithInput(
@@ -147,21 +178,36 @@ export class DockerSandboxAdapter implements SandboxAdapter {
             containerName,
             'sh',
             '-c',
-            `cat > "/workspace/${filePath}"`,
+            'cat > "$1"',
+            '_',
+            `/workspace/${filePath}`,
           ],
           content,
+          {
+            timeoutMs: 15_000,
+            maxStdoutBytes: 4 * 1024,
+            maxStderrBytes: 64 * 1024,
+          },
         );
       }
 
       // Readiness check
       if (isMultiFile) {
-        const readyCheck = await this.runProcess('docker', [
-          'exec',
-          containerName,
-          'sh',
-          '-c',
-          'for i in $(seq 1 100); do if [ -f /tmp/scenario_ready ] && pg_isready -h 127.0.0.1 -p 5432 -U delimit -q && redis-cli ping | grep -q PONG; then echo delimit-ready; exit 0; fi; sleep 0.1; done; echo not-ready; exit 1',
-        ]);
+        const readyCheck = await this.runProcess(
+          'docker',
+          [
+            'exec',
+            containerName,
+            'sh',
+            '-c',
+            'for i in $(seq 1 100); do if [ -f /tmp/scenario_ready ] && pg_isready -h 127.0.0.1 -p 5432 -U delimit -q && redis-cli ping | grep -q PONG; then echo delimit-ready; exit 0; fi; sleep 0.1; done; echo not-ready; exit 1',
+          ],
+          {
+            timeoutMs: 25_000,
+            maxStdoutBytes: 16 * 1024,
+            maxStderrBytes: 64 * 1024,
+          },
+        );
 
         if (!readyCheck.stdout.includes('delimit-ready')) {
           throw new Error(
@@ -169,13 +215,15 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           );
         }
       } else {
-        const readyCheck = await this.runProcess('docker', [
-          'exec',
-          containerName,
-          'sh',
-          '-c',
-          'echo delimit-ready',
-        ]);
+        const readyCheck = await this.runProcess(
+          'docker',
+          ['exec', containerName, 'sh', '-c', 'echo delimit-ready'],
+          {
+            timeoutMs: 10_000,
+            maxStdoutBytes: 4 * 1024,
+            maxStderrBytes: 64 * 1024,
+          },
+        );
 
         if (!readyCheck.stdout.includes('delimit-ready')) {
           throw new Error(
@@ -185,9 +233,10 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       }
     } catch (error) {
       await this.teardown(sessionId).catch(() => {});
+      if (error instanceof SandboxError) throw error;
       throw new SandboxError(
         'SANDBOX_READINESS_FAILED',
-        `Sandbox readiness check failed: ${error instanceof Error ? error.message : String(error)}`,
+        'Sandbox readiness check failed.',
         error,
       );
     }
@@ -204,23 +253,26 @@ export class DockerSandboxAdapter implements SandboxAdapter {
 
     // Verify container exists and is running
     try {
-      const inspect = await this.runProcess('docker', [
-        'inspect',
-        '-f',
-        '{{.State.Running}}',
-        containerName,
-      ]);
+      const inspect = await this.runProcess(
+        'docker',
+        ['inspect', '-f', '{{.State.Running}}', containerName],
+        {
+          timeoutMs: 10_000,
+          maxStdoutBytes: 4 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
       if (inspect.stdout.trim() !== 'true') {
         throw new SandboxError(
           'SANDBOX_NOT_FOUND',
-          `Sandbox container ${containerName} is not running.`,
+          'Sandbox container is not running.',
         );
       }
     } catch (error) {
       if (error instanceof SandboxError) throw error;
       throw new SandboxError(
         'SANDBOX_NOT_FOUND',
-        `Sandbox container ${containerName} was not found.`,
+        'Sandbox container was not found.',
         error,
       );
     }
@@ -287,13 +339,15 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           `sleep 0.1`,
         ].join('\n');
 
-        await this.runProcess('docker', [
-          'exec',
-          containerName,
-          'sh',
-          '-c',
-          killCmd,
-        ]).catch(() => {});
+        await this.runProcess(
+          'docker',
+          ['exec', containerName, 'sh', '-c', killCmd],
+          {
+            timeoutMs: 10_000,
+            maxStdoutBytes: 4 * 1024,
+            maxStderrBytes: 64 * 1024,
+          },
+        ).catch(() => {});
       };
 
       if (timeoutMs > 0) {
@@ -366,27 +420,53 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       : '';
 
     if (dir) {
-      await this.runProcess('docker', [
-        'exec',
-        containerName,
-        'mkdir',
-        '-p',
-        `/workspace/${dir}`,
-      ]).catch(() => {});
+      await this.runProcess(
+        'docker',
+        [
+          'exec',
+          containerName,
+          'sh',
+          '-c',
+          'mkdir -p "$1"',
+          '_',
+          `/workspace/${dir}`,
+        ],
+        {
+          timeoutMs: 10_000,
+          maxStdoutBytes: 4 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      ).catch(() => {});
     }
 
-    await this.runProcessWithInput(
-      'docker',
-      [
-        'exec',
-        '-i',
-        containerName,
-        'sh',
-        '-c',
-        `cat > "/workspace/${normalized}"`,
-      ],
-      content,
-    );
+    try {
+      await this.runProcessWithInput(
+        'docker',
+        [
+          'exec',
+          '-i',
+          containerName,
+          'sh',
+          '-c',
+          'cat > "$1"',
+          '_',
+          `/workspace/${normalized}`,
+        ],
+        content,
+        {
+          timeoutMs: 15_000,
+          maxStdoutBytes: 4 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
+    } catch (error) {
+      if (error instanceof SandboxError) throw error;
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        `Failed to write file ${filePath}.`,
+        error,
+      );
+    }
   }
 
   async readFile(sessionId: string, filePath: string): Promise<string> {
@@ -402,17 +482,30 @@ export class DockerSandboxAdapter implements SandboxAdapter {
     }
 
     try {
-      const res = await this.runProcess('docker', [
-        'exec',
-        containerName,
-        'cat',
-        `/workspace/${normalized}`,
-      ]);
+      const res = await this.runProcess(
+        'docker',
+        ['exec', containerName, 'cat', `/workspace/${normalized}`],
+        {
+          timeoutMs: 15_000,
+          maxStdoutBytes: MAX_WORKSPACE_FILE_READ_BYTES,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
       return res.stdout;
     } catch (error) {
+      if (error instanceof SandboxError) {
+        if (error.message.includes('stdout exceeded limit')) {
+          throw new SandboxError(
+            'SANDBOX_EXECUTION_FAILED',
+            `File ${filePath} exceeds the maximum supported read size of 100 KB.`,
+            error,
+          );
+        }
+        throw error;
+      }
       throw new SandboxError(
         'SANDBOX_EXECUTION_FAILED',
-        `Failed to read file ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to read file ${filePath}.`,
         error,
       );
     }
@@ -421,13 +514,21 @@ export class DockerSandboxAdapter implements SandboxAdapter {
   async listFiles(sessionId: string): Promise<readonly WorkspaceFileInfo[]> {
     const containerName = this.getContainerName(sessionId);
     try {
-      const res = await this.runProcess('docker', [
-        'exec',
-        containerName,
-        'sh',
-        '-c',
-        'cd /workspace && find . -mindepth 1 -not -path "*/.*" -not -path "*/__pycache__*" -not -path "*/.pytest_cache*" -exec stat -c "%n|%s|%F" {} + 2>/dev/null || true',
-      ]);
+      const res = await this.runProcess(
+        'docker',
+        [
+          'exec',
+          containerName,
+          'sh',
+          '-c',
+          'cd /workspace && find . -mindepth 1 -not -path "*/.*" -not -path "*/__pycache__*" -not -path "*/.pytest_cache*" -exec stat -c "%n|%s|%F" {} + 2>/dev/null || true',
+        ],
+        {
+          timeoutMs: 20_000,
+          maxStdoutBytes: 512 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
       const lines = res.stdout.trim().split('\n').filter(Boolean);
       const files: WorkspaceFileInfo[] = [];
       for (const line of lines) {
@@ -450,9 +551,10 @@ export class DockerSandboxAdapter implements SandboxAdapter {
         return a.path.localeCompare(b.path);
       });
     } catch (error) {
+      if (error instanceof SandboxError) throw error;
       throw new SandboxError(
         'SANDBOX_EXECUTION_FAILED',
-        `Failed to list files: ${error instanceof Error ? error.message : String(error)}`,
+        'Failed to list files.',
         error,
       );
     }
@@ -461,18 +563,27 @@ export class DockerSandboxAdapter implements SandboxAdapter {
   async getBaselineTree(sessionId: string): Promise<string> {
     const containerName = this.getContainerName(sessionId);
     try {
-      const res = await this.runProcess('docker', [
-        'exec',
-        '-u',
-        '0:0',
-        containerName,
-        '/usr/local/bin/delimit-baseline-tree.sh',
-      ]);
+      const res = await this.runProcess(
+        'docker',
+        [
+          'exec',
+          '-u',
+          '0:0',
+          containerName,
+          '/usr/local/bin/delimit-baseline-tree.sh',
+        ],
+        {
+          timeoutMs: 30_000,
+          maxStdoutBytes: 1024 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
       return res.stdout.trim();
     } catch (error) {
+      if (error instanceof SandboxError) throw error;
       throw new SandboxError(
         'SANDBOX_EXECUTION_FAILED',
-        `Failed to get baseline tree: ${error instanceof Error ? error.message : String(error)}`,
+        'Failed to get baseline tree.',
         error,
       );
     }
@@ -481,18 +592,27 @@ export class DockerSandboxAdapter implements SandboxAdapter {
   async captureWorkspaceTree(sessionId: string): Promise<string> {
     const containerName = this.getContainerName(sessionId);
     try {
-      const res = await this.runProcess('docker', [
-        'exec',
-        '-u',
-        '0:0',
-        containerName,
-        '/usr/local/bin/delimit-capture-tree.sh',
-      ]);
+      const res = await this.runProcess(
+        'docker',
+        [
+          'exec',
+          '-u',
+          '0:0',
+          containerName,
+          '/usr/local/bin/delimit-capture-tree.sh',
+        ],
+        {
+          timeoutMs: 30_000,
+          maxStdoutBytes: 1024 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
       return res.stdout.trim();
     } catch (error) {
+      if (error instanceof SandboxError) throw error;
       throw new SandboxError(
         'SANDBOX_EXECUTION_FAILED',
-        `Failed to capture workspace tree: ${error instanceof Error ? error.message : String(error)}`,
+        'Failed to capture workspace tree.',
         error,
       );
     }
@@ -505,20 +625,29 @@ export class DockerSandboxAdapter implements SandboxAdapter {
   ): Promise<TreeDiffResult> {
     const containerName = this.getContainerName(sessionId);
     try {
-      const res = await this.runProcess('docker', [
-        'exec',
-        '-u',
-        '0:0',
-        containerName,
-        '/usr/local/bin/delimit-diff-trees.sh',
-        beforeTree,
-        afterTree,
-      ]);
+      const res = await this.runProcess(
+        'docker',
+        [
+          'exec',
+          '-u',
+          '0:0',
+          containerName,
+          '/usr/local/bin/delimit-diff-trees.sh',
+          beforeTree,
+          afterTree,
+        ],
+        {
+          timeoutMs: 30_000,
+          maxStdoutBytes: 2 * 1024 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
       return parseTreeDiffOutput(res.stdout);
     } catch (error) {
+      if (error instanceof SandboxError) throw error;
       throw new SandboxError(
         'SANDBOX_EXECUTION_FAILED',
-        `Failed to capture tree diff: ${error instanceof Error ? error.message : String(error)}`,
+        'Failed to capture tree diff.',
         error,
       );
     }
@@ -526,77 +655,165 @@ export class DockerSandboxAdapter implements SandboxAdapter {
 
   async teardown(sessionId: string): Promise<void> {
     const containerName = this.getContainerName(sessionId);
-    await this.runProcess('docker', ['rm', '-f', containerName]);
+    await this.runProcess('docker', ['rm', '-f', containerName], {
+      timeoutMs: 15_000,
+      maxStdoutBytes: 4 * 1024,
+      maxStderrBytes: 64 * 1024,
+    });
   }
 
-  private runProcess(
+  private executeSubprocess(
     command: string,
     args: string[],
+    input?: string,
+    options: ProcessOptions = {},
   ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+    const timeoutMs = options.timeoutMs ?? this.defaultTimeoutMs;
+    const maxStdoutBytes = options.maxStdoutBytes ?? 1024 * 1024;
+    const maxStderrBytes = options.maxStderrBytes ?? 64 * 1024;
+
     return new Promise((resolve, reject) => {
-      const child = spawn(command, args);
+      let child: ReturnType<typeof spawn>;
+      try {
+        child = spawn(command, args);
+      } catch (spawnError) {
+        return reject(
+          new SandboxError(
+            'SANDBOX_EXECUTION_FAILED',
+            'Subprocess spawn failed.',
+            spawnError,
+          ),
+        );
+      }
+
       let stdout = '';
       let stderr = '';
+      let stdoutBytes = 0;
+      let stderrBytes = 0;
+      let settled = false;
+      let timeoutTimer: NodeJS.Timeout | null = null;
 
-      child.stdout.on('data', (d: Buffer) => {
-        stdout += d.toString('utf8');
+      const terminate = () => {
+        try {
+          if (child.stdin && !child.stdin.destroyed) {
+            child.stdin.destroy();
+          }
+        } catch {
+          // ignore
+        }
+        try {
+          child.kill('SIGKILL');
+        } catch {
+          // ignore
+        }
+      };
+
+      if (timeoutMs > 0) {
+        timeoutTimer = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          terminate();
+          reject(
+            new SandboxError(
+              'SANDBOX_EXECUTION_FAILED',
+              `Subprocess timed out after ${timeoutMs}ms.`,
+            ),
+          );
+        }, timeoutMs);
+      }
+
+      child.stdout?.on('data', (chunk: Buffer) => {
+        if (settled) return;
+        stdoutBytes += chunk.length;
+        if (stdoutBytes > maxStdoutBytes) {
+          settled = true;
+          if (timeoutTimer) clearTimeout(timeoutTimer);
+          terminate();
+          reject(
+            new SandboxError(
+              'SANDBOX_EXECUTION_FAILED',
+              `Subprocess stdout exceeded limit of ${maxStdoutBytes} bytes.`,
+            ),
+          );
+          return;
+        }
+        stdout += chunk.toString('utf8');
       });
 
-      child.stderr.on('data', (d: Buffer) => {
-        stderr += d.toString('utf8');
+      child.stderr?.on('data', (chunk: Buffer) => {
+        if (settled) return;
+        stderrBytes += chunk.length;
+        if (stderrBytes > maxStderrBytes) {
+          settled = true;
+          if (timeoutTimer) clearTimeout(timeoutTimer);
+          terminate();
+          reject(
+            new SandboxError(
+              'SANDBOX_EXECUTION_FAILED',
+              `Subprocess stderr exceeded limit of ${maxStderrBytes} bytes.`,
+            ),
+          );
+          return;
+        }
+        stderr += chunk.toString('utf8');
       });
 
-      child.on('error', reject);
+      child.on('error', (err) => {
+        if (settled) return;
+        settled = true;
+        if (timeoutTimer) clearTimeout(timeoutTimer);
+        reject(
+          new SandboxError(
+            'SANDBOX_EXECUTION_FAILED',
+            `Subprocess transport error: ${err.message}`,
+            err,
+          ),
+        );
+      });
 
       child.on('close', (code) => {
+        if (settled) return;
+        settled = true;
+        if (timeoutTimer) clearTimeout(timeoutTimer);
+
         if (code === 0) {
           resolve({ stdout, stderr, exitCode: 0 });
         } else {
           reject(
-            new Error(
-              `Command '${command} ${args.join(' ')}' exited with code ${code}: ${stderr}`,
+            new SandboxError(
+              'SANDBOX_EXECUTION_FAILED',
+              `Subprocess exited with code ${code}.`,
+              new Error(
+                `Command '${command} ${args.join(' ')}' exited with code ${code}: ${stderr}`,
+              ),
             ),
           );
         }
       });
+
+      if (input !== undefined && child.stdin) {
+        child.stdin.on('error', () => {});
+        child.stdin.write(input);
+        child.stdin.end();
+      }
     });
   }
 
-  private runProcessWithInput(
+  runProcess(
+    command: string,
+    args: string[],
+    options?: ProcessOptions,
+  ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+    return this.executeSubprocess(command, args, undefined, options);
+  }
+
+  runProcessWithInput(
     command: string,
     args: string[],
     input: string,
+    options?: ProcessOptions,
   ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
-    return new Promise((resolve, reject) => {
-      const child = spawn(command, args);
-      let stdout = '';
-      let stderr = '';
-
-      child.stdout.on('data', (d: Buffer) => {
-        stdout += d.toString('utf8');
-      });
-
-      child.stderr.on('data', (d: Buffer) => {
-        stderr += d.toString('utf8');
-      });
-
-      child.on('error', reject);
-
-      child.on('close', (code) => {
-        if (code === 0) {
-          resolve({ stdout, stderr, exitCode: 0 });
-        } else {
-          reject(
-            new Error(
-              `Command '${command} ${args.join(' ')}' exited with code ${code}: ${stderr}`,
-            ),
-          );
-        }
-      });
-
-      child.stdin.write(input);
-      child.stdin.end();
-    });
+    return this.executeSubprocess(command, args, input, options);
   }
 }
 

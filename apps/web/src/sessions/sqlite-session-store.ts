@@ -106,7 +106,31 @@ const toSession = (row: SessionRow): AssessmentSession => ({
 });
 
 export class SqliteSessionStore {
-  constructor(private readonly databasePath: string) {}
+  constructor(public readonly databasePath: string) {}
+
+  static ensureSchema(database: Database.Database): void {
+    const migrate = database.transaction(() => {
+      database.exec(schema);
+      const columns = database
+        .prepare('PRAGMA table_info(assessment_sessions)')
+        .all() as Array<{ name: string }>;
+      const additions = [
+        ['scenario_type', "TEXT DEFAULT 'single_file'"],
+        ['submitted_diff', 'TEXT'],
+        ['scenario_evaluation_context', 'TEXT'],
+        ['scenario_semantic_snapshot', 'TEXT'],
+        ['ai_capability_snapshot', 'TEXT'],
+      ] as const;
+      for (const [name, definition] of additions) {
+        if (!columns.some((column) => column.name === name)) {
+          database.exec(
+            `ALTER TABLE assessment_sessions ADD COLUMN ${name} ${definition}`,
+          );
+        }
+      }
+    });
+    migrate.immediate();
+  }
 
   create(session: AssessmentSession) {
     return this.withDatabase((database) => {
@@ -164,14 +188,21 @@ export class SqliteSessionStore {
     );
   }
 
-  findById(id: string) {
-    return this.withDatabase((database) => {
-      const row = database
-        .prepare('SELECT * FROM assessment_sessions WHERE id = ?')
-        .get(id) as SessionRow | undefined;
+  findByIdWithDatabase(
+    database: Database.Database,
+    id: string,
+  ): AssessmentSession | null {
+    const row = database
+      .prepare('SELECT * FROM assessment_sessions WHERE id = ?')
+      .get(id) as SessionRow | undefined;
 
-      return row ? toSession(row) : null;
-    });
+    return row ? toSession(row) : null;
+  }
+
+  findById(id: string) {
+    return this.withDatabase((database) =>
+      this.findByIdWithDatabase(database, id),
+    );
   }
 
   activate(candidateTokenHash: string, activatedAt: string) {
@@ -184,6 +215,41 @@ export class SqliteSessionStore {
     return this.mutate(candidateTokenHash, (session) =>
       editSession(session, content),
     );
+  }
+
+  submitWithDatabase(
+    database: Database.Database,
+    sessionId: string,
+    submittedAt: string,
+    submittedDiff?: string | null,
+  ): SubmittedSession {
+    const current = this.findByIdWithDatabase(database, sessionId);
+    if (!current) {
+      throw new SessionError(
+        'SESSION_NOT_FOUND',
+        'The candidate session was not found.',
+      );
+    }
+
+    const updated = submitSession(current, submittedAt, submittedDiff);
+    database
+      .prepare(
+        `UPDATE assessment_sessions SET
+          status = ?, working_content = ?, submitted_content = ?,
+          activated_at = ?, submitted_at = ?, submitted_diff = ?
+        WHERE id = ?`,
+      )
+      .run(
+        updated.status,
+        updated.workingContent,
+        updated.submittedContent,
+        updated.activatedAt,
+        updated.submittedAt,
+        updated.submittedDiff ?? null,
+        updated.id,
+      );
+
+    return updated as SubmittedSession;
   }
 
   submit(
@@ -254,27 +320,7 @@ export class SqliteSessionStore {
     database.pragma('journal_mode = WAL');
     database.pragma('busy_timeout = 5000');
     try {
-      const migrate = database.transaction(() => {
-        database.exec(schema);
-        const columns = database
-          .prepare('PRAGMA table_info(assessment_sessions)')
-          .all() as Array<{ name: string }>;
-        const additions = [
-          ['scenario_type', "TEXT DEFAULT 'single_file'"],
-          ['submitted_diff', 'TEXT'],
-          ['scenario_evaluation_context', 'TEXT'],
-          ['scenario_semantic_snapshot', 'TEXT'],
-          ['ai_capability_snapshot', 'TEXT'],
-        ] as const;
-        for (const [name, definition] of additions) {
-          if (!columns.some((column) => column.name === name)) {
-            database.exec(
-              `ALTER TABLE assessment_sessions ADD COLUMN ${name} ${definition}`,
-            );
-          }
-        }
-      });
-      migrate.immediate();
+      SqliteSessionStore.ensureSchema(database);
       return operation(database);
     } finally {
       database.close();

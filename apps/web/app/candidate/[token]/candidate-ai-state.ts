@@ -158,6 +158,19 @@ export const resolveSubmissionResult = (
       };
     }
 
+    if (
+      (data.status === 'CANCELLED' &&
+        data.terminalReason === 'session_ended') ||
+      data.terminalReason === 'session_ended'
+    ) {
+      return {
+        ...state,
+        submissionState: 'failed',
+        errorMessage:
+          'Delimit closed this AI interaction because the assessment session ended.',
+      };
+    }
+
     if (data.terminalReason === 'TIMEOUT') {
       return {
         ...state,

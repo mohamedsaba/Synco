@@ -45,17 +45,6 @@ export const POST = async (
 
     const rawPrompt = body?.candidatePromptText ?? body?.candidateInput;
     const candidatePromptText = typeof rawPrompt === 'string' ? rawPrompt : '';
-    if (!candidatePromptText || candidatePromptText.trim().length === 0) {
-      return Response.json(
-        {
-          error: {
-            code: 'INVALID_INPUT',
-            message: 'candidatePromptText (or candidateInput) cannot be empty.',
-          },
-        },
-        { status: 400 },
-      );
-    }
 
     const delimitContext = {
       scenarioId: session.scenario.id,

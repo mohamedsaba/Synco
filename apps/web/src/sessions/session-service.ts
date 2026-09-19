@@ -2,10 +2,13 @@ import {
   type AiCapabilitySnapshot,
   disabledAiCapabilitySnapshot,
 } from '../ai/ai-interaction';
+import { AiInteractionService } from '../ai/ai-interaction-service';
+import { SqliteAiInteractionStore } from '../ai/sqlite-ai-interaction-store';
 import { cloneScenarioSemanticSnapshot } from '../scenarios/scenario-semantic-snapshot';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import path from 'node:path';
 
+import { SqliteTransactionRunner } from '../database/sqlite-transaction-runner';
 import {
   createSubmittedDiff,
   normalizeLineEndings,
@@ -26,6 +29,10 @@ import {
   requireSubmittedSession,
   SessionError,
 } from './session';
+import {
+  getSessionOperationCoordinator,
+  SessionOperationCoordinator,
+} from './session-operation-coordinator';
 import { SqliteSessionStore } from './sqlite-session-store';
 
 const maximumContentLength = 100_000;
@@ -39,6 +46,9 @@ export type SessionServiceOptions = Readonly<{
   createToken?: () => string;
   eventStore?: SqliteEventStore;
   sandboxAdapter?: SandboxAdapter;
+  coordinator?: SessionOperationCoordinator;
+  transactionRunner?: SqliteTransactionRunner;
+  aiInteractionService?: AiInteractionService;
 }>;
 
 export class SessionService {
@@ -47,28 +57,15 @@ export class SessionService {
   private readonly createToken: () => string;
   private readonly eventStore?: SqliteEventStore;
   private readonly sandboxAdapter?: SandboxAdapter;
-  private readonly sessionQueues = new Map<string, Promise<void>>();
+  private readonly coordinator: SessionOperationCoordinator;
+  private readonly transactionRunner: SqliteTransactionRunner;
+  private readonly aiInteractionService: AiInteractionService;
 
   private async withSessionLock<T>(
     sessionId: string,
     fn: () => Promise<T>,
   ): Promise<T> {
-    const prev = this.sessionQueues.get(sessionId) ?? Promise.resolve();
-    let release: () => void;
-    const next = new Promise<void>((res) => {
-      release = res;
-    });
-    this.sessionQueues.set(sessionId, next);
-
-    await prev;
-    try {
-      return await fn();
-    } finally {
-      release!();
-      if (this.sessionQueues.get(sessionId) === next) {
-        this.sessionQueues.delete(sessionId);
-      }
-    }
+    return this.coordinator.run(sessionId, fn);
   }
 
   private async detectAndRecordDrift(
@@ -141,6 +138,26 @@ export class SessionService {
       options.createToken ?? (() => randomBytes(32).toString('base64url'));
     this.eventStore = options.eventStore;
     this.sandboxAdapter = options.sandboxAdapter;
+    this.coordinator = options.coordinator ?? getSessionOperationCoordinator();
+    this.transactionRunner =
+      options.transactionRunner ??
+      new SqliteTransactionRunner(store.databasePath);
+    this.transactionRunner.registerInitializer(SqliteSessionStore.ensureSchema);
+    this.transactionRunner.registerInitializer(SqliteEventStore.ensureSchema);
+    this.transactionRunner.registerInitializer(
+      SqliteAiInteractionStore.ensureSchema,
+    );
+    this.aiInteractionService =
+      options.aiInteractionService ??
+      new AiInteractionService({
+        sessionStore: store,
+        eventStore:
+          options.eventStore ?? new SqliteEventStore(store.databasePath),
+        aiInteractionStore: new SqliteAiInteractionStore(store.databasePath),
+        transactionRunner: this.transactionRunner,
+        createId: this.createId,
+        now: this.now,
+      });
   }
 
   createSession(options?: {
@@ -211,37 +228,47 @@ export class SessionService {
       );
     }
 
-    if (session.status === 'ACTIVE') {
-      return session;
-    }
-
-    if (session.status !== 'CREATED') {
-      throw new SessionError(
-        'SESSION_NOT_ACTIVE',
-        'A submitted session cannot be activated.',
-      );
-    }
-
-    // Readiness gate: Sandbox must be created and verified before session transitions to ACTIVE
-    if (this.sandboxAdapter) {
-      if (
-        session.scenarioType === 'multi_file' ||
-        session.scenario.type === 'multi_file'
-      ) {
-        await this.sandboxAdapter.createAndVerify(session.id, {
-          imageName:
-            session.scenario.imageName ?? 'delimit-scenario-001:latest',
-          scenarioType: 'multi_file',
-        });
-      } else {
-        await this.sandboxAdapter.createAndVerify(session.id, {
-          [session.scenario.filePath]: session.workingContent,
-        });
+    return this.withSessionLock(session.id, async () => {
+      const current = this.store.findByCandidateTokenHash(tokenHash);
+      if (!current) {
+        throw new SessionError(
+          'SESSION_NOT_FOUND',
+          'The candidate session was not found.',
+        );
       }
-    }
 
-    // Only after readiness succeeds, transition to ACTIVE and record activatedAt
-    return this.store.activate(tokenHash, this.now());
+      if (current.status === 'ACTIVE') {
+        return current;
+      }
+
+      if (current.status !== 'CREATED') {
+        throw new SessionError(
+          'SESSION_NOT_ACTIVE',
+          'A submitted session cannot be activated.',
+        );
+      }
+
+      // Readiness gate: Sandbox must be created and verified before session transitions to ACTIVE
+      if (this.sandboxAdapter) {
+        if (
+          current.scenarioType === 'multi_file' ||
+          current.scenario.type === 'multi_file'
+        ) {
+          await this.sandboxAdapter.createAndVerify(current.id, {
+            imageName:
+              current.scenario.imageName ?? 'delimit-scenario-001:latest',
+            scenarioType: 'multi_file',
+          });
+        } else {
+          await this.sandboxAdapter.createAndVerify(current.id, {
+            [current.scenario.filePath]: current.workingContent,
+          });
+        }
+      }
+
+      // Only after readiness succeeds, transition to ACTIVE and record activatedAt
+      return this.store.activate(tokenHash, this.now());
+    });
   }
 
   async save(candidateToken: string, content: string) {
@@ -253,18 +280,47 @@ export class SessionService {
     }
 
     const tokenHash = hashCandidateToken(candidateToken);
-    const normalized = normalizeLineEndings(content);
-    const session = this.store.save(tokenHash, normalized);
+    const session = this.store.findByCandidateTokenHash(tokenHash);
 
-    if (this.sandboxAdapter && session.status === 'ACTIVE') {
-      await this.sandboxAdapter
-        .writeFile(session.id, session.scenario.filePath, normalized)
-        .catch((err) => {
-          console.warn('Could not sync working content to active sandbox', err);
-        });
+    if (!session) {
+      throw new SessionError(
+        'SESSION_NOT_FOUND',
+        'The candidate session was not found.',
+      );
     }
 
-    return session;
+    return this.withSessionLock(session.id, async () => {
+      const current = this.store.findByCandidateTokenHash(tokenHash);
+      if (!current) {
+        throw new SessionError(
+          'SESSION_NOT_FOUND',
+          'The candidate session was not found.',
+        );
+      }
+
+      if (current.status !== 'ACTIVE') {
+        throw new SessionError(
+          'SESSION_NOT_ACTIVE',
+          'Editing is allowed only while the session is active.',
+        );
+      }
+
+      const normalized = normalizeLineEndings(content);
+      const updated = this.store.save(tokenHash, normalized);
+
+      if (this.sandboxAdapter && updated.status === 'ACTIVE') {
+        await this.sandboxAdapter
+          .writeFile(updated.id, updated.scenario.filePath, normalized)
+          .catch((err) => {
+            console.warn(
+              'Could not sync working content to active sandbox',
+              err,
+            );
+          });
+      }
+
+      return updated;
+    });
   }
 
   async executeCommand(
@@ -706,7 +762,41 @@ export class SessionService {
         }
       }
 
-      const submitted = this.store.submit(tokenHash, this.now(), submittedDiff);
+      const submitted = this.transactionRunner.run((database) => {
+        const fresh = this.store.findByIdWithDatabase(database, current.id);
+        if (!fresh) {
+          throw new SessionError(
+            'SESSION_NOT_FOUND',
+            'The candidate session was not found.',
+          );
+        }
+
+        if (fresh.status === 'SUBMITTED') {
+          return fresh;
+        }
+
+        if (fresh.status !== 'ACTIVE') {
+          throw new SessionError(
+            'SESSION_NOT_ACTIVE',
+            'The session must be active before it can be submitted.',
+          );
+        }
+
+        const closureTimestamp = this.now();
+
+        this.aiInteractionService.cancelOpenForSessionEndWithDatabase(
+          database,
+          current.id,
+          closureTimestamp,
+        );
+
+        return this.store.submitWithDatabase(
+          database,
+          current.id,
+          closureTimestamp,
+          submittedDiff,
+        );
+      });
 
       if (this.sandboxAdapter) {
         try {
@@ -791,6 +881,11 @@ export const getSessionService = () => {
   const store = new SqliteSessionStore(databasePath);
   const eventStore = new SqliteEventStore(databasePath);
   const sandboxAdapter = new DockerSandboxAdapter();
+  const coordinator = getSessionOperationCoordinator();
 
-  return new SessionService(store, { eventStore, sandboxAdapter });
+  return new SessionService(store, {
+    eventStore,
+    sandboxAdapter,
+    coordinator,
+  });
 };

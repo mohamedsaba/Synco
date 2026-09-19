@@ -320,6 +320,27 @@ describe('Slice 6F — Candidate Integrated AI Surface', () => {
       expect(timeoutState.errorMessage).toBe('The AI request timed out.');
     });
 
+    it('transitions to failed with factual session-ended copy when terminalReason is session_ended', () => {
+      let state = INITIAL_CANDIDATE_AI_STATE;
+      state = setPromptText(state, 'In-flight query during submit');
+      const admission = beginSubmission(state)!;
+
+      const sessionEndedState = resolveSubmissionResult(
+        admission.nextState,
+        200,
+        {
+          status: 'CANCELLED',
+          terminalReason: 'session_ended',
+          errorMessage: 'Assessment session ended.',
+        },
+      );
+
+      expect(sessionEndedState.submissionState).toBe('failed');
+      expect(sessionEndedState.errorMessage).toBe(
+        'Delimit closed this AI interaction because the assessment session ended.',
+      );
+    });
+
     it('transitions to failed with factual provider error copy when provider fails', () => {
       let state = INITIAL_CANDIDATE_AI_STATE;
       state = setPromptText(state, 'Failing query');

@@ -253,6 +253,27 @@ export class SqliteAiInteractionStore {
     });
   }
 
+  findOpenBySessionIdWithDatabase(
+    database: Database.Database,
+    sessionId: string,
+  ): readonly AiInteraction[] {
+    const rows = database
+      .prepare(
+        `SELECT * FROM ai_interactions
+         WHERE session_id = ? AND status IN ('ADMITTED', 'DISPATCH_STARTED')
+         ORDER BY started_sequence ASC, id ASC`,
+      )
+      .all(sessionId) as AiInteractionRow[];
+
+    return rows.map(toAiInteraction);
+  }
+
+  findOpenBySessionId(sessionId: string): readonly AiInteraction[] {
+    return this.withDatabase((database) =>
+      this.findOpenBySessionIdWithDatabase(database, sessionId),
+    );
+  }
+
   private withDatabase<T>(operation: (database: Database.Database) => T): T {
     if (this.databasePath !== ':memory:') {
       mkdirSync(path.dirname(this.databasePath), { recursive: true });

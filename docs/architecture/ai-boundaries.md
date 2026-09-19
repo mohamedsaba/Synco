@@ -59,6 +59,30 @@ Slice 6C implements the synchronous candidate AI provider execution lifecycle:
    - Provider errors transition to `FAILED` with `PROVIDER_ERROR` and append `AI_REQUEST_FAILED`.
    - If terminal persistence fails after provider returns, Delimit throws a platform persistence error and never reports false success to the client.
 
+### Same-Session Coordination & Submission Evidence Closure (Architecture Corrections A1/A2)
+
+1. **Same-Session Operation Serialization**:
+   - Mutating session operations (`activate`, `save`, `saveWorkspaceFile`, `executeCommand`, `submit`) are serialized per assessment session by `SessionOperationCoordinator` using an in-memory FIFO queue across request boundaries.
+   - Singleton coordination is anchored across independent `SessionService` instances via process-wide storage (`Symbol.for('delimit.sessionOperationCoordinator')`).
+   - Topology boundary: In-memory coordination is valid and supported only for the single-process monolith deployment topology. Multi-process clustering requires external distributed coordination before deployment.
+   - Concurrency invariant: External AI provider requests are NEVER executed under the `SessionOperationCoordinator` lock, ensuring slow providers cannot starve workspace operations or assessment submission.
+
+2. **Submission Evidence Closure**:
+   - When a candidate submits an assessment, `SessionService.submit` acquires the session lock, inspects workspace drift, and enters an atomic multi-store SQLite transaction (`BEGIN IMMEDIATE`).
+   - Within this transaction, all open AI interactions (`ADMITTED`, `DISPATCH_STARTED`) are transitioned to `CANCELLED` with `terminalReason: 'session_ended'` and appended with `AI_REQUEST_CANCELLED` events with deterministic ordering (`started_sequence ASC, id ASC`) and local durations.
+   - In the same transaction, the session status transitions to `SUBMITTED`.
+   - If the transaction fails, the entire closure rolls back atomically, leaving the session `ACTIVE`, open interactions uncancelled, and container teardown unperformed.
+
+3. **Existing-ID Replay vs. New Admission**:
+   - When an AI request arrives, `admitInteraction` immediately queries for an existing record by `(sessionId, clientRequestId)` inside a `BEGIN IMMEDIATE` transaction.
+   - If an existing interaction is found, it is returned immediately without re-checking session active status, capability flags, prompt length, or context attachment validity. `executeInteraction` maps this to an idempotent HTTP 200 response without redispatching to the provider.
+   - If no existing interaction is found, the session MUST be `ACTIVE`. New request IDs arriving after submission closure are rejected with HTTP 409 `SESSION_NOT_ACTIVE`, resulting in zero database rows, zero events, and zero provider dispatches.
+
+4. **Late Provider Output Isolation & Evidence Stability**:
+   - If an in-flight AI provider call settles (success, error, or timeout) after the interaction has been closed as `CANCELLED / session_ended` by submission, `recordCompletion` and `recordFailure` detect the terminal state and drop the late result.
+   - Late provider text is never written to `ai_interactions`, no `AI_RESPONSE_COMPLETED` or `AI_REQUEST_FAILED` event is emitted, and `executeInteraction` returns the normalized `CANCELLED / session_ended` outcome.
+   - The evaluator evidence packet and chronological reconstruction are frozen at the submission boundary; subsequent provider resolutions cannot alter the sealed evidence stream.
+
 ### AI Evidence Reconstruction Integration (Slice 6D)
 
 Slice 6D integrates candidate AI events into chronological reconstruction:

@@ -4,6 +4,10 @@ import path from 'node:path';
 
 import { SqliteTransactionRunner } from '../database/sqlite-transaction-runner';
 import { SqliteEventStore } from '../events/sqlite-event-store';
+import {
+  deriveSessionDeadline,
+  isDeadlineExceeded,
+} from '../sessions/session-timing';
 import { SqliteSessionStore } from '../sessions/sqlite-session-store';
 import {
   type AiInteraction,
@@ -144,6 +148,15 @@ export class AiInteractionService {
           throw new AiInteractionError(
             'SESSION_NOT_ACTIVE',
             `AI interactions can only be admitted for active sessions. Current status: ${session.status}.`,
+          );
+        }
+
+        const deadline = deriveSessionDeadline(session);
+        const now = this.now();
+        if (deadline !== null && isDeadlineExceeded(deadline, now)) {
+          throw new AiInteractionError(
+            'SESSION_DEADLINE_EXCEEDED',
+            'The assessment time limit has been reached. New modifications are no longer permitted.',
           );
         }
 

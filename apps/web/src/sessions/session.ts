@@ -4,6 +4,7 @@ import type { ScenarioSnapshot } from '../scenarios/slice-one-scenario';
 export {
   type CandidateTimingProjection,
   deriveSessionDeadline,
+  isDeadlineExceeded,
   toCandidateTimingProjection,
 } from './session-timing';
 
@@ -41,6 +42,7 @@ export class SessionError extends Error {
     readonly code:
       | 'SESSION_NOT_FOUND'
       | 'SESSION_NOT_ACTIVE'
+      | 'SESSION_DEADLINE_EXCEEDED'
       | 'EVIDENCE_NOT_READY'
       | 'CONTENT_TOO_LARGE'
       | 'COMMAND_TOO_LARGE'

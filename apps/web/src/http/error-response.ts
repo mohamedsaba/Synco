@@ -7,6 +7,7 @@ import { SessionError } from '../sessions/session';
 const sessionStatus: Record<SessionError['code'], number> = {
   SESSION_NOT_FOUND: 404,
   SESSION_NOT_ACTIVE: 409,
+  SESSION_DEADLINE_EXCEEDED: 409,
   EVIDENCE_NOT_READY: 409,
   CONTENT_TOO_LARGE: 413,
   COMMAND_TOO_LARGE: 413,
@@ -17,6 +18,7 @@ const sessionStatus: Record<SessionError['code'], number> = {
 const aiInteractionStatus: Record<AiInteractionError['code'], number> = {
   SESSION_NOT_FOUND: 404,
   SESSION_NOT_ACTIVE: 409,
+  SESSION_DEADLINE_EXCEEDED: 409,
   AI_NOT_ENABLED: 409,
   INVALID_INPUT: 400,
   INPUT_TOO_LARGE: 413,

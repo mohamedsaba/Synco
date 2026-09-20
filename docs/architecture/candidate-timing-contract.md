@@ -53,6 +53,39 @@ Status: Authoritative Foundation (Slice T1A.1)
      ```
    - Derived or stale presentation values such as `isExpired`, `remainingSeconds`, `elapsedSeconds`, or `countdown` are strictly forbidden on server API boundaries. The candidate interface computes display values locally against `serverTime` and `deadline`.
 
-8. **T1A.1 Scope Boundary**:
-   - T1A.1 establishes persistence schema, snapshot immutability, canonical derivation, and minimal projection.
-   - T1A.1 does **not** enforce request-bound mutation cutoff, background sweeping, or sandbox finalization; these enforcement mechanisms are implemented in subsequent slices (T1A.2+).
+## 8. T1A.1 Scope Boundary:
+
+- T1A.1 established persistence schema, snapshot immutability, canonical derivation, and minimal projection.
+- Request-bound mutation cutoff, background sweeping, and sandbox finalization were left for subsequent slices.
+
+## 9. Request-Bound Deadline Cutoff (Slice T1A.2)
+
+1. **Admission Boundary (`now >= deadline`)**:
+   - Once the authoritative deadline has been reached or passed ($\text{serverNow} \ge \text{deadline}$), no NEW candidate engineering mutation is admitted.
+   - Validated deterministically using server time inside the same-session operation coordinator / transaction serialization boundary.
+   - Queue position does not preserve pre-deadline privilege: a request arriving at $\text{deadline} - 100\text{ms}$ that waits behind a prior operation and executes its lock body at $\text{deadline} + 50\text{ms}$ is strictly denied.
+
+2. **Guarded Operations**:
+   - **Single-File Save (`save`)**: Denied before mutating authoritative content or sandbox mirror; emits no `WORKSPACE_CHANGED` event.
+   - **Multi-File Save (`saveWorkspaceFile`)**: Denied before writing to sandbox or drift capture; emits no `WORKSPACE_CHANGED` event.
+   - **Command Admission (`executeCommand`)**: Denied before invoking `sandboxAdapter.exec`; emits neither `COMMAND_STARTED` nor `COMMAND_FINISHED` nor workspace diff capture events.
+   - **New AI Interaction Admission (`admitInteraction`)**: Denied before creating an interaction row, `ADMITTED` state, `AI_REQUEST_STARTED` event, or provider call.
+
+3. **Canonical Domain Error (`SESSION_DEADLINE_EXCEEDED`)**:
+   - Rejections return canonical domain error `SESSION_DEADLINE_EXCEEDED` mapped to HTTP `409 Conflict`.
+   - Message: `"The assessment time limit has been reached. New modifications are no longer permitted."` (truthful, neutral, free of blame or completion assertions).
+
+4. **AI Idempotent Replay Preservation**:
+   - Resolution of existing `(sessionId, clientRequestId)` interactions occurs _before_ deadline evaluation.
+   - Replay of previously admitted/completed interactions remains available after deadline.
+
+5. **Legacy Untimed Sessions Compatibility**:
+   - Sessions with `durationSeconds = null` (and therefore `deadline = null`) never reject mutations via the deadline cutoff; they remain governed by existing `ACTIVE`-state rules.
+
+6. **Intermediate State & No Durable Expiry State**:
+   - Denied requests do **not** alter session status or closure reason. The overdue session remains `status = ACTIVE` and `closureReason = null`.
+   - No automatic timeout submission, sweeper finalization, or transition to `SUBMITTED` occurs during T1A.2.
+
+7. **In-Flight Command Hard Termination Explicitly Deferred**:
+   - T1A.2 guarantees only that no NEW command begins after zero.
+   - Safely terminating or killing commands already executing before zero is explicitly deferred to subsequent sandbox hardening/finality slices (T1A.3). Command timeouts remain governed by existing per-command execution limits.

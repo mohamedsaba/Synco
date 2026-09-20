@@ -61,3 +61,28 @@ export const toCandidateTimingProjection = (
   status: session.status,
   closureReason: session.closureReason,
 });
+
+/**
+ * Evaluates whether the authoritative deadline has been reached or exceeded.
+ *
+ * Rules:
+ * - If deadline is null (e.g. session not activated or legacy untimed), returns false.
+ * - If now is unparseable or deadline is unparseable, returns false.
+ * - Returns true if Date.parse(now) >= Date.parse(deadline).
+ */
+export const isDeadlineExceeded = (
+  deadline: string | null,
+  now: string,
+): boolean => {
+  if (deadline === null) {
+    return false;
+  }
+
+  const deadlineMs = Date.parse(deadline);
+  const nowMs = Date.parse(now);
+  if (Number.isNaN(deadlineMs) || Number.isNaN(nowMs)) {
+    return false;
+  }
+
+  return nowMs >= deadlineMs;
+};

@@ -4,6 +4,7 @@ import { sliceOneScenario } from '../../apps/web/src/scenarios/slice-one-scenari
 import type { AssessmentSession } from '../../apps/web/src/sessions/session';
 import {
   deriveSessionDeadline,
+  isDeadlineExceeded,
   toCandidateTimingProjection,
 } from '../../apps/web/src/sessions/session-timing';
 
@@ -118,5 +119,47 @@ describe('candidate timing projection', () => {
       status: 'SUBMITTED',
       closureReason: 'candidate_submission',
     });
+  });
+});
+
+describe('isDeadlineExceeded', () => {
+  it('returns false when deadline is null', () => {
+    expect(isDeadlineExceeded(null, '2026-09-20T10:15:00.000Z')).toBe(false);
+  });
+
+  it('returns false when now is strictly before deadline', () => {
+    expect(
+      isDeadlineExceeded(
+        '2026-09-20T10:15:00.000Z',
+        '2026-09-20T10:14:59.999Z',
+      ),
+    ).toBe(false);
+  });
+
+  it('returns true when now is exactly equal to deadline (boundary cutoff)', () => {
+    expect(
+      isDeadlineExceeded(
+        '2026-09-20T10:15:00.000Z',
+        '2026-09-20T10:15:00.000Z',
+      ),
+    ).toBe(true);
+  });
+
+  it('returns true when now is strictly after deadline', () => {
+    expect(
+      isDeadlineExceeded(
+        '2026-09-20T10:15:00.000Z',
+        '2026-09-20T10:15:00.001Z',
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false when now or deadline is not parseable', () => {
+    expect(isDeadlineExceeded('invalid', '2026-09-20T10:15:00.000Z')).toBe(
+      false,
+    );
+    expect(isDeadlineExceeded('2026-09-20T10:15:00.000Z', 'invalid')).toBe(
+      false,
+    );
   });
 });

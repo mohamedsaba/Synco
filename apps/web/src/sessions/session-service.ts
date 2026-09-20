@@ -40,6 +40,8 @@ import {
 } from './session-operation-coordinator';
 import {
   type CandidateTimingProjection,
+  deriveSessionDeadline,
+  isDeadlineExceeded,
   toCandidateTimingProjection,
 } from './session-timing';
 import { SqliteSessionStore } from './sqlite-session-store';
@@ -337,6 +339,15 @@ export class SessionService {
         );
       }
 
+      const deadline = deriveSessionDeadline(current);
+      const now = this.now();
+      if (deadline !== null && isDeadlineExceeded(deadline, now)) {
+        throw new SessionError(
+          'SESSION_DEADLINE_EXCEEDED',
+          'The assessment time limit has been reached. New modifications are no longer permitted.',
+        );
+      }
+
       const previousContent = current.workingContent;
       const normalized = normalizeLineEndings(content);
       const updated = this.store.save(tokenHash, normalized);
@@ -392,6 +403,15 @@ export class SessionService {
         throw new SessionError(
           'SESSION_NOT_ACTIVE',
           'Commands can be executed only while the session is active.',
+        );
+      }
+
+      const deadline = deriveSessionDeadline(current);
+      const now = this.now();
+      if (deadline !== null && isDeadlineExceeded(deadline, now)) {
+        throw new SessionError(
+          'SESSION_DEADLINE_EXCEEDED',
+          'The assessment time limit has been reached. New modifications are no longer permitted.',
         );
       }
 
@@ -608,6 +628,15 @@ export class SessionService {
         throw new SessionError(
           'SESSION_NOT_ACTIVE',
           'Workspace files can only be edited during active sessions.',
+        );
+      }
+
+      const deadline = deriveSessionDeadline(current);
+      const now = this.now();
+      if (deadline !== null && isDeadlineExceeded(deadline, now)) {
+        throw new SessionError(
+          'SESSION_DEADLINE_EXCEEDED',
+          'The assessment time limit has been reached. New modifications are no longer permitted.',
         );
       }
 

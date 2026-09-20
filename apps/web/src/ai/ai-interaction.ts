@@ -152,6 +152,7 @@ export class AiInteractionError extends Error {
     readonly code:
       | 'SESSION_NOT_FOUND'
       | 'SESSION_NOT_ACTIVE'
+      | 'SESSION_DEADLINE_EXCEEDED'
       | 'AI_NOT_ENABLED'
       | 'INVALID_INPUT'
       | 'INPUT_TOO_LARGE'

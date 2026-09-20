@@ -1,7 +1,15 @@
 import type { AiCapabilitySnapshot } from '../ai/ai-interaction';
 import type { ScenarioSnapshot } from '../scenarios/slice-one-scenario';
 
+export {
+  type CandidateTimingProjection,
+  deriveSessionDeadline,
+  toCandidateTimingProjection,
+} from './session-timing';
+
 export type SessionStatus = 'CREATED' | 'ACTIVE' | 'SUBMITTED';
+
+export type SessionClosureReason = 'candidate_submission' | 'timeout';
 
 export type AssessmentSession = Readonly<{
   id: string;
@@ -13,6 +21,8 @@ export type AssessmentSession = Readonly<{
   createdAt: string;
   activatedAt: string | null;
   submittedAt: string | null;
+  durationSeconds: number | null;
+  closureReason: SessionClosureReason | null;
   scenarioType?: 'single_file' | 'multi_file';
   submittedDiff?: string | null;
   aiCapabilitySnapshot?: AiCapabilitySnapshot | null;
@@ -23,6 +33,7 @@ export type SubmittedSession = AssessmentSession &
     status: 'SUBMITTED';
     submittedContent: string;
     submittedAt: string;
+    closureReason: SessionClosureReason;
   }>;
 
 export class SessionError extends Error {
@@ -33,7 +44,8 @@ export class SessionError extends Error {
       | 'EVIDENCE_NOT_READY'
       | 'CONTENT_TOO_LARGE'
       | 'COMMAND_TOO_LARGE'
-      | 'PLATFORM_CAPTURE_FAILED',
+      | 'PLATFORM_CAPTURE_FAILED'
+      | 'INVALID_SCENARIO_DURATION',
     message: string,
   ) {
     super(message);
@@ -77,6 +89,7 @@ export const submitSession = (
   session: AssessmentSession,
   submittedAt: string,
   submittedDiff?: string | null,
+  closureReason: SessionClosureReason = 'candidate_submission',
 ): SubmittedSession => {
   if (session.status === 'SUBMITTED') {
     return session as SubmittedSession;
@@ -95,6 +108,7 @@ export const submitSession = (
     submittedContent: session.workingContent,
     submittedAt,
     submittedDiff: submittedDiff ?? session.submittedDiff ?? null,
+    closureReason: session.closureReason ?? closureReason,
   };
 };
 

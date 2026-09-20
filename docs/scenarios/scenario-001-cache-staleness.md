@@ -78,9 +78,10 @@ Reproduce before changing code, run a focused regression test, inspect cache sta
 
 The symptom and expected behavior are explicit. The repository must be small, setup documented, and failures reproducible. Cache behavior should be realistic; no decoy exists solely to mislead, and multiple sound fixes remain possible.
 
-## Estimated time
+## Assessment duration and calibration
 
-Target 45–75 minutes, to be recalibrated through comprehension tests and pilots.
+- **Authoritative hard assessment limit**: 60 minutes (`durationSeconds = 3600`). This is the authoritative maximum session limit snapshot into the candidate assessment session.
+- **Estimated completion range**: 45–75 minutes, retained as calibration context to be evaluated through comprehension tests and pilots.
 
 ## Reconstruction expectation
 

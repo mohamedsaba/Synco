@@ -19,6 +19,8 @@ const createdSession: AssessmentSession = {
   createdAt: '2026-09-14T12:00:00.000Z',
   activatedAt: null,
   submittedAt: null,
+  durationSeconds: 900,
+  closureReason: null,
 };
 
 describe('session lifecycle', () => {

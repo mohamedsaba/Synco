@@ -12,6 +12,8 @@ export const toCandidateSessionView = (session: AssessmentSession) => ({
   createdAt: session.createdAt,
   activatedAt: session.activatedAt,
   submittedAt: session.submittedAt,
+  durationSeconds: session.durationSeconds,
+  closureReason: session.closureReason,
   scenarioType: session.scenarioType ?? session.scenario.type ?? 'single_file',
   aiCapability: session.aiCapabilitySnapshot
     ? ({

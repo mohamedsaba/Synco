@@ -11,6 +11,7 @@ const sessionStatus: Record<SessionError['code'], number> = {
   CONTENT_TOO_LARGE: 413,
   COMMAND_TOO_LARGE: 413,
   PLATFORM_CAPTURE_FAILED: 500,
+  INVALID_SCENARIO_DURATION: 400,
 };
 
 const aiInteractionStatus: Record<AiInteractionError['code'], number> = {

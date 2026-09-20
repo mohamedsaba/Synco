@@ -25,7 +25,10 @@ import {
 } from '../sandbox/sandbox';
 import { scenario001 } from '../scenarios/scenario-001';
 import { cloneScenarioEvaluationContext } from '../scenarios/scenario-evaluation-context';
-import { sliceOneScenario } from '../scenarios/slice-one-scenario';
+import {
+  type ScenarioSnapshot,
+  sliceOneScenario,
+} from '../scenarios/slice-one-scenario';
 import {
   type AssessmentSession,
   requireSubmittedSession,
@@ -35,6 +38,10 @@ import {
   getSessionOperationCoordinator,
   SessionOperationCoordinator,
 } from './session-operation-coordinator';
+import {
+  type CandidateTimingProjection,
+  toCandidateTimingProjection,
+} from './session-timing';
 import { SqliteSessionStore } from './sqlite-session-store';
 
 const maximumContentLength = MAX_WORKSPACE_FILE_READ_BYTES;
@@ -164,20 +171,36 @@ export class SessionService {
 
   createSession(options?: {
     scenarioId?: string;
+    scenario?: ScenarioSnapshot;
     aiCapability?: AiCapabilitySnapshot | null;
   }) {
     const candidateToken = this.createToken();
     const scenario =
-      options?.scenarioId === scenario001.id ||
+      options?.scenario ??
+      (options?.scenarioId === scenario001.id ||
       options?.scenarioId === 'scenario-001'
         ? scenario001
-        : sliceOneScenario;
+        : sliceOneScenario);
+
+    const durationSeconds = scenario.durationSeconds;
+    if (
+      typeof durationSeconds !== 'number' ||
+      !Number.isInteger(durationSeconds) ||
+      durationSeconds <= 0
+    ) {
+      throw new SessionError(
+        'INVALID_SCENARIO_DURATION',
+        'Scenario duration must be a positive integer.',
+      );
+    }
+
     const originalContent = normalizeLineEndings(scenario.originalContent);
     const session: AssessmentSession = {
       id: this.createId(),
       candidateTokenHash: hashCandidateToken(candidateToken),
       scenario: {
         ...scenario,
+        durationSeconds,
         originalContent,
         semanticSnapshot: cloneScenarioSemanticSnapshot(
           scenario.semanticSnapshot,
@@ -192,6 +215,8 @@ export class SessionService {
       createdAt: this.now(),
       activatedAt: null,
       submittedAt: null,
+      durationSeconds,
+      closureReason: null,
       scenarioType: scenario.type ?? 'single_file',
       submittedDiff: null,
       aiCapabilitySnapshot:
@@ -202,6 +227,11 @@ export class SessionService {
 
     this.store.create(session);
     return { candidateToken, session };
+  }
+
+  getCandidateTiming(candidateToken: string): CandidateTimingProjection {
+    const session = this.getCandidateSession(candidateToken);
+    return toCandidateTimingProjection(session, this.now());
   }
 
   getCandidateSession(candidateToken: string) {
@@ -891,6 +921,8 @@ export class SessionService {
         submitted.scenarioType ?? submitted.scenario.type ?? 'single_file',
       activatedAt: submitted.activatedAt,
       submittedAt: submitted.submittedAt,
+      durationSeconds: submitted.durationSeconds,
+      closureReason: submitted.closureReason,
       originalContent: submitted.scenario.originalContent,
       submittedContent: submitted.submittedContent,
       diff,

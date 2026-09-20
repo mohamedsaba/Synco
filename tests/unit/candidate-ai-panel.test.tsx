@@ -41,6 +41,8 @@ describe('Slice 6F — Candidate Integrated AI Surface', () => {
     createdAt: '2026-09-18T10:00:00.000Z',
     activatedAt: '2026-09-18T10:01:00.000Z',
     submittedAt: null,
+    durationSeconds: 3600,
+    closureReason: null,
     aiCapabilitySnapshot: aiSnapshot,
   });
 

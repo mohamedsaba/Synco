@@ -218,7 +218,7 @@ The prototype should remain a single deployable application or modular monolith 
 
 > Priority: MUST \| Verification: Inspection/Test
 
-**FR-003 — Candidate session states.** Candidate-session state shall remain independent of derived reconstruction status. The system shall support at minimum: CREATED, READY, ACTIVE, SUBMITTED, EXPIRED, and FAILED. `SUBMITTED` means authoritative final evidence is durably frozen, candidate mutation is closed, and successful candidate-session submission is complete. Reconstruction shall use a separate derived-artifact lifecycle with PENDING, AVAILABLE, and FAILED persisted statuses; eligibility without a persisted attempt may be presented as NOT_STARTED. Reconstruction failure or retry shall not reopen or change a submitted candidate session.
+**FR-003 — Candidate session states.** Candidate-session state shall remain independent of derived reconstruction status. The durable candidate-session lifecycle is CREATED -> ACTIVE -> SUBMITTED. There is no durable EXPIRED or FINALIZING state; timeout closure is represented as SUBMITTED with closureReason = 'timeout', while manual candidate submission is represented as SUBMITTED with closureReason = 'candidate_submission'. `SUBMITTED` means authoritative final evidence is durably frozen, candidate mutation is closed, and candidate-session completion is finalized. Reconstruction shall use a separate derived-artifact lifecycle with PENDING, AVAILABLE, and FAILED persisted statuses; eligibility without a persisted attempt may be presented as NOT_STARTED. Reconstruction failure or retry shall not reopen or change a submitted candidate session.
 
 > Priority: MUST \| Verification: Inspection/Test
 
@@ -234,7 +234,7 @@ The prototype should remain a single deployable application or modular monolith 
 
 > Priority: MUST \| Verification: Inspection/Test
 
-**FR-007 — Timeout.** At timeout, the system shall stop further candidate mutation, preserve available artifacts, and mark the session EXPIRED or submitted-by-timeout according to configured policy.
+**FR-007 — Timeout.** At timeout, the system shall stop further candidate mutation, preserve available artifacts, and transition the session to SUBMITTED with closureReason = 'timeout'.
 
 > Priority: MUST \| Verification: Inspection/Test
 

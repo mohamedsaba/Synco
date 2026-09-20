@@ -4,6 +4,8 @@ import type { ScenarioSnapshot } from './slice-one-scenario';
 export const scenario001: ScenarioSnapshot = {
   id: 'scenario-001-cache-staleness',
   version: '1.0.0',
+  // Authoritative hard assessment limit: 60 minutes (3600 seconds).
+  durationSeconds: 3600,
   title: 'Stale storefront inventory after warehouse restock',
   brief: [
     'Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.',

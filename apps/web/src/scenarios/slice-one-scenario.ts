@@ -8,6 +8,7 @@ export type ScenarioSnapshot = Readonly<{
   acceptanceCriteria: readonly string[];
   filePath: string;
   originalContent: string;
+  durationSeconds?: number;
   type?: 'single_file' | 'multi_file';
   imageName?: string;
   evaluationContext?: ScenarioEvaluationContextSnapshot;
@@ -18,6 +19,8 @@ export type ScenarioSnapshot = Readonly<{
 export const sliceOneScenario: ScenarioSnapshot = {
   id: 'slice-1-greeting-format',
   version: '1.0.0',
+  // Development fixture duration: 15 minutes (900 seconds). Not a calibrated hiring-assessment recommendation.
+  durationSeconds: 900,
   title: 'Trim customer names in greetings',
   brief:
     'Customer names copied from an import can contain surrounding whitespace. The greeting formatter currently preserves it, producing visibly uneven messages. Update the formatter so greetings use the customer name without surrounding whitespace.',

@@ -10,6 +10,7 @@ import {
   activateSession,
   type AssessmentSession,
   editSession,
+  type SessionClosureReason,
   SessionError,
   submitSession,
   type SubmittedSession,
@@ -31,6 +32,8 @@ type SessionRow = Readonly<{
   created_at: string;
   activated_at: string | null;
   submitted_at: string | null;
+  duration_seconds: number | null;
+  closure_reason: AssessmentSession['closureReason'];
   scenario_type: 'single_file' | 'multi_file' | null;
   submitted_diff: string | null;
   scenario_evaluation_context: string | null;
@@ -55,6 +58,8 @@ const schema = `
     created_at TEXT NOT NULL,
     activated_at TEXT,
     submitted_at TEXT,
+    duration_seconds INTEGER CHECK (duration_seconds IS NULL OR (duration_seconds > 0 AND duration_seconds = CAST(duration_seconds AS INTEGER))),
+    closure_reason TEXT CHECK (closure_reason IS NULL OR closure_reason IN ('candidate_submission', 'timeout')),
     scenario_type TEXT DEFAULT 'single_file',
     submitted_diff TEXT,
     scenario_evaluation_context TEXT,
@@ -74,6 +79,9 @@ const toSession = (row: SessionRow): AssessmentSession => ({
     acceptanceCriteria: JSON.parse(row.acceptance_criteria) as string[],
     filePath: row.file_path,
     originalContent: row.original_content,
+    ...(row.duration_seconds !== null && row.duration_seconds !== undefined
+      ? { durationSeconds: row.duration_seconds }
+      : {}),
     ...(row.scenario_semantic_snapshot
       ? {
           semanticSnapshot: decodeStoredSemanticSnapshot(
@@ -96,6 +104,8 @@ const toSession = (row: SessionRow): AssessmentSession => ({
   createdAt: row.created_at,
   activatedAt: row.activated_at,
   submittedAt: row.submitted_at,
+  durationSeconds: row.duration_seconds,
+  closureReason: row.closure_reason,
   scenarioType: row.scenario_type ?? 'single_file',
   submittedDiff: row.submitted_diff,
   aiCapabilitySnapshot: row.ai_capability_snapshot
@@ -115,6 +125,14 @@ export class SqliteSessionStore {
         .prepare('PRAGMA table_info(assessment_sessions)')
         .all() as Array<{ name: string }>;
       const additions = [
+        [
+          'duration_seconds',
+          'INTEGER CHECK (duration_seconds IS NULL OR (duration_seconds > 0 AND duration_seconds = CAST(duration_seconds AS INTEGER)))',
+        ],
+        [
+          'closure_reason',
+          "TEXT CHECK (closure_reason IS NULL OR closure_reason IN ('candidate_submission', 'timeout'))",
+        ],
         ['scenario_type', "TEXT DEFAULT 'single_file'"],
         ['submitted_diff', 'TEXT'],
         ['scenario_evaluation_context', 'TEXT'],
@@ -128,6 +146,12 @@ export class SqliteSessionStore {
           );
         }
       }
+
+      database.exec(`
+        UPDATE assessment_sessions
+        SET closure_reason = 'candidate_submission'
+        WHERE status = 'SUBMITTED' AND closure_reason IS NULL;
+      `);
     });
     migrate.immediate();
   }
@@ -140,10 +164,11 @@ export class SqliteSessionStore {
             id, candidate_token_hash, scenario_id, scenario_version,
             scenario_title, scenario_brief, acceptance_criteria, file_path,
             original_content, status, working_content, submitted_content,
-            created_at, activated_at, submitted_at, scenario_type, submitted_diff,
+            created_at, activated_at, submitted_at, duration_seconds,
+            closure_reason, scenario_type, submitted_diff,
             scenario_evaluation_context, scenario_semantic_snapshot,
             ai_capability_snapshot
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           session.id,
@@ -161,6 +186,8 @@ export class SqliteSessionStore {
           session.createdAt,
           session.activatedAt,
           session.submittedAt,
+          session.durationSeconds,
+          session.closureReason,
           session.scenarioType ?? session.scenario.type ?? 'single_file',
           session.submittedDiff ?? null,
           session.scenario.evaluationContext
@@ -222,6 +249,7 @@ export class SqliteSessionStore {
     sessionId: string,
     submittedAt: string,
     submittedDiff?: string | null,
+    closureReason: SessionClosureReason = 'candidate_submission',
   ): SubmittedSession {
     const current = this.findByIdWithDatabase(database, sessionId);
     if (!current) {
@@ -231,12 +259,18 @@ export class SqliteSessionStore {
       );
     }
 
-    const updated = submitSession(current, submittedAt, submittedDiff);
+    const updated = submitSession(
+      current,
+      submittedAt,
+      submittedDiff,
+      closureReason,
+    );
     database
       .prepare(
         `UPDATE assessment_sessions SET
           status = ?, working_content = ?, submitted_content = ?,
-          activated_at = ?, submitted_at = ?, submitted_diff = ?
+          activated_at = ?, submitted_at = ?, submitted_diff = ?,
+          closure_reason = ?
         WHERE id = ?`,
       )
       .run(
@@ -246,6 +280,7 @@ export class SqliteSessionStore {
         updated.activatedAt,
         updated.submittedAt,
         updated.submittedDiff ?? null,
+        updated.closureReason,
         updated.id,
       );
 
@@ -256,9 +291,10 @@ export class SqliteSessionStore {
     candidateTokenHash: string,
     submittedAt: string,
     submittedDiff?: string | null,
+    closureReason: SessionClosureReason = 'candidate_submission',
   ) {
     return this.mutate(candidateTokenHash, (session) =>
-      submitSession(session, submittedAt, submittedDiff),
+      submitSession(session, submittedAt, submittedDiff, closureReason),
     ) as SubmittedSession;
   }
 
@@ -281,7 +317,8 @@ export class SqliteSessionStore {
           .prepare(
             `UPDATE assessment_sessions SET
               status = ?, working_content = ?, submitted_content = ?,
-              activated_at = ?, submitted_at = ?, submitted_diff = ?
+              activated_at = ?, submitted_at = ?, submitted_diff = ?,
+              closure_reason = ?
             WHERE id = ?`,
           )
           .run(
@@ -291,6 +328,7 @@ export class SqliteSessionStore {
             updated.activatedAt,
             updated.submittedAt,
             updated.submittedDiff ?? null,
+            updated.closureReason ?? null,
             updated.id,
           );
 

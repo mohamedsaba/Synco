@@ -19,7 +19,7 @@ export const startSessionTimeoutSweeper = (
   if (target[GLOBAL_SWEEPER_KEY]) return;
 
   const state: SweeperState = {
-    running: false,
+    running: true,
     timer: setInterval(() => {
       if (state.running) return;
       state.running = true;
@@ -33,4 +33,11 @@ export const startSessionTimeoutSweeper = (
   };
   state.timer.unref();
   target[GLOBAL_SWEEPER_KEY] = state;
+
+  void service
+    .reconcileSessions()
+    .catch((error) => console.error('Session reconciliation failed', error))
+    .finally(() => {
+      state.running = false;
+    });
 };

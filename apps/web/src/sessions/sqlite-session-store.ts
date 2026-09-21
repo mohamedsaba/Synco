@@ -246,6 +246,18 @@ export class SqliteSessionStore {
     });
   }
 
+  findAllActiveAndSubmitted() {
+    return this.withDatabase((database) => {
+      const rows = database
+        .prepare(
+          `SELECT * FROM assessment_sessions
+           WHERE status IN ('ACTIVE', 'SUBMITTED')`,
+        )
+        .all() as SessionRow[];
+      return rows.map(toSession);
+    });
+  }
+
   activate(candidateTokenHash: string, activatedAt: string) {
     return this.mutate(candidateTokenHash, (session) =>
       activateSession(session, activatedAt),

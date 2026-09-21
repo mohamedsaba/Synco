@@ -61,7 +61,8 @@ export type WorkspaceCaptureFailedPayload = Readonly<{
     | 'submission'
     | 'submission_pre_freeze'
     | 'submission_freeze'
-    | 'submission_frozen_capture';
+    | 'submission_frozen_capture'
+    | 'reconciliation';
   beforeTree?: string | null;
   errorMessage: string;
 }>;

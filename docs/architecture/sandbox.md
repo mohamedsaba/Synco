@@ -42,3 +42,13 @@ Each session's `/workspace` is backed by a dedicated Docker named volume (`delim
 **Recovery compatibility:** A paused sandbox + named volume survive application restart. They must not be automatically destroyed before T1B recovery is implemented. Helper image selection for frozen capture is restart-recoverable via `docker inspect Config.Image` on the primary container — not an in-process map.
 
 Ordinary command timeout and session finality intentionally use different containment levels. Ordinary timeout contains one supervisor-owned process tree while the session stays `ACTIVE` and PostgreSQL, Redis, and the scenario application keep running. Manual submission or assessment-deadline finality freezes the whole container before authoritative workspace capture and durable closure. Command supervision does not replace or weaken that whole-container boundary.
+
+## Restart / Reconciliation Boundary (T1B.2)
+
+During uncontrolled application shutdown (OOM, power loss, SIGKILL), paused or running primary sandbox containers and their associated named volumes may be left orphaned.
+
+The application implements a strict reconciliation pass at startup (`reconcileSessions`). The system inspects Docker for the presence of the container and volume and aligns this with the authoritative SQLite `duration_seconds` to safely close overdue sessions without recreating missing resources. Specifically:
+
+- Missing containers but existing volumes fail closed.
+- Existing containers but missing volumes fail closed.
+- Leaked resources for already submitted sessions are simply garbage collected.

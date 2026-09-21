@@ -56,6 +56,62 @@ export class DockerSandboxAdapter implements SandboxAdapter {
     return `delimit-ws-${sanitized}`;
   }
 
+  async inspectResources(sessionId: string): Promise<{
+    containerStatus: 'running' | 'paused' | 'exited' | 'missing';
+    volumeExists: boolean;
+  }> {
+    const containerName = this.getContainerName(sessionId);
+    const volumeName = this.getVolumeName(sessionId);
+
+    let containerStatus: 'running' | 'paused' | 'exited' | 'missing' =
+      'missing';
+    try {
+      const inspect = await this.runProcess(
+        'docker',
+        ['inspect', '-f', '{{.State.Status}}', containerName],
+        { timeoutMs: 10000, maxStdoutBytes: 4096, maxStderrBytes: 4096 },
+      );
+      const status = inspect.stdout.trim().toLowerCase();
+      if (status === 'running') containerStatus = 'running';
+      else if (status === 'paused') containerStatus = 'paused';
+      else containerStatus = 'exited';
+    } catch (e) {
+      const err = e as { message?: string; cause?: { message?: string } };
+      const combined = `${err.message ?? ''} ${err.cause?.message ?? ''}`;
+      if (
+        combined.includes('no such object') ||
+        combined.includes('No such container')
+      ) {
+        containerStatus = 'missing';
+      } else {
+        throw e;
+      }
+    }
+
+    let volumeExists = false;
+    try {
+      await this.runProcess('docker', ['volume', 'inspect', volumeName], {
+        timeoutMs: 10000,
+        maxStdoutBytes: 4096,
+        maxStderrBytes: 4096,
+      });
+      volumeExists = true;
+    } catch (e) {
+      const err = e as { message?: string; cause?: { message?: string } };
+      const combined = `${err.message ?? ''} ${err.cause?.message ?? ''}`;
+      if (
+        combined.includes('no such volume') ||
+        combined.includes('No such volume')
+      ) {
+        volumeExists = false;
+      } else {
+        throw e;
+      }
+    }
+
+    return { containerStatus, volumeExists };
+  }
+
   async createAndVerify(
     sessionId: string,
     options?: SandboxCreateOptions | Readonly<Record<string, string>>,

@@ -59,6 +59,11 @@ export type TreeDiffResult = Readonly<{
 }>;
 
 export interface SandboxAdapter {
+  inspectResources?(sessionId: string): Promise<{
+    containerStatus: 'running' | 'paused' | 'exited' | 'missing';
+    volumeExists: boolean;
+  }>;
+
   createAndVerify(
     sessionId: string,
     options?: SandboxCreateOptions | Readonly<Record<string, string>>,

@@ -194,3 +194,23 @@ T1B.1 converges overdue timed sessions through the frozen-workspace finality pat
     - Multi-process or serverless distributed locking are explicitly excluded.
     - Candidate timer UI, submission-review UI, completion UI, and evaluator UI changes are deferred.
     - No new durable lifecycle states were introduced.
+
+## 11. Restart / Reconciliation Boundary (Slice T1B.2)
+
+T1B.2 establishes the durable reconciliation of session timing across server restarts and uncoordinated downtime:
+
+1. **Idempotent Sweeper Startup**:
+   - The timeout sweeper invokes a dedicated `reconcileSessions` pass exactly once per server startup before commencing its interval schedule.
+   - This phase ensures any session that exceeded its deadline during server downtime is caught and safely transitioned.
+
+2. **Durable Orchestration Rules**:
+   - **Running overdue containers** (R1): Transitioned to `SUBMITTED`, resources captured and terminated.
+   - **Paused overdue containers** (R2): Finalized safely without unpausing to prevent leak of execution time.
+   - **Missing container but existing volume** (R3): Fails closed. Volume is explicitly preserved for forensic recovery. Stays `ACTIVE`.
+   - **Existing container but missing volume** (R4): Fails closed to prevent creating fabricated empty submission workspaces. Stays `ACTIVE`.
+   - **Leaked resources post-submission** (R5): Only cleans up infrastructure idempotently. Does not re-submit or alter closure reason.
+   - **Untimed / Future Sessions** (R6, R7): Safely ignored.
+
+3. **No Speculative State**:
+   - Reconciliation relies strictly on the intersection of the authoritative SQLite truth (`status`, `deadline`) and the authoritative Docker truth (`docker inspect`).
+   - If either truth cannot be aligned safely (R3, R4), the system halts that session's state machine and emits a `WORKSPACE_CAPTURE_FAILED` event rather than guessing.

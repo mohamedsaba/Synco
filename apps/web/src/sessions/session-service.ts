@@ -1075,6 +1075,84 @@ export class SessionService {
     );
   }
 
+  async reconcileSessions(observedAt = this.now()) {
+    if (!this.sandboxAdapter || !this.sandboxAdapter.inspectResources) return;
+
+    const sessions = this.store.findAllActiveAndSubmitted();
+    const tasks: Promise<unknown>[] = [];
+
+    for (const session of sessions) {
+      if (session.status === 'SUBMITTED') {
+        const { containerStatus, volumeExists } =
+          await this.sandboxAdapter.inspectResources(session.id);
+        if (containerStatus !== 'missing' || volumeExists) {
+          tasks.push(
+            this.withSessionLock(session.id, async () => {
+              const current = this.store.findById(session.id);
+              if (current?.status === 'SUBMITTED') {
+                await this.sandboxAdapter!.teardown(session.id).catch(() => {});
+              }
+              return current;
+            }),
+          );
+        }
+      } else if (session.status === 'ACTIVE') {
+        const deadline = deriveSessionDeadline(session);
+        if (deadline !== null && isDeadlineExceeded(deadline, observedAt)) {
+          const { containerStatus, volumeExists } =
+            await this.sandboxAdapter.inspectResources(session.id);
+
+          if (containerStatus === 'missing' && volumeExists) {
+            // Case R3: missing container but volume exists -> fail closed, preserve volume, do not finalize
+            if (this.eventStore) {
+              this.eventStore.append({
+                id: `evt_${this.createId()}`,
+                sessionId: session.id,
+                type: 'WORKSPACE_CAPTURE_FAILED',
+                timestamp: this.now(),
+                source: 'server',
+                payload: {
+                  phase: 'reconciliation',
+                  errorMessage:
+                    'Primary container is missing while workspace volume exists. Failing closed to preserve volume for recovery.',
+                },
+              });
+            }
+            continue;
+          }
+
+          if (!volumeExists) {
+            // Case R4 and complete missing state: fail closed, do not recreate empty workspace
+            if (this.eventStore) {
+              this.eventStore.append({
+                id: `evt_${this.createId()}`,
+                sessionId: session.id,
+                type: 'WORKSPACE_CAPTURE_FAILED',
+                timestamp: this.now(),
+                source: 'server',
+                payload: {
+                  phase: 'reconciliation',
+                  errorMessage:
+                    'Session workspace volume is missing. Failing closed to prevent empty submission.',
+                },
+              });
+            }
+            continue;
+          }
+
+          tasks.push(this.finalizeTimedOutSession(session.id, observedAt));
+        }
+      }
+    }
+
+    const results = await Promise.allSettled(tasks);
+    for (const r of results) {
+      if (r.status === 'rejected') {
+        console.error('Reconciliation task failed:', r.reason);
+      }
+    }
+  }
+
   async sweepTimedOutSessions(observedAt = this.now()) {
     const overdue = this.store
       .findActiveTimed()

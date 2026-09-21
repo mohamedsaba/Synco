@@ -107,8 +107,8 @@ export const CandidatePrestart = ({
           <p className="eyebrow">Workspace Initialization</p>
           <h1 id="prestart-title">Preparing your assessment environment…</h1>
           <p className="summary">
-            Setting up your isolated workspace container, configuring tool
-            access, and verifying readiness.
+            Setting up your isolated workspace, configuring tool access, and
+            verifying readiness.
           </p>
 
           <div className="prestart-box info-box">
@@ -146,9 +146,9 @@ export const CandidatePrestart = ({
           <div className="prestart-box highlight-box">
             <p className="box-title">Timing Notice</p>
             <p className="box-detail">
-              Your assessment clock begins only when the workspace container has
-              been successfully prepared and verified. Setup time is not
-              deducted from your assessment duration.
+              Your assessment clock begins only when the workspace has been
+              successfully prepared and verified. Setup time is not deducted
+              from your assessment duration.
             </p>
           </div>
 
@@ -222,8 +222,8 @@ export const CandidatePrestart = ({
                   the workspace.
                 </li>
                 <li>
-                  <strong>Terminal Console:</strong> Execute shell commands and
-                  test suites.
+                  <strong>Commands:</strong> Run commands and tests inside the
+                  assessment environment.
                 </li>
                 <li>
                   <strong>Integrated AI Assistant:</strong>{' '}
@@ -233,7 +233,7 @@ export const CandidatePrestart = ({
                 </li>
                 <li>
                   <strong>Scenario Brief:</strong> Problem requirements and
-                  acceptance criteria.
+                  guidelines.
                 </li>
               </ul>
             </section>
@@ -260,9 +260,8 @@ export const CandidatePrestart = ({
                 Observable Activity
               </h2>
               <p className="section-body">
-                Work performed in the workspace—including saved file edits,
-                executed terminal commands, and integrated AI prompts—is
-                recorded as technical evidence for evaluation.
+                Work performed inside the assessment environment is recorded as
+                part of the technical assessment.
               </p>
             </section>
 
@@ -275,8 +274,7 @@ export const CandidatePrestart = ({
               </h2>
               <p className="section-body">
                 File modifications persist in the workspace when saved. Save
-                failures are reported immediately. Delimit manages container
-                infrastructure automatically.
+                failures are reported immediately.
               </p>
             </section>
 
@@ -288,10 +286,9 @@ export const CandidatePrestart = ({
                 Submission & Expiry
               </h2>
               <p className="section-body">
-                You may submit your solution at any time before your time limit
-                ends. Submission is final and includes a review step prior to
-                final confirmation. If time expires, modifications stop
-                automatically and the assessment finalizes.
+                You can submit your assessment before time ends. You’ll review
+                your submission before final confirmation. If time expires,
+                modifications stop automatically and the assessment finalizes.
               </p>
             </section>
           </div>
@@ -334,9 +331,9 @@ export const CandidatePrestart = ({
           {session.scenario?.title || 'Engineering Assessment'}
         </h1>
         <p className="summary">
-          You will complete an engineering task in a dedicated container
-          workspace equipped with a code editor, terminal command console, and
-          integrated developer tools.
+          You will complete an engineering task in a dedicated assessment
+          workspace equipped with a code editor, command execution console, and
+          developer tools.
         </p>
 
         <div className="prestart-box highlight-box">

@@ -108,7 +108,10 @@ describe('C2 — Candidate Pre-Start Unit Tests', () => {
     // 2. Tools
     expect(html).toContain('Available Tools');
     expect(html).toContain('File Editor');
-    expect(html).toContain('Terminal Console');
+    expect(html).toContain('Commands');
+    expect(html).toContain(
+      'Run commands and tests inside the assessment environment',
+    );
     expect(html).toContain('Integrated AI Assistant');
     expect(html).toContain('Scenario Brief');
 
@@ -123,7 +126,9 @@ describe('C2 — Candidate Pre-Start Unit Tests', () => {
 
     // 4. Observable activity
     expect(html).toContain('Observable Activity');
-    expect(html).toContain('recorded as technical evidence for evaluation');
+    expect(html).toContain(
+      'Work performed inside the assessment environment is recorded as part of the technical assessment',
+    );
 
     // 5. Persistence
     expect(html).toContain('Workspace Persistence');
@@ -131,7 +136,9 @@ describe('C2 — Candidate Pre-Start Unit Tests', () => {
 
     // 6. Submission & 7. Expiry
     expect(html).toContain('Submission &amp; Expiry');
-    expect(html).toContain('review step prior to final confirmation');
+    expect(html).toContain(
+      'You can submit your assessment before time ends. You’ll review your submission before final confirmation',
+    );
     expect(html).toContain(
       'modifications stop automatically and the assessment finalizes',
     );
@@ -158,7 +165,7 @@ describe('C2 — Candidate Pre-Start Unit Tests', () => {
     expect(html).toContain('Ready to Begin Assessment');
     expect(html).toContain('Start Assessment');
     expect(html).toContain(
-      'Your assessment clock begins only when the workspace container has been successfully prepared and verified',
+      'Your assessment clock begins only when the workspace has been successfully prepared and verified',
     );
     // Ensure no running countdown or deadline exists
     expect(html).not.toContain('Time remaining');

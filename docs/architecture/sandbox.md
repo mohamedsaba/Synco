@@ -21,6 +21,14 @@ Scenario images and fixtures should be versioned so a session can be explained a
 - Workspace file paths are passed as literal data arguments rather than interpolated into shell script source.
 - Public HTTP responses sanitize infrastructure failures, redacting raw Docker command lines, container names, internal paths, and raw stderr while returning stable public error codes and concise factual safe messages.
 
+## Ordinary command containment (T1A.3B)
+
+Every scenario candidate terminal command runs beneath `/usr/local/bin/delimit-exec-supervisor`, a trusted static helper baked into the scenario image. The platform starts the supervisor as UID/GID 0 through `docker exec`; the container retains only `SETUID` and `SETGID` after `--cap-drop=ALL`, and keeps `no-new-privileges`. The supervisor opens the root-only status file and sets `PR_SET_CHILD_SUBREAPER`, then clears supplementary groups and permanently changes all real/effective/saved UID and GID values to `1000`. It verifies that its permitted and effective capability sets are empty before it forks or handles candidate-controlled paths or commands. Supervisor and candidate descendants therefore use ordinary same-UID signal permissions, cannot regain root, and receive no status descriptor across `exec`.
+
+Command ownership is structural. The candidate shell begins as the supervisor's child. When descendants use background jobs, `nohup`, `setsid`, or double-fork daemonization, orphaned descendants reparent to the subreaper instead of PID 1. On the ordinary command deadline, the supervisor uses `SIGKILL`, repeatedly kills its direct children as deeper descendants reparent, and reaps until the kernel reports no children. It never uses process names, service allowlists, or a global new-PID snapshot. Processes that existed before the command, including scenario services, are outside this tree and remain untouched.
+
+The supervisor writes one root-only result through a descriptor opened before privilege drop in `/run/delimit-evidence`. `timedOut=true` is returned only after that result confirms bounded kill, reap, and zero remaining command-owned children. Missing, malformed, inconsistent, setup-failure, or unconfirmed-cleanup results are platform failures; they never become factual clean-timeout evidence.
+
 ## Workspace storage and frozen finality (T1A.3A)
 
 Each session's `/workspace` is backed by a dedicated Docker named volume (`delimit-ws-<sanitized-session-id>`) rather than a tmpfs mount. Named volumes are independently addressable: a trusted ephemeral helper container can mount the workspace read-only even while the primary sandbox is paused.
@@ -31,4 +39,6 @@ Each session's `/workspace` is backed by a dedicated Docker named volume (`delim
 
 **Volume lifecycle:** Volume created before container start. Removed only after successful SQLite finalization — never destroyed before finalization. On freeze/capture/commit failure the volume and paused container remain intact and are recoverable (T1B).
 
-**Recovery compatibility:** A paused sandbox + named volume survive application restart. They must not be automatically destroyed before T1B recovery is implemented. Helper image selection for frozen capture is restart-recoverable via `docker inspect Config.Image` on the primary container — not an in-process map. Root subreaper / command-supervisor hardening remains T1A.3B.
+**Recovery compatibility:** A paused sandbox + named volume survive application restart. They must not be automatically destroyed before T1B recovery is implemented. Helper image selection for frozen capture is restart-recoverable via `docker inspect Config.Image` on the primary container — not an in-process map.
+
+Ordinary command timeout and session finality intentionally use different containment levels. Ordinary timeout contains one supervisor-owned process tree while the session stays `ACTIVE` and PostgreSQL, Redis, and the scenario application keep running. Manual submission or assessment-deadline finality freezes the whole container before authoritative workspace capture and durable closure. Command supervision does not replace or weaken that whole-container boundary.

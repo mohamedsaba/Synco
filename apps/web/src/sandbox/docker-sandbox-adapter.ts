@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 
 import type { WorkspaceFileChange } from '../events/session-event';
 import { BoundedStreamAccumulator } from './bounded-stream-accumulator';
@@ -134,6 +135,8 @@ export class DockerSandboxAdapter implements SandboxAdapter {
             '--cpus=1.0',
             '--pids-limit=128',
             '--cap-drop=ALL',
+            '--cap-add=SETUID',
+            '--cap-add=SETGID',
             '--security-opt=no-new-privileges:true',
             '--user',
             '1000:1000',
@@ -362,6 +365,166 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       );
     }
 
+    const hasSupervisor = await this.runProcess(
+      'docker',
+      [
+        'exec',
+        containerName,
+        'test',
+        '-x',
+        '/usr/local/bin/delimit-exec-supervisor',
+      ],
+      {
+        timeoutMs: 10_000,
+        maxStdoutBytes: 4 * 1024,
+        maxStderrBytes: 64 * 1024,
+      },
+    ).then(
+      () => true,
+      () => false,
+    );
+    if (!hasSupervisor) {
+      return this.execLegacy(containerName, commandId, command, cwd, timeoutMs);
+    }
+
+    const stdoutAccumulator = new BoundedStreamAccumulator();
+    const stderrAccumulator = new BoundedStreamAccumulator();
+    const startTime = Date.now();
+
+    return new Promise<CommandExecResult>((resolve, reject) => {
+      let watchdogTimer: NodeJS.Timeout | null = null;
+      let processSettled = false;
+      const statusToken = randomUUID();
+      const statusPath = `/run/delimit-evidence/command-${statusToken}.status`;
+
+      const child = spawn('docker', [
+        'exec',
+        '-u',
+        '0:0',
+        containerName,
+        '/usr/local/bin/delimit-exec-supervisor',
+        String(timeoutMs),
+        cwd,
+        statusToken,
+        command,
+      ]);
+
+      child.stdout.on('data', (chunk: Buffer) => {
+        stdoutAccumulator.append(chunk);
+      });
+
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderrAccumulator.append(chunk);
+      });
+
+      if (timeoutMs > 0) {
+        watchdogTimer = setTimeout(() => {
+          if (processSettled) return;
+          processSettled = true;
+          child.kill('SIGKILL');
+          reject(
+            new SandboxError(
+              'SANDBOX_EXECUTION_FAILED',
+              'Command supervisor exceeded its bounded containment deadline.',
+            ),
+          );
+        }, timeoutMs + 10_000);
+      }
+
+      child.on('error', (err) => {
+        if (processSettled) return;
+        processSettled = true;
+        if (watchdogTimer) clearTimeout(watchdogTimer);
+        reject(
+          new SandboxError(
+            'SANDBOX_EXECUTION_FAILED',
+            `Execution transport error: ${err.message}`,
+            err,
+          ),
+        );
+      });
+
+      child.on('close', (code) => {
+        if (processSettled) return;
+        processSettled = true;
+        if (watchdogTimer) clearTimeout(watchdogTimer);
+
+        void (async () => {
+          try {
+            const statusResult = await this.runProcess(
+              'docker',
+              [
+                'exec',
+                '-u',
+                '0:0',
+                containerName,
+                'sh',
+                '-c',
+                'cat "$1" && rm -f "$1"',
+                '_',
+                statusPath,
+              ],
+              {
+                timeoutMs: 10_000,
+                maxStdoutBytes: 4 * 1024,
+                maxStderrBytes: 64 * 1024,
+              },
+            );
+            const status = statusResult.stdout.trim();
+            const exitMatch = /^exit:(\d+)$/.exec(status);
+            const timedOut = status === 'timeout';
+            const trustedExitCode = exitMatch
+              ? Number.parseInt(exitMatch[1], 10)
+              : null;
+
+            if (
+              (!timedOut && trustedExitCode === null) ||
+              (timedOut && code !== 124) ||
+              (trustedExitCode !== null && code !== trustedExitCode)
+            ) {
+              throw new SandboxError(
+                'SANDBOX_EXECUTION_FAILED',
+                'Command supervisor returned an invalid or inconsistent result.',
+              );
+            }
+
+            const stdoutRes = stdoutAccumulator.result;
+            const stderrRes = stderrAccumulator.result;
+            resolve({
+              commandId,
+              exitCode: timedOut ? null : trustedExitCode,
+              timedOut,
+              durationMs: Date.now() - startTime,
+              stdoutPreview: stdoutRes.preview,
+              stdoutBytes: stdoutRes.bytes,
+              stdoutTruncated: stdoutRes.truncated,
+              stderrPreview: stderrRes.preview,
+              stderrBytes: stderrRes.bytes,
+              stderrTruncated: stderrRes.truncated,
+            });
+          } catch (error) {
+            reject(
+              error instanceof SandboxError
+                ? error
+                : new SandboxError(
+                    'SANDBOX_EXECUTION_FAILED',
+                    'Failed to read the command supervisor result.',
+                    error,
+                  ),
+            );
+          }
+        })();
+      });
+    });
+  }
+
+  private execLegacy(
+    containerName: string,
+    commandId: string,
+    command: string,
+    cwd: string,
+    timeoutMs: number,
+  ): Promise<CommandExecResult> {
     const stdoutAccumulator = new BoundedStreamAccumulator();
     const stderrAccumulator = new BoundedStreamAccumulator();
     const startTime = Date.now();
@@ -370,8 +533,6 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       let timedOut = false;
       let timeoutTimer: NodeJS.Timeout | null = null;
       let processSettled = false;
-
-      // Wrap command inside container to record pgid and cleanly cleanup
       const wrapperScript = [
         'echo $$ > "/tmp/cmd_$1.pgid"',
         'cd "$2"',
@@ -380,7 +541,6 @@ export class DockerSandboxAdapter implements SandboxAdapter {
         'rm -f "/tmp/cmd_$1.pgid"',
         'exit $code',
       ].join('\n');
-
       const child = spawn('docker', [
         'exec',
         containerName,
@@ -396,90 +556,74 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       child.stdout.on('data', (chunk: Buffer) => {
         stdoutAccumulator.append(chunk);
       });
-
       child.stderr.on('data', (chunk: Buffer) => {
         stderrAccumulator.append(chunk);
       });
-
-      const killDescendantsInsideContainer = async () => {
-        // Kill process group and any lingering non-daemon processes spawned by the command,
-        // while preserving background scenario services (postgres, redis, app.py, sleep infinity)
-        const killCmd = [
-          `pgid=$(cat "/tmp/cmd_${commandId}.pgid" 2>/dev/null)`,
-          `if [ -n "$pgid" ]; then kill -KILL -$pgid 2>/dev/null; rm -f "/tmp/cmd_${commandId}.pgid"; fi`,
-          `for dir in /proc/[0-9]*; do`,
-          `  p=\${dir##*/}`,
-          `  if [ "$p" != "1" ] && [ "$p" != "$$" ]; then`,
-          `    comm=$(cat /proc/$p/comm 2>/dev/null)`,
-          `    cmdline=$(cat /proc/$p/cmdline 2>/dev/null)`,
-          `    case "$comm" in`,
-          `      postgres|redis-server|postmaster) continue ;;`,
-          `    esac`,
-          `    case "$cmdline" in`,
-          `      *app.py*|*start_services.sh*) continue ;;`,
-          `    esac`,
-          `    kill -9 "$p" 2>/dev/null`,
-          `  fi`,
-          `done`,
-          `sleep 0.1`,
-        ].join('\n');
-
-        await this.runProcess(
-          'docker',
-          ['exec', containerName, 'sh', '-c', killCmd],
-          {
-            timeoutMs: 10_000,
-            maxStdoutBytes: 4 * 1024,
-            maxStderrBytes: 64 * 1024,
-          },
-        ).catch(() => {});
-      };
 
       if (timeoutMs > 0) {
         timeoutTimer = setTimeout(async () => {
           if (processSettled) return;
           timedOut = true;
+          const killCmd = [
+            `pgid=$(cat "/tmp/cmd_${commandId}.pgid" 2>/dev/null)`,
+            `if [ -n "$pgid" ]; then kill -KILL -$pgid 2>/dev/null; rm -f "/tmp/cmd_${commandId}.pgid"; fi`,
+            `for dir in /proc/[0-9]*; do`,
+            `  p=\${dir##*/}`,
+            `  if [ "$p" != "1" ] && [ "$p" != "$$" ]; then`,
+            `    comm=$(cat /proc/$p/comm 2>/dev/null)`,
+            `    cmdline=$(cat /proc/$p/cmdline 2>/dev/null)`,
+            `    case "$comm" in postgres|redis-server|postmaster) continue ;; esac`,
+            `    case "$cmdline" in *app.py*|*start_services.sh*) continue ;; esac`,
+            `    kill -9 "$p" 2>/dev/null`,
+            `  fi`,
+            `done`,
+            `sleep 0.1`,
+          ].join('\n');
           try {
-            await killDescendantsInsideContainer();
+            await this.runProcess(
+              'docker',
+              ['exec', containerName, 'sh', '-c', killCmd],
+              {
+                timeoutMs: 10_000,
+                maxStdoutBytes: 4 * 1024,
+                maxStderrBytes: 64 * 1024,
+              },
+            ).catch(() => {});
           } finally {
             child.kill('SIGKILL');
           }
         }, timeoutMs);
       }
 
-      child.on('error', (err) => {
+      child.on('error', (error) => {
         if (processSettled) return;
         processSettled = true;
         if (timeoutTimer) clearTimeout(timeoutTimer);
         reject(
           new SandboxError(
             'SANDBOX_EXECUTION_FAILED',
-            `Execution transport error: ${err.message}`,
-            err,
+            `Execution transport error: ${error.message}`,
+            error,
           ),
         );
       });
-
       child.on('close', (code) => {
         if (processSettled) return;
         processSettled = true;
         if (timeoutTimer) clearTimeout(timeoutTimer);
-
-        const durationMs = Date.now() - startTime;
-        const stdoutRes = stdoutAccumulator.result;
-        const stderrRes = stderrAccumulator.result;
-
+        const stdout = stdoutAccumulator.result;
+        const stderr = stderrAccumulator.result;
         resolve({
           commandId,
           exitCode: timedOut ? null : (code ?? 0),
           timedOut,
-          durationMs,
-          stdoutPreview: stdoutRes.preview,
-          stdoutBytes: stdoutRes.bytes,
-          stdoutTruncated: stdoutRes.truncated,
-          stderrPreview: stderrRes.preview,
-          stderrBytes: stderrRes.bytes,
-          stderrTruncated: stderrRes.truncated,
+          durationMs: Date.now() - startTime,
+          stdoutPreview: stdout.preview,
+          stdoutBytes: stdout.bytes,
+          stdoutTruncated: stdout.truncated,
+          stderrPreview: stderr.preview,
+          stderrBytes: stderr.bytes,
+          stderrTruncated: stderr.truncated,
         });
       });
     });

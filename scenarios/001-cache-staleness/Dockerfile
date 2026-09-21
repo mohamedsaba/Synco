@@ -1,3 +1,8 @@
+FROM delimit-musl-builder:3.20 AS supervisor-build
+COPY delimit-exec-supervisor.c /src/delimit-exec-supervisor.c
+RUN cc -O2 -Wall -Wextra -Werror -static \
+    -o /delimit-exec-supervisor /src/delimit-exec-supervisor.c
+
 FROM delimit-scenario-001-test:latest
 
 # 1. Create unprivileged delimit user (1000:1000)
@@ -24,10 +29,12 @@ COPY start_services.sh /usr/local/bin/start_services.sh
 COPY delimit-capture-tree.sh /usr/local/bin/delimit-capture-tree.sh
 COPY delimit-diff-trees.sh /usr/local/bin/delimit-diff-trees.sh
 COPY delimit-baseline-tree.sh /usr/local/bin/delimit-baseline-tree.sh
+COPY --from=supervisor-build /delimit-exec-supervisor /usr/local/bin/delimit-exec-supervisor
 RUN chmod +x /usr/local/bin/start_services.sh \
              /usr/local/bin/delimit-capture-tree.sh \
              /usr/local/bin/delimit-diff-trees.sh \
-             /usr/local/bin/delimit-baseline-tree.sh && \
+             /usr/local/bin/delimit-baseline-tree.sh \
+             /usr/local/bin/delimit-exec-supervisor && \
     mkdir -p /run/delimit-evidence && \
     chmod 700 /run/delimit-evidence
 

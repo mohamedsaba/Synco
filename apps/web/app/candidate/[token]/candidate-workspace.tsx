@@ -1,22 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type {
   CommandExecResult,
   WorkspaceFileInfo,
 } from '../../../src/sandbox/sandbox';
-import type { toCandidateSessionView } from '../../../src/sessions/candidate-session-view';
+import type { CandidateSessionView } from '../../../src/sessions/candidate-session-view';
 import { useCandidateSession } from '../../../src/candidate/use-candidate-session';
 import { CandidateAiPanel } from './candidate-ai-panel';
+import { CandidatePrestart } from './candidate-prestart';
 import {
   executeFileSwitch,
   executeSubmitAssessment,
   formatSaveFailureBeforeSubmit,
   formatSaveFailureBeforeSwitch,
 } from './candidate-workspace-actions';
-
-type CandidateSessionView = ReturnType<typeof toCandidateSessionView>;
 
 type CandidateWorkspaceProps = Readonly<{
   initialSession: CandidateSessionView;
@@ -40,6 +39,8 @@ export const CandidateWorkspace = ({
     serverSession: session,
     projection,
     updateServerSession: setSession,
+    uiMode,
+    setUiMode,
   } = useCandidateSession({
     initialSession,
     token,
@@ -74,6 +75,25 @@ export const CandidateWorkspace = ({
   const [commandInput, setCommandInput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [commandHistory, setCommandHistory] = useState<ExecutedCommand[]>([]);
+
+  // Pre-start / Activation state
+  const [isActivating, setIsActivating] = useState(false);
+  const [provisioningError, setProvisioningError] = useState<string | null>(
+    null,
+  );
+  const workspaceHeadingRef = useRef<HTMLHeadingElement>(null);
+  const prevUxStateRef = useRef(projection.uxState);
+
+  // Focus management: shift focus to workspace heading upon entering ACTIVE_WORKSPACE
+  useEffect(() => {
+    if (
+      prevUxStateRef.current !== 'ACTIVE_WORKSPACE' &&
+      projection.uxState === 'ACTIVE_WORKSPACE'
+    ) {
+      workspaceHeadingRef.current?.focus();
+    }
+    prevUxStateRef.current = projection.uxState;
+  }, [projection.uxState]);
 
   const refreshFiles = async () => {
     try {
@@ -252,10 +272,19 @@ export const CandidateWorkspace = ({
     }
   };
 
-  const activate = () =>
-    runAction(async () => {
+  const handleStartAssessment = async () => {
+    if (isActivating || session.status !== 'CREATED') return;
+    setIsActivating(true);
+    setProvisioningError(null);
+    setUiMode('provisioning');
+
+    try {
       const nextSession = await request('/activate', { method: 'POST' });
       setSession(nextSession);
+      setContent(nextSession.workingContent);
+      if (nextSession.scenario?.filePath) {
+        setSelectedFile(nextSession.scenario.filePath);
+      }
       setNotice('Session active. Sandbox is ready and editing is enabled.');
       if (
         nextSession.scenarioType === 'multi_file' ||
@@ -277,7 +306,63 @@ export const CandidateWorkspace = ({
           await loadFile(initialPath);
         }
       }
-    });
+    } catch (activateError) {
+      // Ambiguous network failure recovery:
+      // Re-fetch canonical candidate session projection before assuming state
+      try {
+        const checkRes = await fetch(`/api/candidate/sessions/${token}`);
+        if (checkRes.ok) {
+          const freshSession = (await checkRes.json()) as CandidateSessionView;
+          if (freshSession.status === 'ACTIVE') {
+            setSession(freshSession);
+            setContent(freshSession.workingContent);
+            if (freshSession.scenario?.filePath) {
+              setSelectedFile(freshSession.scenario.filePath);
+            }
+            setNotice(
+              'Session active. Sandbox is ready and editing is enabled.',
+            );
+            if (
+              freshSession.scenarioType === 'multi_file' ||
+              freshSession.scenario.type === 'multi_file'
+            ) {
+              const treeRes = await fetch(
+                `/api/candidate/sessions/${token}/workspace/tree`,
+              );
+              if (treeRes.ok) {
+                const treeData = (await treeRes.json()) as {
+                  files: WorkspaceFileInfo[];
+                };
+                const nonDirs = treeData.files.filter((f) => !f.isDirectory);
+                setWorkspaceFiles(nonDirs);
+                const initialPath =
+                  freshSession.scenario.filePath ||
+                  nonDirs[0]?.path ||
+                  'inventory/service.py';
+                await loadFile(initialPath);
+              }
+            }
+            return;
+          }
+        }
+      } catch {
+        // Fall through to error state
+      }
+
+      const message =
+        activateError instanceof Error
+          ? activateError.message
+          : 'Failed to prepare assessment environment. Please try again.';
+      setProvisioningError(message);
+    } finally {
+      setIsActivating(false);
+    }
+  };
+
+  const handleRetryProvisioning = () => {
+    setProvisioningError(null);
+    void handleStartAssessment();
+  };
 
   const save = () =>
     runAction(async () => {
@@ -365,6 +450,20 @@ export const CandidateWorkspace = ({
     session.status === 'ACTIVE' && projection.capabilities.canEdit;
   const isSubmitted = session.status === 'SUBMITTED';
 
+  if (session.status === 'CREATED') {
+    return (
+      <CandidatePrestart
+        session={session}
+        uiMode={uiMode}
+        setUiMode={setUiMode}
+        onStartAssessment={handleStartAssessment}
+        isActivating={isActivating}
+        provisioningError={provisioningError}
+        onRetryProvisioning={handleRetryProvisioning}
+      />
+    );
+  }
+
   return (
     <main className="workspace-shell">
       <header className="workspace-header">
@@ -387,12 +486,14 @@ export const CandidateWorkspace = ({
             {isMultiFile ? 'Scenario 001 fixture' : 'Slice 2 fixture'} · v
             {session.scenario.version}
           </p>
-          <h1 id="scenario-title">{session.scenario.title}</h1>
+          <h1 id="scenario-title" tabIndex={-1} ref={workspaceHeadingRef}>
+            {session.scenario.title}
+          </h1>
           <p className="brief-copy">{session.scenario.brief}</p>
 
           <h2>Expected behavior</h2>
           <ul className="criteria-list">
-            {session.scenario.acceptanceCriteria.map((criterion) => (
+            {(session.scenario.acceptanceCriteria ?? []).map((criterion) => (
               <li key={criterion}>{criterion}</li>
             ))}
           </ul>
@@ -462,26 +563,14 @@ export const CandidateWorkspace = ({
           <div className="editor-footer">
             <p className="editor-message" aria-live="polite">
               {notice ??
-                (session.status === 'CREATED'
-                  ? 'Review the brief, then start when ready.'
-                  : projection.uxState === 'TIME_LIMIT_REACHED'
-                    ? 'The assessment time limit has been reached. New modifications are no longer permitted.'
-                    : isSubmitted
-                      ? (projection.completionMessage ??
-                        `Submitted ${new Date(session.submittedAt ?? '').toLocaleString()}.`)
-                      : 'Edits persist only after Save or Submit.')}
+                (projection.uxState === 'TIME_LIMIT_REACHED'
+                  ? 'The assessment time limit has been reached. New modifications are no longer permitted.'
+                  : isSubmitted
+                    ? (projection.completionMessage ??
+                      `Submitted ${new Date(session.submittedAt ?? '').toLocaleString()}.`)
+                    : 'Edits persist only after Save or Submit.')}
             </p>
             <div className="button-row">
-              {session.status === 'CREATED' ? (
-                <button
-                  className="button button-primary"
-                  disabled={isBusy}
-                  onClick={activate}
-                  type="button"
-                >
-                  Start session
-                </button>
-              ) : null}
               {isActive ? (
                 <>
                   <button

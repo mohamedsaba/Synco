@@ -79,12 +79,78 @@ The pure projection function maps inputs to canonical UX states:
 
 Upon browser refresh, the server renders the candidate route (`page.tsx`) with an authoritative snapshot containing `deadline` and `serverTime`. The client calculates clock calibration on receipt and projects the exact same UX state deterministically, ensuring seamless continuity.
 
-## 7. Explicit C2 Provisioning Boundary
+## 7. C2 Candidate Pre-Start, Orientation, and Provisioning Architecture
 
-Slice C1 implements only the projection state primitives (`PROVISIONING` UX state and in-flight tracking). It explicitly defers:
+Slice C2 establishes the candidate experience from first valid token load until the session transitions to `ACTIVE_WORKSPACE`.
 
-- Pre-start briefing and orientation screens.
-- Container warm-up / pre-provisioning semantics before timing activation.
-- The exact provisioning/start boundary orchestration.
+### Pre-Start States & Invariants
 
-These belong strictly to Slice C2.
+Pre-active sessions (`status = 'CREATED'`) project deterministically across four canonical UX states:
+
+- **ENTRY**: Landing experience establishing assessment identity, expected duration ("You'll have 60 minutes once the assessment begins"), and professional neutral framing.
+- **ORIENTATION**: Single structured orientation presenting the factual information contract:
+  1. Assessment duration (factual, no running countdown before activation)
+  2. Tools available (file editor, terminal command console, integrated AI assistant if enabled, scenario brief)
+  3. AI policy (permitted within environment, candidate remains responsible, neutral phrasing)
+  4. Observable activity (all edits, commands, and AI prompts captured as technical evidence)
+  5. Persistence (workspace saves persist, save failures surfaced immediately, Delimit manages infrastructure)
+  6. Submission (may submit at any time, submission is final, review step provided before confirmation)
+  7. Time expiry (modifications stop automatically upon timeout, Delimit finalizes automatically)
+- **READY_TO_START**: Final confirmation reiterating that assessment time begins only after workspace setup completes. Prevents double-triggers while in-flight.
+- **PROVISIONING**: Truthful platform state ("Preparing your assessment environment…") equipped with accessible live status semantics (`role="status"`, `aria-live="polite"`). Displays no countdown timer.
+
+### Scenario Leakage Boundary
+
+Candidate integrity requires that untimed candidates cannot gain an unfair advantage before assessment time begins.
+
+- In `toCandidateSessionView`, when `session.status === 'CREATED'`, scenario-specific problem details (`brief`, `prompt`, `acceptanceCriteria`, `filePath`, `originalContent`) and `workingContent` are strictly redacted.
+- Pre-active sessions receive only non-sensitive metadata (`id`, `title`, `version`, `durationSeconds`, `type`, `aiCapability`).
+- Candidate mutation and workspace read endpoints (`/file`, `/workspace/file`, `/workspace/tree`, `/terminal/exec`, `/ai/interactions`) reject pre-active requests with HTTP 409 `SESSION_NOT_ACTIVE`.
+- Full scenario requirements and workspace file content are delivered only once activation succeeds and `status` reaches `ACTIVE`.
+
+### Provisioning Timing Boundary
+
+Platform provisioning does **not** consume candidate assessment time:
+
+1. Candidate confirms start.
+2. Client projection enters `PROVISIONING`.
+3. Backend readiness gate executes `sandboxAdapter.createAndVerify()`.
+4. Only upon successful container readiness check is `this.store.activate(tokenHash, this.now())` executed.
+5. `activatedAt` is established strictly after verification.
+6. Assessment timer begins counting down only from this verified `activatedAt`.
+
+### Activation Failure & Ambiguous-Response Reconciliation
+
+- **Platform Failure**: If container creation or readiness check fails, the exception propagates before `store.activate` is called. The session remains in `CREATED` status with `activatedAt = null`. The failure is presented as a platform issue without blaming the candidate, and safe retry is permitted.
+- **Ambiguous Network Recovery**: If the candidate clicks Start and the HTTP request or response drops due to network interruption:
+  1. The client immediately issues a read query (`GET /api/candidate/sessions/[token]`) to fetch canonical server truth.
+  2. If the server reports `ACTIVE`: the client transitions to `ACTIVE_WORKSPACE` without re-creating infrastructure or resetting `activatedAt`.
+  3. If the server reports `CREATED`: the client surfaces the platform failure with safe retry.
+  4. The client never infers durable state solely from a transport failure.
+- **Idempotency**: Repeated activation requests on an already `ACTIVE` session safely return the existing session without re-creating sandboxes or modifying `activatedAt`.
+
+### Refresh & Back Navigation
+
+- **Refresh while CREATED**: Returns safely to the pre-start experience (`ENTRY`).
+- **Refresh while ACTIVE**: Canonical server status wins; client projects directly into `ACTIVE_WORKSPACE`, completely bypassing pre-start screens.
+- **Refresh while SUBMITTED**: Projects `COMPLETED` without reopening pre-start.
+- **Browser Back**: Once a session reaches `ACTIVE`, server truth prevents reopening pre-start states.
+
+### Accessibility Standards
+
+- All pre-start flows are fully operable via keyboard with visible focus indicators.
+- Semantic heading hierarchy (`<h1>`, `<h2>`) and landmark regions.
+- Provisioning and error states use `role="status"` and `role="alert"` with `aria-live="polite"`.
+- Animations and transitions respect `prefers-reduced-motion`.
+- Upon transitioning from `PROVISIONING` to `ACTIVE_WORKSPACE`, focus is programmatically moved to the primary workspace heading (`tabIndex={-1}`) without surprising jumping.
+
+## 8. Deferred Work
+
+The following areas are explicitly deferred to future slices:
+
+- **C3**: Candidate Workspace Shell redesign and layout optimization.
+- **C4**: Workspace persistence redesign and autosave semantics.
+- **C5**: Terminal and Command console redesign.
+- **C6**: Integrated AI experience redesign.
+- **C8**: Submission review modal and completion screens.
+- **Practice Environment**: Interactive sandbox tutorial/playground.

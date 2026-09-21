@@ -2345,3 +2345,123 @@ details[open] > summary > .disclosure-chevron {
   font-size: 0.8rem;
   line-height: 1.5;
 }
+
+/* ============================================================================
+   C2 CANDIDATE PRE-START / ORIENTATION / PROVISIONING EXPERIENCE
+   ============================================================================ */
+
+.prestart-card {
+  width: min(56rem, 100%);
+  margin: 2rem auto;
+  padding: clamp(1.75rem, 4vw, 3rem);
+  border: 1px solid var(--ink);
+  background: var(--surface);
+  box-shadow: 0.5rem 0.5rem 0 var(--ink);
+}
+
+.prestart-card h1 {
+  margin: 0.5rem 0 1.5rem;
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  line-height: 1.15;
+}
+
+.prestart-card .summary {
+  margin-bottom: 2rem;
+}
+
+.prestart-box {
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  border: 1px solid var(--line);
+}
+
+.prestart-box .box-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.prestart-box .box-detail {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.highlight-box {
+  background: var(--paper);
+  border-left: 4px solid var(--ink);
+}
+
+.info-box {
+  background: var(--paper);
+  border-left: 4px solid var(--muted);
+}
+
+.error-box {
+  background: #fff5f5;
+  border: 1px solid #fca5a5;
+  border-left: 4px solid var(--danger);
+  color: #991b1b;
+}
+
+.error-box .box-detail {
+  color: #991b1b;
+}
+
+.orientation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  gap: 1.25rem;
+  margin: 2rem 0;
+}
+
+.orientation-section {
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.orientation-section .section-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.orientation-section .section-body {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.orientation-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.orientation-list li {
+  margin-bottom: 0.25rem;
+}
+
+.status-danger {
+  background: #fee2e2;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prestart-card,
+  .button {
+    transition: none !important;
+  }
+}

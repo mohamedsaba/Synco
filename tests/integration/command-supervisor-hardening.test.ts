@@ -387,6 +387,7 @@ describe('T1A.3B command timeout evidence and session state', () => {
   const service = new SessionService(sessionStore, {
     eventStore,
     sandboxAdapter: adapter,
+    commandTimeoutMs: 400,
   });
   let candidateToken: string;
   let sessionId: string;

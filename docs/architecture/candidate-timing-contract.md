@@ -139,3 +139,58 @@ T1A.3A establishes the frozen workspace finality foundation for manual candidate
 8. **T1A.3A Scope Boundary**:
    - Automatic timeout submission, background sweeper finalization, and persistent recovery orchestration are T1B scope.
    - Root subreaper / in-flight command supervisor hardening remains T1A.3B.
+
+## 11. Authoritative Deadline Convergence (Slice T1B.1)
+
+T1B.1 converges overdue timed sessions through the frozen-workspace finality path while preserving trusted pre-deadline manual submission admission and same-session FIFO ordering.
+
+1. **Shared Finalization Engine**:
+   - `SessionService.finalizeByTokenHash` is the single finalization function for both manual candidate submission and timeout closure.
+   - The `closureReason` (`candidate_submission` or `timeout`) is determined inside the FIFO lock body, not by the caller.
+   - The candidate HTTP request body cannot influence `closureReason`.
+
+2. **Trusted Admission Timestamp**:
+   - `submit(candidateToken)` captures `admittedAt = this.now()` **before** entering the session operation coordinator queue.
+   - The deadline check inside the lock body uses `admittedAt`, not the time at lock acquisition.
+   - A submit admitted before the deadline that waits behind a prior operation retains its pre-deadline privilege: `closureReason = candidate_submission`.
+   - A submit admitted at or after the deadline is routed through timeout closure: `closureReason = timeout`.
+
+3. **Remaining Command Time Bound**:
+   - `executeCommand` bounds each invocation to `min(commandTimeoutMs, deadline − now)` remaining milliseconds.
+   - Commands admitted at or after the deadline are rejected with `SESSION_DEADLINE_EXCEEDED` before invoking `sandboxAdapter.exec`.
+   - Legacy untimed sessions use the full `commandTimeoutMs` bound (unchanged behavior).
+
+4. **Background Sweeper (`SessionTimeoutSweeper`)**:
+   - Registered once via `apps/web/instrumentation.ts` at Next.js server startup using a `Symbol.for('delimit.sessionTimeoutSweeper')` global guard to prevent duplicate intervals.
+   - Runs `SessionService.sweepTimedOutSessions()` on a 1-second interval using a re-entrancy guard.
+   - `sweepTimedOutSessions` queries all `ACTIVE` timed sessions with a non-null `activated_at` and non-null `duration_seconds`, filters those whose deadline has been reached, and calls `finalizeTimedOutSession` for each.
+   - `finalizeTimedOutSession` resolves the session token hash and delegates to `finalizeByTokenHash` with `closureReason = timeout`.
+   - FIFO ordering: the sweeper enqueues through the same per-session coordinator as manual submissions. FIFO order determines which operation wins when both are in flight for the same session.
+
+5. **Already-Paused State Retry (freeze-then-capture recovery)**:
+   - If `freeze()` had already succeeded in a prior attempt (detected via `isFrozen()`), the finalization engine skips the freeze and drift-detection steps and proceeds directly to `captureFrozenEvidence`.
+   - `captureFrozenEvidence` accepts an optional `baselineTree`; when called in the recovery path, it captures the current state without a pre-freeze baseline tree.
+   - This enables in-process retry of finalization that previously failed at the SQLite commit step without requiring a new durable lifecycle state.
+   - Out-of-process restart recovery (rediscovering paused containers across process restarts) remains deferred.
+
+6. **Teardown Durability**:
+   - Teardown failures after a successful SQLite commit do not reopen or alter session closure. The session remains `SUBMITTED`.
+   - A `SANDBOX_CLEANUP_FAILED` event is appended; the error is logged but not propagated to the sweeper or the route caller.
+
+7. **Legacy Untimed Compatibility**:
+   - Sessions with `durationSeconds = null` are never swept; `findActiveTimed()` filters on `duration_seconds IS NOT NULL`.
+   - Such sessions remain eligible for manual candidate submission with `closureReason = candidate_submission`.
+
+8. **AI Interaction Closure**:
+   - Timeout finalization cancels all open AI interactions (`ADMITTED`, `DISPATCH_STARTED`) as `CANCELLED / session_ended`, consistent with the manual submission path.
+
+9. **Post-Finalization Reconstruction**:
+   - After successful SQLite finalization in both the submit route and the sweeper path, `onSessionFinalized` is called to trigger `ensurePostSubmissionReconstruction`.
+   - The reconstruction call is non-blocking; failures are logged without affecting the session's finalized state.
+   - The previous `next/server after()` call in the submit route was replaced by `onSessionFinalized` on `SessionService` so that timeout closure also triggers reconstruction.
+
+10. **T1B.1 Scope Boundary**:
+    - Restart recovery and paused-sandbox rediscovery across process restarts remain deferred.
+    - Multi-process or serverless distributed locking are explicitly excluded.
+    - Candidate timer UI, submission-review UI, completion UI, and evaluator UI changes are deferred.
+    - No new durable lifecycle states were introduced.

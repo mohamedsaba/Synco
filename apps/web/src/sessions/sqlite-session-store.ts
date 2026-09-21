@@ -232,6 +232,20 @@ export class SqliteSessionStore {
     );
   }
 
+  findActiveTimed() {
+    return this.withDatabase((database) => {
+      const rows = database
+        .prepare(
+          `SELECT * FROM assessment_sessions
+           WHERE status = 'ACTIVE'
+             AND activated_at IS NOT NULL
+             AND duration_seconds IS NOT NULL`,
+        )
+        .all() as SessionRow[];
+      return rows.map(toSession);
+    });
+  }
+
   activate(candidateTokenHash: string, activatedAt: string) {
     return this.mutate(candidateTokenHash, (session) =>
       activateSession(session, activatedAt),

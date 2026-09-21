@@ -21,6 +21,7 @@ import {
   type SandboxAdapter,
   MAX_COMMAND_LENGTH,
   MAX_WORKSPACE_FILE_READ_BYTES,
+  DEFAULT_COMMAND_TIMEOUT_MS,
   SandboxError,
 } from '../sandbox/sandbox';
 import { scenario001 } from '../scenarios/scenario-001';
@@ -60,6 +61,8 @@ export type SessionServiceOptions = Readonly<{
   coordinator?: SessionOperationCoordinator;
   transactionRunner?: SqliteTransactionRunner;
   aiInteractionService?: AiInteractionService;
+  commandTimeoutMs?: number;
+  onSessionFinalized?: (sessionId: string) => void | Promise<void>;
 }>;
 
 export class SessionService {
@@ -71,6 +74,10 @@ export class SessionService {
   private readonly coordinator: SessionOperationCoordinator;
   private readonly transactionRunner: SqliteTransactionRunner;
   private readonly aiInteractionService: AiInteractionService;
+  private readonly commandTimeoutMs: number;
+  private readonly onSessionFinalized?: (
+    sessionId: string,
+  ) => void | Promise<void>;
 
   private async withSessionLock<T>(
     sessionId: string,
@@ -150,6 +157,9 @@ export class SessionService {
     this.eventStore = options.eventStore;
     this.sandboxAdapter = options.sandboxAdapter;
     this.coordinator = options.coordinator ?? getSessionOperationCoordinator();
+    this.commandTimeoutMs =
+      options.commandTimeoutMs ?? DEFAULT_COMMAND_TIMEOUT_MS;
+    this.onSessionFinalized = options.onSessionFinalized;
     this.transactionRunner =
       options.transactionRunner ??
       new SqliteTransactionRunner(store.databasePath);
@@ -415,6 +425,14 @@ export class SessionService {
         );
       }
 
+      const effectiveTimeoutMs =
+        deadline === null
+          ? this.commandTimeoutMs
+          : Math.min(
+              this.commandTimeoutMs,
+              Date.parse(deadline) - Date.parse(now),
+            );
+
       if (command.length > MAX_COMMAND_LENGTH) {
         throw new SessionError(
           'COMMAND_TOO_LARGE',
@@ -470,6 +488,7 @@ export class SessionService {
         commandId,
         command,
         '/workspace',
+        effectiveTimeoutMs,
       );
 
       // 3. Authoritatively record COMMAND_FINISHED
@@ -751,8 +770,20 @@ export class SessionService {
     });
   }
 
-  async submit(candidateToken: string) {
-    const tokenHash = hashCandidateToken(candidateToken);
+  submit(candidateToken: string) {
+    const admittedAt = this.now();
+    return this.finalizeByTokenHash(
+      hashCandidateToken(candidateToken),
+      admittedAt,
+      'candidate_submission',
+    );
+  }
+
+  private async finalizeByTokenHash(
+    tokenHash: string,
+    admittedAt: string,
+    requestedClosureReason: 'candidate_submission' | 'timeout',
+  ) {
     const session = this.store.findByCandidateTokenHash(tokenHash);
 
     if (!session) {
@@ -782,6 +813,19 @@ export class SessionService {
         );
       }
 
+      const deadline = deriveSessionDeadline(current);
+      if (
+        requestedClosureReason === 'timeout' &&
+        !isDeadlineExceeded(deadline, admittedAt)
+      ) {
+        return current;
+      }
+      const closureReason =
+        requestedClosureReason === 'candidate_submission' &&
+        !isDeadlineExceeded(deadline, admittedAt)
+          ? 'candidate_submission'
+          : 'timeout';
+
       let submittedDiff: string | null = null;
       const isMultiFile =
         current.scenarioType === 'multi_file' ||
@@ -792,10 +836,15 @@ export class SessionService {
         // before the freeze boundary. This preserves the audit trail of
         // candidate mutations that occurred before submission was admitted.
         // Failures here abort submission; the session remains ACTIVE.
-        let baselineTree: string;
+        let baselineTree: string | undefined;
         try {
-          await this.detectAndRecordDrift(current.id);
-          baselineTree = await this.sandboxAdapter.getBaselineTree(current.id);
+          const alreadyFrozen = await this.sandboxAdapter.isFrozen(current.id);
+          if (!alreadyFrozen) {
+            await this.detectAndRecordDrift(current.id);
+            baselineTree = await this.sandboxAdapter.getBaselineTree(
+              current.id,
+            );
+          }
         } catch (error) {
           if (this.eventStore) {
             this.eventStore.append({
@@ -891,7 +940,10 @@ export class SessionService {
                   `Submitted tree ${submittedTree} does not match the last authoritative workspace tree ${expectedTree}.`,
                 );
               }
-            } else if (submittedTree !== baselineTree) {
+            } else if (
+              baselineTree !== undefined &&
+              submittedTree !== baselineTree
+            ) {
               throw new Error(
                 `Submitted tree ${submittedTree} differs from baseline ${baselineTree} without an authoritative workspace transition.`,
               );
@@ -925,14 +977,11 @@ export class SessionService {
 
       // Phase 4: Atomic SQLite finalization.
       //
-      // status = SUBMITTED, closureReason = candidate_submission (hardcoded;
-      // the candidate request cannot influence closureReason).
+      // status = SUBMITTED with the closure reason fixed by trusted admission.
       //
       // If this fails after freeze/capture: primary remains paused, volume
       // intact. Session stays ACTIVE. Do NOT unpause. The current architecture
-      // cannot safely retry this without a new durable status (that is T1B
-      // territory). The frozen sandbox + volume remain discoverable for T1B
-      // recovery because teardown is called only after successful finalization.
+      // A later in-process sweep or request retries the same paused workspace.
       const submitted = this.transactionRunner.run((database) => {
         const fresh = this.store.findByIdWithDatabase(database, current.id);
         if (!fresh) {
@@ -961,14 +1010,12 @@ export class SessionService {
           closureTimestamp,
         );
 
-        // closureReason is always candidate_submission for manual submit;
-        // the candidate token cannot influence this value.
         return this.store.submitWithDatabase(
           database,
           current.id,
           closureTimestamp,
           submittedDiff,
-          'candidate_submission',
+          closureReason,
         );
       });
 
@@ -1001,8 +1048,44 @@ export class SessionService {
         }
       }
 
+      if (this.onSessionFinalized) {
+        try {
+          await this.onSessionFinalized(submitted.id);
+        } catch (error) {
+          console.error('Post-submission reconstruction failed', error);
+        }
+      }
+
       return submitted;
     });
+  }
+
+  async finalizeTimedOutSession(sessionId: string, observedAt = this.now()) {
+    const session = this.store.findById(sessionId);
+    if (!session) {
+      throw new SessionError(
+        'SESSION_NOT_FOUND',
+        'The candidate session was not found.',
+      );
+    }
+    return this.finalizeByTokenHash(
+      session.candidateTokenHash,
+      observedAt,
+      'timeout',
+    );
+  }
+
+  async sweepTimedOutSessions(observedAt = this.now()) {
+    const overdue = this.store
+      .findActiveTimed()
+      .filter((session) =>
+        isDeadlineExceeded(deriveSessionDeadline(session), observedAt),
+      );
+    return Promise.allSettled(
+      overdue.map((session) =>
+        this.finalizeTimedOutSession(session.id, observedAt),
+      ),
+    );
   }
 
   getSubmittedEvidence(sessionId: string) {
@@ -1069,5 +1152,10 @@ export const getSessionService = () => {
     eventStore,
     sandboxAdapter,
     coordinator,
+    onSessionFinalized: async (sessionId) => {
+      const { ensurePostSubmissionReconstruction } =
+        await import('../reconstruction/evidence-reconstruction-runtime');
+      await ensurePostSubmissionReconstruction(sessionId);
+    },
   });
 };

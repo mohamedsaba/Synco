@@ -10,6 +10,7 @@ import {
   type SandboxCreateOptions,
   type TreeDiffResult,
   type WorkspaceFileInfo,
+  DEFAULT_COMMAND_TIMEOUT_MS,
   MAX_WORKSPACE_FILE_READ_BYTES,
   SandboxError,
 } from './sandbox';
@@ -35,7 +36,8 @@ export class DockerSandboxAdapter implements SandboxAdapter {
 
   constructor(options: DockerSandboxOptions = {}) {
     this.imageName = options.imageName ?? 'alpine:3.20';
-    this.defaultTimeoutMs = options.defaultTimeoutMs ?? 30_000;
+    this.defaultTimeoutMs =
+      options.defaultTimeoutMs ?? DEFAULT_COMMAND_TIMEOUT_MS;
   }
 
   getContainerName(sessionId: string): string {
@@ -901,6 +903,10 @@ export class DockerSandboxAdapter implements SandboxAdapter {
   async freeze(sessionId: string): Promise<void> {
     const containerName = this.getContainerName(sessionId);
 
+    if (await this.isFrozen(sessionId)) {
+      return;
+    }
+
     // Step 1: Pause the primary sandbox.
     try {
       await this.runProcess('docker', ['pause', containerName], {
@@ -950,6 +956,28 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       throw new SandboxError(
         'SANDBOX_FREEZE_FAILED',
         'Sandbox pause command completed but paused state could not be confirmed.',
+      );
+    }
+  }
+
+  async isFrozen(sessionId: string): Promise<boolean> {
+    const containerName = this.getContainerName(sessionId);
+    try {
+      const inspect = await this.runProcess(
+        'docker',
+        ['inspect', '-f', '{{.State.Paused}}', containerName],
+        {
+          timeoutMs: 10_000,
+          maxStdoutBytes: 4 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
+      return inspect.stdout.trim() === 'true';
+    } catch (error) {
+      throw new SandboxError(
+        'SANDBOX_FREEZE_FAILED',
+        'Failed to inspect sandbox paused state.',
+        error,
       );
     }
   }
@@ -1015,7 +1043,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
    */
   async captureFrozenEvidence(
     sessionId: string,
-    baselineTree: string,
+    baselineTree?: string,
   ): Promise<{ currentTree: string; rawDiff: string }> {
     const containerName = this.getContainerName(sessionId);
     const helperName = `${containerName}-frozen-capture`;
@@ -1092,13 +1120,15 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           '-c',
           [
             'set -e',
+            'BASELINE="$1"',
+            '[ -n "$BASELINE" ] || BASELINE="$(/usr/local/bin/delimit-baseline-tree.sh)"',
             'TREE="$(/usr/local/bin/delimit-capture-tree.sh)"',
             'printf \'%s\\n\' "$TREE"',
             "printf '%s\\n' '---DELIMIT_FROZEN_BOUNDARY---'",
-            '/usr/local/bin/delimit-diff-trees.sh "$1" "$TREE"',
+            '/usr/local/bin/delimit-diff-trees.sh "$BASELINE" "$TREE"',
           ].join('\n'),
           '_',
-          baselineTree,
+          baselineTree ?? '',
         ],
         {
           timeoutMs: 90_000,

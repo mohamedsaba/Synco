@@ -406,7 +406,7 @@ export class MockSandboxAdapter implements SandboxAdapter {
 
   async captureFrozenEvidence(
     sessionId: string,
-    baselineTree: string,
+    baselineTree?: string,
   ): Promise<{ currentTree: string; rawDiff: string }> {
     if (this.failCaptureFrozenEvidence) {
       throw new SandboxError(
@@ -433,7 +433,7 @@ export class MockSandboxAdapter implements SandboxAdapter {
     // Build raw diff in the same format as the Docker implementation
     const diffResult = await this.captureTreeDiff(
       sessionId,
-      baselineTree,
+      baselineTree ?? sandbox.baselineTree,
       currentTree,
     );
     return { currentTree, rawDiff: diffResult.rawDiff };

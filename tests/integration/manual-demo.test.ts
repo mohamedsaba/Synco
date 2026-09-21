@@ -32,6 +32,7 @@ describe('Manual End-to-End Acceptance Demo (17 steps)', () => {
     const service = new SessionService(sessionStore, {
       eventStore,
       sandboxAdapter,
+      commandTimeoutMs: 3000,
     });
 
     // 1. create/load assessment

@@ -600,7 +600,22 @@ describe('T1A.2 — Request-Bound Deadline Cutoff', () => {
 
   describe('5. Closure Reason Security Check', () => {
     it('20. candidate submit API cannot select closureReason = timeout', async () => {
-      const { candidateToken } = await setupActiveTimedSession();
+      // Create a session with a deadline far in the future so the route's real wall-clock
+      // now() still sees the session as pre-deadline. The security invariant is that the
+      // route body cannot force closureReason = 'timeout'; session timing is orthogonal.
+      const farFuture = new Date(
+        Date.now() + 365 * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      currentTime = farFuture;
+      const { candidateToken } = service.createSession({
+        scenario: {
+          ...sliceOneScenario,
+          durationSeconds: 2 * 365 * 24 * 60 * 60, // 2 years from farFuture
+          type: 'single_file',
+        },
+        aiCapability: defaultAiCapabilitySnapshot,
+      });
+      await service.activate(candidateToken);
 
       // Set environment variable so route handlers pointing to DELIMIT_DB_PATH use our test database
       process.env.DELIMIT_DB_PATH = databasePath;

@@ -13,6 +13,7 @@ export type CommandExecResult = Readonly<{
 
 export const MAX_WORKSPACE_FILE_READ_BYTES = 100_000;
 export const MAX_COMMAND_LENGTH = 4096;
+export const DEFAULT_COMMAND_TIMEOUT_MS = 30_000;
 
 export type ProcessOptions = Readonly<{
   timeoutMs?: number;
@@ -100,6 +101,9 @@ export interface SandboxAdapter {
    */
   freeze(sessionId: string): Promise<void>;
 
+  /** Return the kernel-confirmed paused state of the primary sandbox. */
+  isFrozen(sessionId: string): boolean | Promise<boolean>;
+
   /**
    * Capture the authoritative workspace tree and diff using a trusted
    * ephemeral helper container that mounts the session workspace volume
@@ -110,6 +114,6 @@ export interface SandboxAdapter {
    */
   captureFrozenEvidence(
     sessionId: string,
-    baselineTree: string,
+    baselineTree?: string,
   ): Promise<{ currentTree: string; rawDiff: string }>;
 }

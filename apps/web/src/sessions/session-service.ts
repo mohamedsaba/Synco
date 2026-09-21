@@ -783,25 +783,96 @@ export class SessionService {
       }
 
       let submittedDiff: string | null = null;
-      let submittedTree: string | null = null;
       const isMultiFile =
         current.scenarioType === 'multi_file' ||
         current.scenario.type === 'multi_file';
 
       if (this.sandboxAdapter && isMultiFile) {
+        // Phase 1: Record any in-flight drift as authoritative workspace event
+        // before the freeze boundary. This preserves the audit trail of
+        // candidate mutations that occurred before submission was admitted.
+        // Failures here abort submission; the session remains ACTIVE.
+        let baselineTree: string;
         try {
-          const driftResult = await this.detectAndRecordDrift(current.id);
-          submittedTree = driftResult.currentTree;
-          const baselineTree = await this.sandboxAdapter.getBaselineTree(
-            current.id,
+          await this.detectAndRecordDrift(current.id);
+          baselineTree = await this.sandboxAdapter.getBaselineTree(current.id);
+        } catch (error) {
+          if (this.eventStore) {
+            this.eventStore.append({
+              id: `evt_${this.createId()}`,
+              sessionId: current.id,
+              type: 'WORKSPACE_CAPTURE_FAILED',
+              timestamp: this.now(),
+              source: 'server',
+              payload: {
+                phase: 'submission_pre_freeze',
+                errorMessage:
+                  error instanceof Error ? error.message : String(error),
+              },
+            });
+          }
+          throw new SessionError(
+            'PLATFORM_CAPTURE_FAILED',
+            `Failed to capture workspace state before finalization: ${error instanceof Error ? error.message : String(error)}. Session remains active.`,
           );
-          const diffResult = await this.sandboxAdapter.captureTreeDiff(
+        }
+
+        // Phase 2: Freeze the primary sandbox container.
+        //
+        // This is the authoritative final workspace boundary:
+        //   candidate submission admitted
+        //     -> freeze primary sandbox (docker pause)
+        //     -> freeze confirmed (docker inspect State.Paused == true)
+        //     -> frozen workspace is authoritative
+        //
+        // Failure: session stays ACTIVE, no submission committed, no teardown.
+        // The sandbox is NOT unpaused if pause partially succeeded — we cannot
+        // know whether the kernel freeze took effect.
+        try {
+          await this.sandboxAdapter.freeze(current.id);
+        } catch (error) {
+          // Freeze failed: session remains ACTIVE. The candidate's workspace
+          // is preserved intact in the named volume. Do NOT commit submission.
+          if (this.eventStore) {
+            this.eventStore.append({
+              id: `evt_${this.createId()}`,
+              sessionId: current.id,
+              type: 'WORKSPACE_CAPTURE_FAILED',
+              timestamp: this.now(),
+              source: 'server',
+              payload: {
+                phase: 'submission_freeze',
+                errorMessage:
+                  error instanceof Error ? error.message : String(error),
+              },
+            });
+          }
+          throw new SessionError(
+            'PLATFORM_CAPTURE_FAILED',
+            `Failed to freeze sandbox for finalization: ${error instanceof Error ? error.message : String(error)}. Session remains active.`,
+          );
+        }
+
+        // Phase 3: Capture frozen evidence via trusted ephemeral helper.
+        //
+        // The primary sandbox remains paused throughout. The helper mounts
+        // the workspace volume read-only and runs authoritative tree/diff
+        // scripts. Do NOT unpause on failure — workspace must remain frozen
+        // to prevent new candidate mutations.
+        //
+        // Failure: session stays ACTIVE (primary stays paused), no submission.
+        let submittedTree: string | null = null;
+        try {
+          const frozen = await this.sandboxAdapter.captureFrozenEvidence(
             current.id,
             baselineTree,
-            submittedTree,
           );
-          submittedDiff = diffResult.rawDiff;
+          submittedTree = frozen.currentTree;
+          submittedDiff = frozen.rawDiff;
 
+          // Preserve Slice 4 integrity: after pre-freeze drift reconciliation,
+          // the frozen tree must match the last authoritative WORKSPACE_CHANGED
+          // afterTree (or baseline when no workspace transitions exist).
           if (this.eventStore) {
             const events = this.eventStore.getEvents(current.id);
             const workspaceEvents = events.filter(
@@ -827,10 +898,9 @@ export class SessionService {
             }
           }
         } catch (error) {
-          // Submission capture failure:
-          // Do NOT transition to SUBMITTED.
-          // Do NOT destroy sandbox.
-          // Append WORKSPACE_CAPTURE_FAILED event.
+          // Capture failed after freeze. Primary remains paused.
+          // Do NOT unpause. Do NOT commit fake evidence.
+          // If retry is possible it must operate against the same frozen state.
           if (this.eventStore) {
             this.eventStore.append({
               id: `evt_${this.createId()}`,
@@ -839,7 +909,7 @@ export class SessionService {
               timestamp: this.now(),
               source: 'server',
               payload: {
-                phase: 'submission',
+                phase: 'submission_frozen_capture',
                 beforeTree: submittedTree,
                 errorMessage:
                   error instanceof Error ? error.message : String(error),
@@ -848,11 +918,21 @@ export class SessionService {
           }
           throw new SessionError(
             'PLATFORM_CAPTURE_FAILED',
-            `Failed to capture submission evidence: ${error instanceof Error ? error.message : String(error)}. Session remains active.`,
+            `Failed to capture frozen workspace evidence: ${error instanceof Error ? error.message : String(error)}. Session remains active; sandbox is frozen.`,
           );
         }
       }
 
+      // Phase 4: Atomic SQLite finalization.
+      //
+      // status = SUBMITTED, closureReason = candidate_submission (hardcoded;
+      // the candidate request cannot influence closureReason).
+      //
+      // If this fails after freeze/capture: primary remains paused, volume
+      // intact. Session stays ACTIVE. Do NOT unpause. The current architecture
+      // cannot safely retry this without a new durable status (that is T1B
+      // territory). The frozen sandbox + volume remain discoverable for T1B
+      // recovery because teardown is called only after successful finalization.
       const submitted = this.transactionRunner.run((database) => {
         const fresh = this.store.findByIdWithDatabase(database, current.id);
         if (!fresh) {
@@ -881,14 +961,23 @@ export class SessionService {
           closureTimestamp,
         );
 
+        // closureReason is always candidate_submission for manual submit;
+        // the candidate token cannot influence this value.
         return this.store.submitWithDatabase(
           database,
           current.id,
           closureTimestamp,
           submittedDiff,
+          'candidate_submission',
         );
       });
 
+      // Phase 5: Teardown — remove container and workspace volume.
+      //
+      // Teardown occurs ONLY after successful SQLite finalization.
+      // On failure: session remains SUBMITTED; error is logged and recorded
+      // as SANDBOX_CLEANUP_FAILED. The session is NOT reopened.
+      // Volume cleanup is independently idempotent.
       if (this.sandboxAdapter) {
         try {
           await this.sandboxAdapter.teardown(current.id);

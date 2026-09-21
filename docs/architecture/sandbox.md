@@ -21,4 +21,14 @@ Scenario images and fixtures should be versioned so a session can be explained a
 - Workspace file paths are passed as literal data arguments rather than interpolated into shell script source.
 - Public HTTP responses sanitize infrastructure failures, redacting raw Docker command lines, container names, internal paths, and raw stderr while returning stable public error codes and concise factual safe messages.
 
-The prototype should begin with a container-backed local adapter behind a narrow lifecycle interface only when the first workspace slice needs it. Production orchestration, multi-region scheduling, Kubernetes, image fleets, and generalized multi-stack support are deliberately deferred. Security review is required before exposing candidate execution beyond controlled prototype use.
+## Workspace storage and frozen finality (T1A.3A)
+
+Each session's `/workspace` is backed by a dedicated Docker named volume (`delimit-ws-<sanitized-session-id>`) rather than a tmpfs mount. Named volumes are independently addressable: a trusted ephemeral helper container can mount the workspace read-only even while the primary sandbox is paused.
+
+**Freeze mechanism:** On candidate manual submission, the primary sandbox is frozen with `docker pause` (the Linux cgroup freezer) and verified via `docker inspect State.Paused`. Whole-container freeze is required because scenario services continue async work outside the terminal process tree; process-level kill alone is insufficient to guarantee an immutable workspace.
+
+**Frozen capture:** An ephemeral helper container mounts the workspace volume read-only and runs the authoritative `delimit-capture-tree.sh` and `delimit-diff-trees.sh` scripts. The helper is isolated: `--rm`, `--network none`, `--read-only`, bounded memory/CPU/PIDs, `--cap-drop ALL`, `--security-opt=no-new-privileges:true`. Its deterministic name permits forced cleanup after a bounded subprocess failure. The primary remains paused throughout.
+
+**Volume lifecycle:** Volume created before container start. Removed only after successful SQLite finalization — never destroyed before finalization. On freeze/capture/commit failure the volume and paused container remain intact and are recoverable (T1B).
+
+**Recovery compatibility:** A paused sandbox + named volume survive application restart. They must not be automatically destroyed before T1B recovery is implemented. Helper image selection for frozen capture is restart-recoverable via `docker inspect Config.Image` on the primary container — not an in-process map. Root subreaper / command-supervisor hardening remains T1A.3B.

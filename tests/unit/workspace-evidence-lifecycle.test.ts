@@ -208,10 +208,10 @@ describe('Workspace Evidence Lifecycle & Edge Cases (Mock)', () => {
     });
     await service.activate(candidateToken);
 
-    mockSandbox.failCaptureDiff = true;
+    mockSandbox.failCaptureFrozenEvidence = true;
 
     await expect(service.submit(candidateToken)).rejects.toThrow(
-      /Failed to capture submission evidence.*Session remains active/,
+      /Failed to capture frozen workspace evidence.*Session remains active/,
     );
 
     // Session remains ACTIVE in database
@@ -220,6 +220,7 @@ describe('Workspace Evidence Lifecycle & Edge Cases (Mock)', () => {
 
     // Sandbox container is NOT torn down
     expect(mockSandbox.hasSandbox(session.id)).toBe(true);
+    expect(mockSandbox.isFrozen(session.id)).toBe(true);
 
     // WORKSPACE_CAPTURE_FAILED event is recorded
     const events = service.getSessionEvents(candidateToken);
@@ -229,7 +230,7 @@ describe('Workspace Evidence Lifecycle & Edge Cases (Mock)', () => {
     expect(submissionFailedEvent).toBeDefined();
     expect(
       (submissionFailedEvent!.payload as WorkspaceCaptureFailedPayload).phase,
-    ).toBe('submission');
+    ).toBe('submission_frozen_capture');
   });
 
   it('rejects submission when the final tree does not match the last authoritative workspace state', async () => {
@@ -257,10 +258,11 @@ describe('Workspace Evidence Lifecycle & Edge Cases (Mock)', () => {
 
     expect(service.getCandidateSession(candidateToken).status).toBe('ACTIVE');
     expect(mockSandbox.hasSandbox(session.id)).toBe(true);
+    expect(mockSandbox.isFrozen(session.id)).toBe(true);
     const events = eventStore.getEvents(session.id);
     expect(events.at(-1)?.type).toBe('WORKSPACE_CAPTURE_FAILED');
     expect(events.at(-1)?.payload).toMatchObject({
-      phase: 'submission',
+      phase: 'submission_frozen_capture',
     });
   });
 

@@ -18,6 +18,16 @@ export type DockerSandboxOptions = Readonly<{
   defaultTimeoutMs?: number;
 }>;
 
+const isMissingDockerVolumeError = (error: unknown): boolean => {
+  const parts = [
+    error instanceof Error ? error.message : String(error),
+    error instanceof SandboxError && error.cause instanceof Error
+      ? error.cause.message
+      : '',
+  ].join('\n');
+  return /No such volume/i.test(parts);
+};
+
 export class DockerSandboxAdapter implements SandboxAdapter {
   private readonly imageName: string;
   private readonly defaultTimeoutMs: number;
@@ -32,11 +42,23 @@ export class DockerSandboxAdapter implements SandboxAdapter {
     return `delimit-sandbox-${sanitized}`;
   }
 
+  /**
+   * Derives a deterministic, validated Docker volume name for the session
+   * workspace. Uses the same sanitization as getContainerName so the name
+   * is safe for Docker and cannot encode untrusted path/name data.
+   * One volume per session; never shared across sessions.
+   */
+  getVolumeName(sessionId: string): string {
+    const sanitized = sessionId.replace(/[^a-zA-Z0-9_-]/g, '_');
+    return `delimit-ws-${sanitized}`;
+  }
+
   async createAndVerify(
     sessionId: string,
     options?: SandboxCreateOptions | Readonly<Record<string, string>>,
   ): Promise<void> {
     const containerName = this.getContainerName(sessionId);
+    const volumeName = this.getVolumeName(sessionId);
 
     // Clean up any stale container with the same name first
     await this.runProcess('docker', ['rm', '-f', containerName], {
@@ -65,6 +87,31 @@ export class DockerSandboxAdapter implements SandboxAdapter {
         (options as SandboxCreateOptions).scenarioType === 'multi_file') ||
       imageName.includes('scenario-001');
 
+    // Step 1: Create dedicated session workspace volume.
+    // This volume replaces /workspace tmpfs so that the workspace is
+    // independently addressable for out-of-band capture via a helper
+    // container after the primary sandbox is paused (docker pause).
+    // tmpfs cannot be read from outside a running container; a named
+    // volume persists independently of the sandbox container lifecycle
+    // and can be mounted read-only into an ephemeral trusted helper.
+    try {
+      await this.runProcess('docker', ['volume', 'create', volumeName], {
+        timeoutMs: 15_000,
+        maxStdoutBytes: 4 * 1024,
+        maxStderrBytes: 64 * 1024,
+      });
+    } catch (error) {
+      if (error instanceof SandboxError) throw error;
+      throw new SandboxError(
+        'SANDBOX_CREATION_FAILED',
+        'Failed to create session workspace volume.',
+        error,
+      );
+    }
+
+    // Step 2: Start sandbox with volume mounted at /workspace (rw).
+    // All other security constraints (read-only rootfs, network none,
+    // resource limits, cap-drop, no-new-privileges) are preserved.
     try {
       if (isMultiFile) {
         await this.runProcess(
@@ -77,8 +124,8 @@ export class DockerSandboxAdapter implements SandboxAdapter {
             '--read-only',
             '--tmpfs',
             '/tmp:rw,exec,nosuid,size=256m,uid=1000,gid=1000',
-            '--tmpfs',
-            '/workspace:rw,exec,nosuid,size=512m,uid=1000,gid=1000',
+            '--mount',
+            `type=volume,source=${volumeName},target=/workspace`,
             '--tmpfs',
             '/run/delimit-evidence:rw,noexec,nosuid,size=64m,mode=0700,uid=0,gid=0',
             '--network',
@@ -111,8 +158,8 @@ export class DockerSandboxAdapter implements SandboxAdapter {
             '--read-only',
             '--tmpfs',
             '/tmp:rw,noexec,nosuid,size=64m',
-            '--tmpfs',
-            '/workspace:rw,exec,nosuid,size=256m,uid=1000,gid=1000',
+            '--mount',
+            `type=volume,source=${volumeName},target=/workspace`,
             '--network',
             'none',
             '--memory=512m',
@@ -136,10 +183,48 @@ export class DockerSandboxAdapter implements SandboxAdapter {
         );
       }
     } catch (error) {
+      // docker run can leave a created container behind when startup fails.
+      // Remove it before removing its attached volume.
+      await this.teardown(sessionId).catch(() => {});
       if (error instanceof SandboxError) throw error;
       throw new SandboxError(
         'SANDBOX_CREATION_FAILED',
         'Failed to create sandbox container.',
+        error,
+      );
+    }
+
+    // Named volumes default to root ownership on first mount. The candidate
+    // runs as UID 1000 (and the primary drops CAP_CHOWN), so a trusted
+    // helper must set ownership after the primary has mounted the volume.
+    // Pre-start chown is insufficient: ownership can reset on first mount.
+    try {
+      await this.runProcess(
+        'docker',
+        [
+          'run',
+          '--rm',
+          '--network',
+          'none',
+          '--mount',
+          `type=volume,source=${volumeName},target=/workspace`,
+          'alpine:3.20',
+          'sh',
+          '-c',
+          'chown -R 1000:1000 /workspace && chmod 775 /workspace',
+        ],
+        {
+          timeoutMs: 15_000,
+          maxStdoutBytes: 4 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
+    } catch (error) {
+      await this.teardown(sessionId).catch(() => {});
+      if (error instanceof SandboxError) throw error;
+      throw new SandboxError(
+        'SANDBOX_CREATION_FAILED',
+        'Failed to initialize session workspace volume ownership.',
         error,
       );
     }
@@ -653,13 +738,298 @@ export class DockerSandboxAdapter implements SandboxAdapter {
     }
   }
 
+  /**
+   * Pause the primary sandbox container and confirm the paused state via
+   * docker inspect. This is the authoritative freeze boundary:
+   *
+   *   logical deadline / manual submission admitted
+   *       -> freeze initiated (docker pause)
+   *       -> freeze confirmed (docker inspect State.Paused == true)
+   *
+   * The sandbox must never be unpaused after finalization starts.
+   * A successful docker pause process exit alone is not sufficient —
+   * we verify via inspect to ensure the kernel cgroup freeze is in effect.
+   *
+   * Note: freeze latency is not additional candidate time. T1A.2 already
+   * prevents new mutations after the deadline. The frozen workspace is
+   * authoritative once freeze is confirmed.
+   */
+  async freeze(sessionId: string): Promise<void> {
+    const containerName = this.getContainerName(sessionId);
+
+    // Step 1: Pause the primary sandbox.
+    try {
+      await this.runProcess('docker', ['pause', containerName], {
+        timeoutMs: 15_000,
+        maxStdoutBytes: 4 * 1024,
+        maxStderrBytes: 64 * 1024,
+      });
+    } catch (error) {
+      if (error instanceof SandboxError) {
+        throw new SandboxError(
+          'SANDBOX_FREEZE_FAILED',
+          'Failed to pause sandbox container.',
+          error,
+        );
+      }
+      throw new SandboxError(
+        'SANDBOX_FREEZE_FAILED',
+        'Failed to pause sandbox container.',
+        error,
+      );
+    }
+
+    // Step 2: Verify via docker inspect that State.Paused is actually true.
+    // A successful docker pause exit alone is not sufficient — we require
+    // kernel-confirmed paused state before proceeding to evidence capture.
+    let isPaused: boolean;
+    try {
+      const inspect = await this.runProcess(
+        'docker',
+        ['inspect', '-f', '{{.State.Paused}}', containerName],
+        {
+          timeoutMs: 10_000,
+          maxStdoutBytes: 4 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
+      isPaused = inspect.stdout.trim() === 'true';
+    } catch (error) {
+      throw new SandboxError(
+        'SANDBOX_FREEZE_FAILED',
+        'Failed to verify sandbox paused state after pause command.',
+        error,
+      );
+    }
+
+    if (!isPaused) {
+      throw new SandboxError(
+        'SANDBOX_FREEZE_FAILED',
+        'Sandbox pause command completed but paused state could not be confirmed.',
+      );
+    }
+  }
+
+  /**
+   * Resolve the helper image from the existing primary sandbox container.
+   * This is restart-recoverable: T1B can rebuild an adapter with empty
+   * process memory and still capture frozen evidence as long as the paused
+   * primary container remains discoverable via docker inspect.
+   */
+  private async resolveHelperImageFromPrimary(
+    sessionId: string,
+  ): Promise<string> {
+    const containerName = this.getContainerName(sessionId);
+    try {
+      const inspect = await this.runProcess(
+        'docker',
+        ['inspect', '-f', '{{.Config.Image}}', containerName],
+        {
+          timeoutMs: 10_000,
+          maxStdoutBytes: 4 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
+      const imageName = inspect.stdout.trim();
+      if (!imageName) {
+        throw new SandboxError(
+          'SANDBOX_EXECUTION_FAILED',
+          'Primary sandbox image identity was empty; cannot launch frozen helper.',
+        );
+      }
+      return imageName;
+    } catch (error) {
+      if (error instanceof SandboxError) throw error;
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        'Failed to resolve helper image from primary sandbox container.',
+        error,
+      );
+    }
+  }
+
+  /**
+   * Capture the authoritative workspace tree and diff via an ephemeral
+   * trusted helper container that mounts the session workspace volume
+   * read-only. The primary sandbox MUST be paused before calling this
+   * method and must remain paused for the entire duration.
+   *
+   * Security properties of the helper:
+   *   - workspace volume mounted kernel-enforced read-only
+   *   - no Docker socket
+   *   - no host directory bind mounts
+   *   - network none
+   *   - read-only rootfs
+   *   - cap-drop ALL, no-new-privileges
+   *   - runs as root (uid 0) only for evidence script access to /run/delimit-evidence
+   *   - candidate-created symlinks cannot resolve to host filesystem
+   *   - ephemeral: --rm, gone after capture
+   *
+   * Helper image identity is resolved from the primary container via
+   * `docker inspect Config.Image` so capture remains restart-recoverable
+   * without any in-process image map.
+   */
+  async captureFrozenEvidence(
+    sessionId: string,
+    baselineTree: string,
+  ): Promise<{ currentTree: string; rawDiff: string }> {
+    const containerName = this.getContainerName(sessionId);
+    const helperName = `${containerName}-frozen-capture`;
+    const volumeName = this.getVolumeName(sessionId);
+    const imageName = await this.resolveHelperImageFromPrimary(sessionId);
+
+    // Pre-condition check: primary sandbox must still be paused.
+    // This guards against race conditions and ensures capture integrity.
+    let isPaused: boolean;
+    try {
+      const inspect = await this.runProcess(
+        'docker',
+        ['inspect', '-f', '{{.State.Paused}}', containerName],
+        {
+          timeoutMs: 10_000,
+          maxStdoutBytes: 4 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
+      isPaused = inspect.stdout.trim() === 'true';
+    } catch (error) {
+      throw new SandboxError(
+        'SANDBOX_FREEZE_FAILED',
+        'Could not verify primary sandbox is paused before evidence capture.',
+        error,
+      );
+    }
+
+    if (!isPaused) {
+      throw new SandboxError(
+        'SANDBOX_FREEZE_FAILED',
+        'Primary sandbox is not paused; refusing to capture evidence.',
+      );
+    }
+
+    // Capture tree + diff in ONE helper invocation.
+    // Tree objects are written to the helper's ephemeral evidence tmpfs;
+    // a second --rm helper would lose those objects and cannot diff.
+    // Baseline objects remain available from the image's repo-template
+    // via GIT_ALTERNATE_OBJECT_DIRECTORIES inside the evidence scripts.
+    let currentTree: string;
+    let rawDiff: string;
+    try {
+      await this.runProcess('docker', ['rm', '-f', helperName], {
+        timeoutMs: 15_000,
+        maxStdoutBytes: 4 * 1024,
+        maxStderrBytes: 64 * 1024,
+      }).catch(() => {});
+      const captureResult = await this.runProcess(
+        'docker',
+        [
+          'run',
+          '--rm',
+          '--name',
+          helperName,
+          '--network',
+          'none',
+          '--read-only',
+          '--mount',
+          `type=volume,source=${volumeName},target=/workspace,readonly`,
+          '--tmpfs',
+          '/tmp:rw,exec,nosuid,size=64m',
+          '--tmpfs',
+          '/run/delimit-evidence:rw,noexec,nosuid,size=64m,mode=0700,uid=0,gid=0',
+          '--memory=512m',
+          '--cpus=1.0',
+          '--pids-limit=64',
+          '--cap-drop=ALL',
+          '--security-opt=no-new-privileges:true',
+          '-u',
+          '0:0',
+          imageName,
+          'sh',
+          '-c',
+          [
+            'set -e',
+            'TREE="$(/usr/local/bin/delimit-capture-tree.sh)"',
+            'printf \'%s\\n\' "$TREE"',
+            "printf '%s\\n' '---DELIMIT_FROZEN_BOUNDARY---'",
+            '/usr/local/bin/delimit-diff-trees.sh "$1" "$TREE"',
+          ].join('\n'),
+          '_',
+          baselineTree,
+        ],
+        {
+          timeoutMs: 90_000,
+          maxStdoutBytes: 3 * 1024 * 1024,
+          maxStderrBytes: 64 * 1024,
+        },
+      );
+
+      const boundary = '---DELIMIT_FROZEN_BOUNDARY---';
+      const boundaryIndex = captureResult.stdout.indexOf(boundary);
+      if (boundaryIndex === -1) {
+        throw new SandboxError(
+          'SANDBOX_EXECUTION_FAILED',
+          'Frozen workspace capture returned malformed output (missing boundary).',
+        );
+      }
+
+      currentTree = captureResult.stdout.slice(0, boundaryIndex).trim();
+      rawDiff = captureResult.stdout
+        .slice(boundaryIndex + boundary.length)
+        .replace(/^\r?\n/, '');
+    } catch (error) {
+      await this.runProcess('docker', ['rm', '-f', helperName], {
+        timeoutMs: 15_000,
+        maxStdoutBytes: 4 * 1024,
+        maxStderrBytes: 64 * 1024,
+      }).catch(() => {});
+      if (error instanceof SandboxError) throw error;
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        'Failed to capture frozen workspace evidence via helper.',
+        error,
+      );
+    }
+
+    if (!currentTree) {
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        'Frozen workspace tree capture returned an empty result.',
+      );
+    }
+
+    return { currentTree, rawDiff };
+  }
+
   async teardown(sessionId: string): Promise<void> {
     const containerName = this.getContainerName(sessionId);
+    const volumeName = this.getVolumeName(sessionId);
+
+    // Remove the primary sandbox container. '-f' handles already-stopped or
+    // missing containers idempotently. This is also safe to call on a paused
+    // container — docker rm -f removes it without resuming candidate execution.
     await this.runProcess('docker', ['rm', '-f', containerName], {
       timeoutMs: 15_000,
       maxStdoutBytes: 4 * 1024,
       maxStderrBytes: 64 * 1024,
     });
+
+    // Remove the dedicated session workspace volume AFTER the container is
+    // gone (Docker refuses to remove an in-use volume). Missing-volume is
+    // treated as idempotent success; any other failure must surface so
+    // SessionService can record SANDBOX_CLEANUP_FAILED without reopening
+    // the SUBMITTED session. Volume removal only happens after successful
+    // SQLite finalization (or create-time orphan cleanup).
+    try {
+      await this.runProcess('docker', ['volume', 'rm', volumeName], {
+        timeoutMs: 15_000,
+        maxStdoutBytes: 4 * 1024,
+        maxStderrBytes: 64 * 1024,
+      });
+    } catch (error) {
+      if (!isMissingDockerVolumeError(error)) {
+        throw error;
+      }
+    }
   }
 
   private executeSubprocess(

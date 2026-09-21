@@ -54,8 +54,15 @@ export type WorkspaceChangedPayload = Readonly<{
 
 export type WorkspaceCaptureFailedPayload = Readonly<{
   commandId?: string;
-  phase: 'pre_command' | 'post_command' | 'browser_save' | 'submission';
-  beforeTree: string | null;
+  phase:
+    | 'pre_command'
+    | 'post_command'
+    | 'browser_save'
+    | 'submission'
+    | 'submission_pre_freeze'
+    | 'submission_freeze'
+    | 'submission_frozen_capture';
+  beforeTree?: string | null;
   errorMessage: string;
 }>;
 

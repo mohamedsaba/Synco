@@ -89,3 +89,53 @@ Status: Authoritative Foundation (Slice T1A.1)
 7. **In-Flight Command Hard Termination Explicitly Deferred**:
    - T1A.2 guarantees only that no NEW command begins after zero.
    - Safely terminating or killing commands already executing before zero is explicitly deferred to subsequent sandbox hardening/finality slices (T1A.3). Command timeouts remain governed by existing per-command execution limits.
+
+## 10. Session Finality Boundary (Slice T1A.3A)
+
+T1A.3A establishes the frozen workspace finality foundation for manual candidate submissions:
+
+1. **Named Session Workspace Volume**:
+   - Each sandbox uses a dedicated Docker named volume `delimit-ws-<sanitized-session-id>` for `/workspace` instead of a tmpfs mount.
+   - Named volumes survive independently of the container lifecycle; they are addressable by trusted helpers without the primary container being running.
+   - Volume is created before container start; removed only after successful SQLite finalization (teardown phase).
+   - Volume name uses the same sanitization as the container name: `sessionId.replace(/[^a-zA-Z0-9_-]/g, '_')`.
+
+2. **Whole-Container Freeze (docker pause)**:
+   - On candidate manual submission, the primary sandbox is frozen via `docker pause` (the Linux cgroup freezer), not merely by process termination.
+   - Scenario services may continue async work outside the terminal process tree; process-level kill alone is insufficient.
+   - Freeze is verified by `docker inspect State.Paused === true` before any evidence is captured.
+   - The sandbox is never unpaused after finalization starts.
+
+3. **Frozen Evidence Capture**:
+   - Evidence is captured by an ephemeral trusted helper container that mounts the workspace volume read-only while the primary remains paused.
+   - Helper security constraints: `--rm`, `--network none`, `--read-only`, `--mount … readonly`, `--cap-drop ALL`, `--security-opt=no-new-privileges:true`, runs as root (uid 0) for evidence script access only.
+   - Tree capture and baseline diff run in a single helper invocation so ephemeral evidence objects remain available for diffing.
+   - Uses the same image as the primary (contains `/usr/local/bin/delimit-capture-tree.sh` and `/usr/local/bin/delimit-diff-trees.sh`), resolved via `docker inspect Config.Image`.
+   - The helper has no access to the host Docker socket, no host bind mounts, and no writable rootfs.
+
+4. **Manual Submission Finality Sequence**:
+   - Pre-freeze drift detection (preserves audit trail of prior mutations)
+   - Freeze primary sandbox → verify via inspect
+   - Capture frozen evidence via helper (currentTree + rawDiff)
+   - Atomic SQLite finalization (`status = SUBMITTED`, `closureReason = candidate_submission`)
+   - Teardown (container then volume)
+
+5. **Failure Semantics (strict)**:
+   - Freeze fails → session stays `ACTIVE`, no submission committed, no teardown, `WORKSPACE_CAPTURE_FAILED` event appended (`phase = submission_freeze`).
+   - Capture fails after freeze → session stays `ACTIVE`, primary remains paused, no submission, no teardown, `WORKSPACE_CAPTURE_FAILED` event (`phase = submission_frozen_capture`).
+   - SQLite commit fails after freeze/capture → session stays `ACTIVE`, primary remains paused, volume intact. No unpause. Frozen sandbox and volume are discoverable for T1B recovery.
+   - Teardown fails after successful commit → session is `SUBMITTED`, error logged, `SANDBOX_CLEANUP_FAILED` event appended. Session closure is not reopened.
+
+6. **Closure Reason**:
+   - Manual submission always sets `closureReason = candidate_submission`.
+   - The candidate request cannot influence `closureReason`.
+
+7. **Recovery Compatibility (T1B)**:
+   - A paused sandbox + named volume survive application restart.
+   - The volume is not automatically destroyed before T1B recovery is implemented.
+   - Helper image identity is restart-recoverable: `captureFrozenEvidence` resolves the helper image from the existing primary container via `docker inspect Config.Image`. No in-process image map is required as the authoritative source of truth.
+   - Future T1B restart reconciliation must recover `ACTIVE` + paused primary + named workspace volume using Docker state plus durable session rows — without relying on process memory.
+
+8. **T1A.3A Scope Boundary**:
+   - Automatic timeout submission, background sweeper finalization, and persistent recovery orchestration are T1B scope.
+   - Root subreaper / in-flight command supervisor hardening remains T1A.3B.

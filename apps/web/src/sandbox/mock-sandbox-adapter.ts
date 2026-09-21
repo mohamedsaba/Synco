@@ -37,6 +37,9 @@ export class MockSandboxAdapter implements SandboxAdapter {
 
   private readonly treeSnapshots = new Map<string, Map<string, string>>();
 
+  /** Session IDs that have been frozen via freeze(). */
+  private readonly frozenSessions = new Set<string>();
+
   public failCreationForSessionId: string | null = null;
   public customExecHandler: MockExecHandler | null = null;
   public defaultTimeoutMs = 30_000;
@@ -44,6 +47,10 @@ export class MockSandboxAdapter implements SandboxAdapter {
   public failCaptureDiff = false;
   public failTeardown = false;
   public failWrite = false;
+  /** If true, freeze() throws SandboxError('SANDBOX_FREEZE_FAILED'). */
+  public failFreeze = false;
+  /** If true, captureFrozenEvidence() throws SandboxError('SANDBOX_EXECUTION_FAILED'). */
+  public failCaptureFrozenEvidence = false;
 
   private computeTreeHash(files: Map<string, string>): string {
     const sortedEntries = Array.from(files.entries()).sort(([a], [b]) =>
@@ -377,6 +384,64 @@ export class MockSandboxAdapter implements SandboxAdapter {
       );
     }
     this.activeSandboxes.delete(sessionId);
+    this.frozenSessions.delete(sessionId);
+  }
+
+  async freeze(sessionId: string): Promise<void> {
+    if (this.failFreeze) {
+      throw new SandboxError(
+        'SANDBOX_FREEZE_FAILED',
+        `Simulated freeze failure for session ${sessionId}`,
+      );
+    }
+    const sandbox = this.activeSandboxes.get(sessionId);
+    if (!sandbox) {
+      throw new SandboxError(
+        'SANDBOX_NOT_FOUND',
+        `No active sandbox found for session ${sessionId}`,
+      );
+    }
+    this.frozenSessions.add(sessionId);
+  }
+
+  async captureFrozenEvidence(
+    sessionId: string,
+    baselineTree: string,
+  ): Promise<{ currentTree: string; rawDiff: string }> {
+    if (this.failCaptureFrozenEvidence) {
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        `Simulated captureFrozenEvidence failure for session ${sessionId}`,
+      );
+    }
+    if (!this.frozenSessions.has(sessionId)) {
+      throw new SandboxError(
+        'SANDBOX_FREEZE_FAILED',
+        `Session ${sessionId} is not frozen; cannot capture frozen evidence.`,
+      );
+    }
+    const sandbox = this.activeSandboxes.get(sessionId);
+    if (!sandbox) {
+      throw new SandboxError(
+        'SANDBOX_NOT_FOUND',
+        `No active sandbox found for session ${sessionId}`,
+      );
+    }
+    const currentTree = this.computeTreeHash(sandbox.files);
+    this.treeSnapshots.set(currentTree, new Map(sandbox.files));
+
+    // Build raw diff in the same format as the Docker implementation
+    const diffResult = await this.captureTreeDiff(
+      sessionId,
+      baselineTree,
+      currentTree,
+    );
+    return { currentTree, rawDiff: diffResult.rawDiff };
+  }
+
+  /** Test helper: check whether a session has been frozen. */
+  isFrozen(sessionId: string): boolean {
+    return this.frozenSessions.has(sessionId);
   }
 
   hasSandbox(sessionId: string): boolean {

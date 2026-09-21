@@ -34,6 +34,7 @@ const safeSandboxMessages: Record<SandboxError['code'], string> = {
   SANDBOX_READINESS_FAILED: 'Sandbox readiness check failed.',
   SANDBOX_NOT_FOUND: 'Sandbox container was not found.',
   SANDBOX_EXECUTION_FAILED: 'Sandbox execution failed.',
+  SANDBOX_FREEZE_FAILED: 'Sandbox finalization failed.',
 };
 
 const hasInfrastructureDiagnostics = (message: string): boolean => {

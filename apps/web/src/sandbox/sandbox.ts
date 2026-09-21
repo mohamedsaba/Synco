@@ -26,7 +26,8 @@ export class SandboxError extends Error {
       | 'SANDBOX_CREATION_FAILED'
       | 'SANDBOX_READINESS_FAILED'
       | 'SANDBOX_NOT_FOUND'
-      | 'SANDBOX_EXECUTION_FAILED',
+      | 'SANDBOX_EXECUTION_FAILED'
+      | 'SANDBOX_FREEZE_FAILED',
     message: string,
     readonly cause?: unknown,
   ) {
@@ -91,4 +92,24 @@ export interface SandboxAdapter {
   getBaselineTree(sessionId: string): Promise<string>;
 
   teardown(sessionId: string): Promise<void>;
+
+  /**
+   * Pause the primary sandbox container via docker pause and confirm the
+   * paused state via docker inspect. Returns only after freeze is verified.
+   * Throws SandboxError('SANDBOX_FREEZE_FAILED') if confirmation fails.
+   */
+  freeze(sessionId: string): Promise<void>;
+
+  /**
+   * Capture the authoritative workspace tree and diff using a trusted
+   * ephemeral helper container that mounts the session workspace volume
+   * read-only. The primary sandbox MUST already be paused before calling
+   * this method, and MUST remain paused for the duration of capture.
+   *
+   * Returns the current tree hash and raw diff relative to baselineTree.
+   */
+  captureFrozenEvidence(
+    sessionId: string,
+    baselineTree: string,
+  ): Promise<{ currentTree: string; rawDiff: string }>;
 }

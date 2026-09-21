@@ -12,8 +12,9 @@ export const GET = async (
 ) => {
   try {
     const { token } = await context.params;
-    const session = getSessionService().getCandidateSession(token);
-    return Response.json(toCandidateSessionView(session));
+    const sessionService = getSessionService();
+    const session = sessionService.getCandidateSession(token);
+    return Response.json(toCandidateSessionView(session, sessionService.now()));
   } catch (error) {
     return errorResponse(error);
   }

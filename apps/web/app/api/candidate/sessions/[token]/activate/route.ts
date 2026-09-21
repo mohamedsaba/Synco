@@ -12,8 +12,9 @@ export const POST = async (
 ) => {
   try {
     const { token } = await context.params;
-    const session = await getSessionService().activate(token);
-    return Response.json(toCandidateSessionView(session));
+    const sessionService = getSessionService();
+    const session = await sessionService.activate(token);
+    return Response.json(toCandidateSessionView(session, sessionService.now()));
   } catch (error) {
     return errorResponse(error);
   }

@@ -66,7 +66,7 @@ export type SessionServiceOptions = Readonly<{
 }>;
 
 export class SessionService {
-  private readonly now: () => string;
+  readonly now: () => string;
   private readonly createId: () => string;
   private readonly createToken: () => string;
   private readonly eventStore?: SqliteEventStore;

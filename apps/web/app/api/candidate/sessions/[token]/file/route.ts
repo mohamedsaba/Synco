@@ -22,8 +22,9 @@ export const PUT = async (request: Request, context: CandidateRouteContext) => {
     }
 
     const { token } = await context.params;
-    const session = await getSessionService().save(token, body.content);
-    return Response.json(toCandidateSessionView(session));
+    const sessionService = getSessionService();
+    const session = await sessionService.save(token, body.content);
+    return Response.json(toCandidateSessionView(session, sessionService.now()));
   } catch (error) {
     return errorResponse(error);
   }

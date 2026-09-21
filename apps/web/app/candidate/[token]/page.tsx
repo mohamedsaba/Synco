@@ -13,10 +13,11 @@ type CandidatePageProps = Readonly<{
 
 const CandidatePage = async ({ params }: CandidatePageProps) => {
   const { token } = await params;
+  const sessionService = getSessionService();
   let session;
 
   try {
-    session = getSessionService().getCandidateSession(token);
+    session = sessionService.getCandidateSession(token);
   } catch (error) {
     if (error instanceof SessionError && error.code === 'SESSION_NOT_FOUND') {
       notFound();
@@ -27,7 +28,7 @@ const CandidatePage = async ({ params }: CandidatePageProps) => {
 
   return (
     <CandidateWorkspace
-      initialSession={toCandidateSessionView(session)}
+      initialSession={toCandidateSessionView(session, sessionService.now())}
       token={token}
     />
   );

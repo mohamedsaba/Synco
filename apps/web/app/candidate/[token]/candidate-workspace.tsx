@@ -7,6 +7,7 @@ import type {
   WorkspaceFileInfo,
 } from '../../../src/sandbox/sandbox';
 import type { toCandidateSessionView } from '../../../src/sessions/candidate-session-view';
+import { useCandidateSession } from '../../../src/candidate/use-candidate-session';
 import { CandidateAiPanel } from './candidate-ai-panel';
 import {
   executeFileSwitch,
@@ -35,7 +36,14 @@ export const CandidateWorkspace = ({
   initialSession,
   token,
 }: CandidateWorkspaceProps) => {
-  const [session, setSession] = useState(initialSession);
+  const {
+    serverSession: session,
+    projection,
+    updateServerSession: setSession,
+  } = useCandidateSession({
+    initialSession,
+    token,
+  });
   const isMultiFile =
     session.scenarioType === 'multi_file' ||
     session.scenario.type === 'multi_file';
@@ -353,7 +361,8 @@ export const CandidateWorkspace = ({
     }
   };
 
-  const isActive = session.status === 'ACTIVE';
+  const isActive =
+    session.status === 'ACTIVE' && projection.capabilities.canEdit;
   const isSubmitted = session.status === 'SUBMITTED';
 
   return (
@@ -363,8 +372,12 @@ export const CandidateWorkspace = ({
           <p className="eyebrow">Candidate workspace</p>
           <p className="session-reference">Session {session.id}</p>
         </div>
-        <span className={`status status-${session.status.toLowerCase()}`}>
-          {session.status}
+        <span
+          className={`status status-${projection.uxState === 'TIME_LIMIT_REACHED' ? 'timeout' : session.status.toLowerCase()}`}
+        >
+          {projection.uxState === 'TIME_LIMIT_REACHED'
+            ? 'Time limit reached'
+            : session.status}
         </span>
       </header>
 
@@ -451,9 +464,12 @@ export const CandidateWorkspace = ({
               {notice ??
                 (session.status === 'CREATED'
                   ? 'Review the brief, then start when ready.'
-                  : isSubmitted
-                    ? `Submitted ${new Date(session.submittedAt ?? '').toLocaleString()}.`
-                    : 'Edits persist only after Save or Submit.')}
+                  : projection.uxState === 'TIME_LIMIT_REACHED'
+                    ? 'The assessment time limit has been reached. New modifications are no longer permitted.'
+                    : isSubmitted
+                      ? (projection.completionMessage ??
+                        `Submitted ${new Date(session.submittedAt ?? '').toLocaleString()}.`)
+                      : 'Edits persist only after Save or Submit.')}
             </p>
             <div className="button-row">
               {session.status === 'CREATED' ? (

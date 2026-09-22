@@ -131,12 +131,16 @@ export const projectCandidateExperience = (
       calibratedNowMs,
     );
 
-    // Finalization in progress (e.g. manual submit in flight)
-    if (finalizationState === 'in_flight') {
+    // Durable admission survives refresh; local in-flight state covers only the
+    // request window before the authoritative response arrives.
+    if (
+      serverSession.closureReason !== null ||
+      finalizationState === 'in_flight'
+    ) {
       return {
         uxState: 'FINALIZING',
         serverStatus: 'ACTIVE',
-        closureReason: null,
+        closureReason: serverSession.closureReason,
         deadline,
         remainingMs,
         isDeadlineReached,

@@ -489,8 +489,11 @@ describe('T1A.3A — Manual Submission (Mock)', () => {
     });
 
     expect(
-      store.findByCandidateTokenHash(hashToken(candidateToken))?.status,
-    ).toBe('ACTIVE');
+      store.findByCandidateTokenHash(hashToken(candidateToken)),
+    ).toMatchObject({
+      status: 'ACTIVE',
+      closureReason: 'candidate_submission',
+    });
     expect(sandbox.hasSandbox(session.id)).toBe(true);
   });
 
@@ -506,8 +509,11 @@ describe('T1A.3A — Manual Submission (Mock)', () => {
     });
 
     expect(
-      store.findByCandidateTokenHash(hashToken(candidateToken))?.status,
-    ).toBe('ACTIVE');
+      store.findByCandidateTokenHash(hashToken(candidateToken)),
+    ).toMatchObject({
+      status: 'ACTIVE',
+      closureReason: 'candidate_submission',
+    });
     expect(sandbox.hasSandbox(session.id)).toBe(true);
     expect(sandbox.isFrozen(session.id)).toBe(true);
   });
@@ -573,7 +579,10 @@ describe('T1A.3A — Manual Submission (Mock)', () => {
 
     const capture = sandbox.captureFrozenEvidence.bind(sandbox);
     sandbox.captureFrozenEvidence = async (...args) => {
-      expect(store.findById(session.id)?.status).toBe('ACTIVE');
+      expect(store.findById(session.id)).toMatchObject({
+        status: 'ACTIVE',
+        closureReason: 'candidate_submission',
+      });
       return capture(...args);
     };
     const teardown = sandbox.teardown.bind(sandbox);
@@ -603,7 +612,10 @@ describe('T1A.3A — Manual Submission (Mock)', () => {
     await expect(failingService.submit(candidateToken)).rejects.toThrow(
       'simulated finalization failure',
     );
-    expect(store.findById(session.id)?.status).toBe('ACTIVE');
+    expect(store.findById(session.id)).toMatchObject({
+      status: 'ACTIVE',
+      closureReason: 'candidate_submission',
+    });
     expect(sandbox.hasSandbox(session.id)).toBe(true);
     expect(sandbox.isFrozen(session.id)).toBe(true);
   });

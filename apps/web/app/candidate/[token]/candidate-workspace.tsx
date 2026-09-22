@@ -578,7 +578,7 @@ export const CandidateWorkspace = ({
   const canRunCommands = projection.capabilities.canRunCommands;
   const isSubmitted = session.status === 'SUBMITTED';
   const timer =
-    session.status === 'ACTIVE'
+    session.status === 'ACTIVE' && session.closureReason === null
       ? presentCandidateTimer(projection.remainingMs, session.durationSeconds)
       : null;
   const selectWorkspacePanel = (panel: WorkspacePanel) => {
@@ -643,7 +643,9 @@ export const CandidateWorkspace = ({
           >
             {projection.uxState === 'TIME_LIMIT_REACHED'
               ? 'Time limit reached'
-              : session.status}
+              : projection.uxState === 'FINALIZING'
+                ? 'Finalizing'
+                : session.status}
           </span>
         </div>
       </header>
@@ -651,6 +653,12 @@ export const CandidateWorkspace = ({
       {projection.uxState === 'TIME_LIMIT_REACHED' ? (
         <p className="deadline-reached-notice" role="status" aria-live="polite">
           Time limit reached. New work is no longer accepted.
+        </p>
+      ) : null}
+
+      {projection.uxState === 'FINALIZING' ? (
+        <p className="deadline-reached-notice" role="status" aria-live="polite">
+          Finalizing your assessment…
         </p>
       ) : null}
 

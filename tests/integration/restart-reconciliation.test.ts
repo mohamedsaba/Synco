@@ -118,6 +118,69 @@ describe('T1B.2 — Restart / Reconciliation', () => {
     expect(containerExists(adapter.getContainerName(session.id))).toBe(false);
   }, 30000);
 
+  it('C8A: admitted manual finalization with running container resumes before deadline', async () => {
+    const { session, candidateToken } = service.createSession({
+      scenarioId: 'scenario-001',
+    });
+    createdSessions.push(session.id);
+    await service.activate(candidateToken);
+    store.admitFinalization(session.id, 'candidate_submission');
+
+    await service.reconcileSessions(now());
+
+    expect(store.findById(session.id)).toMatchObject({
+      status: 'SUBMITTED',
+      closureReason: 'candidate_submission',
+    });
+    expect(containerExists(adapter.getContainerName(session.id))).toBe(false);
+    expect(volumeExists(adapter.getVolumeName(session.id))).toBe(false);
+  }, 30000);
+
+  it('C8A: admitted timeout finalization with paused container preserves reason', async () => {
+    const { session, candidateToken } = service.createSession({
+      scenarioId: 'scenario-001',
+    });
+    createdSessions.push(session.id);
+    await service.activate(candidateToken);
+    await adapter.freeze(session.id);
+    store.admitFinalization(session.id, 'timeout');
+
+    await service.reconcileSessions(now());
+
+    expect(store.findById(session.id)).toMatchObject({
+      status: 'SUBMITTED',
+      closureReason: 'timeout',
+    });
+    expect(containerExists(adapter.getContainerName(session.id))).toBe(false);
+  }, 30000);
+
+  it('C8A: admitted finalization keeps existing missing-container mismatch fail closed', async () => {
+    const { session, candidateToken } = service.createSession({
+      scenarioId: 'scenario-001',
+    });
+    createdSessions.push(session.id);
+    await service.activate(candidateToken);
+    store.admitFinalization(session.id, 'candidate_submission');
+    spawnSync('docker', ['rm', '-f', adapter.getContainerName(session.id)]);
+
+    await service.reconcileSessions(now());
+
+    expect(store.findById(session.id)).toMatchObject({
+      status: 'ACTIVE',
+      closureReason: 'candidate_submission',
+    });
+    expect(volumeExists(adapter.getVolumeName(session.id))).toBe(true);
+    expect(
+      eventStore
+        .getEvents(session.id)
+        .some(
+          (event) =>
+            event.type === 'WORKSPACE_CAPTURE_FAILED' &&
+            (event.payload as { phase?: string }).phase === 'reconciliation',
+        ),
+    ).toBe(true);
+  }, 30000);
+
   it('R3: ACTIVE + missing container + existing volume follows explicit safe behavior', async () => {
     const { session, candidateToken } = service.createSession({
       scenarioId: 'scenario-001',

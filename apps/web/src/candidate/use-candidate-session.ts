@@ -23,6 +23,25 @@ export type UseCandidateSessionProps<
   tickIntervalMs?: number;
 }>;
 
+export const mergeCandidateTiming = <
+  TSession extends ServerAuthoritativeCandidateSession,
+>(
+  previous: TSession,
+  timing: CandidateTimingProjection,
+): TSession =>
+  ({
+    ...previous,
+    status:
+      previous.status === 'SUBMITTED' && timing.status !== 'SUBMITTED'
+        ? previous.status
+        : timing.status,
+    closureReason: previous.closureReason ?? timing.closureReason,
+    activatedAt: timing.activatedAt,
+    durationSeconds: timing.durationSeconds,
+    deadline: timing.deadline,
+    serverTime: timing.serverTime,
+  }) as TSession;
+
 export const useCandidateSession = <
   TSession extends ServerAuthoritativeCandidateSession,
 >({
@@ -97,15 +116,7 @@ export const useCandidateSession = <
             prev.status !== timing.status ||
             prev.closureReason !== timing.closureReason
           ) {
-            return {
-              ...prev,
-              status: timing.status,
-              closureReason: timing.closureReason,
-              activatedAt: timing.activatedAt,
-              durationSeconds: timing.durationSeconds,
-              deadline: timing.deadline,
-              serverTime: timing.serverTime,
-            };
+            return mergeCandidateTiming(prev, timing);
           }
           return prev;
         });

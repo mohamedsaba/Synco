@@ -177,6 +177,10 @@ export const resolveSubmissionResult = (
     );
   }
 
+  if (data?.error?.code === 'SESSION_FINALIZATION_STARTED') {
+    return fail(state, 'AI is unavailable because finalization has started.');
+  }
+
   if (data?.error?.code === 'AI_NOT_ENABLED') {
     return fail(
       state,

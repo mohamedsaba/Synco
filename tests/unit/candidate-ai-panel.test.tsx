@@ -238,6 +238,11 @@ describe('C6 candidate integrated AI experience', () => {
       }).errorMessage,
     ).toContain('no longer active');
     expect(
+      resolveSubmissionResult(admitted.nextState, 409, {
+        error: { code: 'SESSION_FINALIZATION_STARTED' },
+      }).errorMessage,
+    ).toContain('finalization has started');
+    expect(
       resolveSubmissionResult(admitted.nextState, 200, {
         status: 'CANCELLED',
         terminalReason: 'session_ended',

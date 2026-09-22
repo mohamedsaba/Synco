@@ -106,5 +106,8 @@ describe('C5 command presentation state', () => {
     ).toBe(
       'Command could not be run because the assessment time limit has been reached.',
     );
+    expect(
+      commandPlatformError(409, 'SESSION_FINALIZATION_STARTED', undefined),
+    ).toBe('Command could not be run because finalization has started.');
   });
 });

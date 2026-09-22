@@ -55,19 +55,20 @@ $$\text{calibratedNow} = \text{Date.now()} + \text{offsetMs}$$
 
 The pure projection function maps inputs to canonical UX states:
 
-| Durable Backend Status | Conditions / Ephemeral Mode                                                 | Projected Candidate UX State         | Capabilities                                           |
-| ---------------------- | --------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------ |
-| `CREATED`              | `uiMode = 'entry'` (default)                                                | `ENTRY`                              | No edit, no commands, no AI, activate enabled          |
-| `CREATED`              | `uiMode = 'orientation'`                                                    | `ORIENTATION`                        | No edit, no commands, no AI, activate enabled          |
-| `CREATED`              | `uiMode = 'ready_to_start'`                                                 | `READY_TO_START`                     | No edit, no commands, no AI, activate enabled          |
-| `CREATED`              | `finalizationState = 'in_flight'` or `uiMode = 'provisioning'`              | `PROVISIONING`                       | All disabled, duplicate activate blocked               |
-| `ACTIVE`               | $\text{calibratedNow} < \text{deadline}$ and `uiMode = 'workspace'`         | `ACTIVE_WORKSPACE`                   | Full edit, commands, AI, submit allowed                |
-| `ACTIVE`               | $\text{calibratedNow} < \text{deadline}$ and `uiMode = 'submission_review'` | `SUBMISSION_REVIEW`                  | Edit paused for review, submit allowed, Back allowed   |
-| `ACTIVE`               | $\text{calibratedNow} \ge \text{deadline}$                                  | `TIME_LIMIT_REACHED`                 | All mutations disabled; awaits sweeper convergence     |
-| `ACTIVE`               | `finalizationState = 'in_flight'`                                           | `FINALIZING`                         | All mutations disabled; awaits server response         |
-| `SUBMITTED`            | `closureReason = 'candidate_submission'`                                    | `COMPLETED` (`candidate_submission`) | Readonly; message: "Assessment submitted successfully" |
-| `SUBMITTED`            | `closureReason = 'timeout'`                                                 | `COMPLETED` (`timeout`)              | Readonly; message: "Your assessment time has ended"    |
-| Unknown / Corrupt      | Data missing or status invalid                                              | `UNKNOWN_OR_UNSUPPORTED`             | Safe fallback error display; all actions disabled      |
+| Durable Backend Status | Conditions / Ephemeral Mode                                                 | Projected Candidate UX State         | Capabilities                                            |
+| ---------------------- | --------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------- |
+| `CREATED`              | `uiMode = 'entry'` (default)                                                | `ENTRY`                              | No edit, no commands, no AI, activate enabled           |
+| `CREATED`              | `uiMode = 'orientation'`                                                    | `ORIENTATION`                        | No edit, no commands, no AI, activate enabled           |
+| `CREATED`              | `uiMode = 'ready_to_start'`                                                 | `READY_TO_START`                     | No edit, no commands, no AI, activate enabled           |
+| `CREATED`              | `finalizationState = 'in_flight'` or `uiMode = 'provisioning'`              | `PROVISIONING`                       | All disabled, duplicate activate blocked                |
+| `ACTIVE`               | $\text{calibratedNow} < \text{deadline}$ and `uiMode = 'workspace'`         | `ACTIVE_WORKSPACE`                   | Full edit, commands, AI, submit allowed                 |
+| `ACTIVE`               | $\text{calibratedNow} < \text{deadline}$ and `uiMode = 'submission_review'` | `SUBMISSION_REVIEW`                  | Edit paused for review, submit allowed, Back allowed    |
+| `ACTIVE`               | $\text{calibratedNow} \ge \text{deadline}$                                  | `TIME_LIMIT_REACHED`                 | All mutations disabled; awaits sweeper convergence      |
+| `ACTIVE`               | `finalizationState = 'in_flight'`                                           | `FINALIZING`                         | All mutations disabled; awaits server response          |
+| `ACTIVE`               | `closureReason != null`                                                     | `FINALIZING`                         | All mutations disabled; durable recovery may be pending |
+| `SUBMITTED`            | `closureReason = 'candidate_submission'`                                    | `COMPLETED` (`candidate_submission`) | Readonly; message: "Assessment submitted successfully"  |
+| `SUBMITTED`            | `closureReason = 'timeout'`                                                 | `COMPLETED` (`timeout`)              | Readonly; message: "Your assessment time has ended"     |
+| Unknown / Corrupt      | Data missing or status invalid                                              | `UNKNOWN_OR_UNSUPPORTED`             | Safe fallback error display; all actions disabled       |
 
 ## 5. Deadline Presentation vs. Backend Authority
 
@@ -77,7 +78,7 @@ The pure projection function maps inputs to canonical UX states:
 
 ## 6. Refresh Reconstruction
 
-Upon browser refresh, the server renders the candidate route (`page.tsx`) with an authoritative snapshot containing `deadline` and `serverTime`. The client calculates clock calibration on receipt and projects the exact same UX state deterministically, ensuring seamless continuity.
+Upon browser refresh, the server renders the candidate route (`page.tsx`) with an authoritative snapshot containing `closureReason`, `deadline`, and `serverTime`. The client calculates clock calibration on receipt and projects the exact same UX state deterministically. `ACTIVE + closureReason != null` therefore reconstructs `FINALIZING`; refresh or browser Back cannot reopen `ACTIVE_WORKSPACE`.
 
 ## 7. C2 Candidate Pre-Start, Orientation, and Provisioning Architecture
 
@@ -132,7 +133,8 @@ Platform provisioning does **not** consume candidate assessment time:
 ### Refresh & Back Navigation
 
 - **Refresh while CREATED**: Returns safely to the pre-start experience (`ENTRY`).
-- **Refresh while ACTIVE**: Canonical server status wins; client projects directly into `ACTIVE_WORKSPACE`, completely bypassing pre-start screens.
+- **Refresh while mutable ACTIVE**: `closureReason = null` projects directly into `ACTIVE_WORKSPACE`, completely bypassing pre-start screens.
+- **Refresh while admitted ACTIVE**: `closureReason != null` projects `FINALIZING` with all capabilities disabled.
 - **Refresh while SUBMITTED**: Projects `COMPLETED` without reopening pre-start.
 - **Browser Back**: Once a session reaches `ACTIVE`, server truth prevents reopening pre-start states.
 
@@ -187,6 +189,8 @@ C7 presents only the existing C1 `remainingMs` projection in the persistent work
 The timer uses ceiling rounding, so any positive authoritative `remainingMs` displays at least one second; `00:00` appears only at or after the deadline. Sessions configured for an hour or more retain `H:MM:SS`; shorter sessions use `MM:SS`. C7 presents `ATTENTION` at 5 minutes or less and `URGENT` at 1 minute or less with visible text, rather than color alone. The ticking value has no live region. The deadline transition has one polite status announcement: “Time limit reached. New work is no longer accepted.”
 
 At zero, C7 presents `TIME_LIMIT_REACHED` and uses C1 capabilities to disable new edits, saves, commands, AI requests, and submission entry. It does not mutate server status, claim submission, clear the editor buffer, command history, or AI conversation, or add completion/finalization UX. C8-C10 remain deferred.
+
+C8A makes timing synchronization monotonic. A stale `ACTIVE` timing response cannot replace a locally known `SUBMITTED` status, and a stale null `closureReason` cannot erase a known reason. Legitimate `ACTIVE -> SUBMITTED` and null-to-reason progress remain accepted. The merge is pure and does not mutate response objects.
 
 ## 10. C5 Commands
 

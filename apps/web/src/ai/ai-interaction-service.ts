@@ -151,6 +151,13 @@ export class AiInteractionService {
           );
         }
 
+        if (session.closureReason !== null) {
+          throw new AiInteractionError(
+            'SESSION_FINALIZATION_STARTED',
+            'Finalization has already started. New AI interactions are no longer permitted.',
+          );
+        }
+
         const deadline = deriveSessionDeadline(session);
         const now = this.now();
         if (deadline !== null && isDeadlineExceeded(deadline, now)) {

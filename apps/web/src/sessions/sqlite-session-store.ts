@@ -232,20 +232,6 @@ export class SqliteSessionStore {
     );
   }
 
-  findActiveTimed() {
-    return this.withDatabase((database) => {
-      const rows = database
-        .prepare(
-          `SELECT * FROM assessment_sessions
-           WHERE status = 'ACTIVE'
-             AND activated_at IS NOT NULL
-             AND duration_seconds IS NOT NULL`,
-        )
-        .all() as SessionRow[];
-      return rows.map(toSession);
-    });
-  }
-
   findAllActiveAndSubmitted() {
     return this.withDatabase((database) => {
       const rows = database
@@ -268,6 +254,44 @@ export class SqliteSessionStore {
     return this.mutate(candidateTokenHash, (session) =>
       editSession(session, content),
     );
+  }
+
+  admitFinalization(
+    sessionId: string,
+    closureReason: SessionClosureReason,
+  ): AssessmentSession {
+    return this.withDatabase((database) => {
+      const transaction = database.transaction(() => {
+        const current = this.findByIdWithDatabase(database, sessionId);
+        if (!current) {
+          throw new SessionError(
+            'SESSION_NOT_FOUND',
+            'The candidate session was not found.',
+          );
+        }
+        if (current.status !== 'ACTIVE') {
+          throw new SessionError(
+            'SESSION_NOT_ACTIVE',
+            'Finalization can only be admitted for an active session.',
+          );
+        }
+        if (current.closureReason !== null) {
+          return current;
+        }
+
+        database
+          .prepare(
+            `UPDATE assessment_sessions
+             SET closure_reason = ?
+             WHERE id = ? AND status = 'ACTIVE' AND closure_reason IS NULL`,
+          )
+          .run(closureReason, sessionId);
+
+        return this.findByIdWithDatabase(database, sessionId)!;
+      });
+
+      return transaction.immediate();
+    });
   }
 
   submitWithDatabase(

@@ -33,11 +33,11 @@ The supervisor writes one root-only result through a descriptor opened before pr
 
 Each session's `/workspace` is backed by a dedicated Docker named volume (`delimit-ws-<sanitized-session-id>`) rather than a tmpfs mount. Named volumes are independently addressable: a trusted ephemeral helper container can mount the workspace read-only even while the primary sandbox is paused.
 
-**Freeze mechanism:** On candidate manual submission, the primary sandbox is frozen with `docker pause` (the Linux cgroup freezer) and verified via `docker inspect State.Paused`. Whole-container freeze is required because scenario services continue async work outside the terminal process tree; process-level kill alone is insufficient to guarantee an immutable workspace.
+**Finality admission and freeze:** After pre-freeze drift capture succeeds, SQLite records the first `closureReason` while status remains `ACTIVE`. Only then is the primary sandbox frozen with `docker pause` and verified via `docker inspect State.Paused`. This order makes a crash before or after pause reconstructably non-mutable. Whole-container freeze is required because scenario services continue async work outside the terminal process tree; process-level kill alone is insufficient to guarantee an immutable workspace.
 
 **Frozen capture:** An ephemeral helper container mounts the workspace volume read-only and runs the authoritative `delimit-capture-tree.sh` and `delimit-diff-trees.sh` scripts. The helper is isolated: `--rm`, `--network none`, `--read-only`, bounded memory/CPU/PIDs, `--cap-drop ALL`, `--security-opt=no-new-privileges:true`. Its deterministic name permits forced cleanup after a bounded subprocess failure. The primary remains paused throughout.
 
-**Volume lifecycle:** Volume created before container start. Removed only after successful SQLite finalization — never destroyed before finalization. On freeze/capture/commit failure the volume and paused container remain intact and are recoverable (T1B).
+**Volume lifecycle:** Volume created before container start. Removed only after successful SQLite finalization — never destroyed before finalization. On freeze/capture/commit failure the durable closure reason and volume remain intact; a successfully paused container remains paused.
 
 **Recovery compatibility:** A paused sandbox + named volume survive application restart. They must not be automatically destroyed before T1B recovery is implemented. Helper image selection for frozen capture is restart-recoverable via `docker inspect Config.Image` on the primary container — not an in-process map.
 
@@ -47,7 +47,7 @@ Ordinary command timeout and session finality intentionally use different contai
 
 During uncontrolled application shutdown (OOM, power loss, SIGKILL), paused or running primary sandbox containers and their associated named volumes may be left orphaned.
 
-The application implements a strict reconciliation pass at startup (`reconcileSessions`). The system inspects Docker for the presence of the container and volume and aligns this with the authoritative SQLite `duration_seconds` to safely close overdue sessions without recreating missing resources. Specifically:
+The application implements a strict reconciliation pass at startup (`reconcileSessions`). SQLite `closureReason` determines whether finalization is already admitted; Docker inspection only determines which infrastructure recovery is safe. Admitted finalization resumes without re-running deadline admission or changing manual versus timeout intent. Specifically:
 
 - Missing containers but existing volumes fail closed.
 - Existing containers but missing volumes fail closed.

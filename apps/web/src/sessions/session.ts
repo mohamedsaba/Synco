@@ -42,6 +42,7 @@ export class SessionError extends Error {
     readonly code:
       | 'SESSION_NOT_FOUND'
       | 'SESSION_NOT_ACTIVE'
+      | 'SESSION_FINALIZATION_STARTED'
       | 'SESSION_DEADLINE_EXCEEDED'
       | 'EVIDENCE_NOT_READY'
       | 'CONTENT_TOO_LARGE'
@@ -81,6 +82,13 @@ export const editSession = (
     throw new SessionError(
       'SESSION_NOT_ACTIVE',
       'Editing is allowed only while the session is active.',
+    );
+  }
+
+  if (session.closureReason !== null) {
+    throw new SessionError(
+      'SESSION_FINALIZATION_STARTED',
+      'Finalization has already started. Candidate mutations are no longer permitted.',
     );
   }
 

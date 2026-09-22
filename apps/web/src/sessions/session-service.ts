@@ -349,6 +349,13 @@ export class SessionService {
         );
       }
 
+      if (current.closureReason !== null) {
+        throw new SessionError(
+          'SESSION_FINALIZATION_STARTED',
+          'Finalization has already started. Candidate mutations are no longer permitted.',
+        );
+      }
+
       const deadline = deriveSessionDeadline(current);
       const now = this.now();
       if (deadline !== null && isDeadlineExceeded(deadline, now)) {
@@ -413,6 +420,13 @@ export class SessionService {
         throw new SessionError(
           'SESSION_NOT_ACTIVE',
           'Commands can be executed only while the session is active.',
+        );
+      }
+
+      if (current.closureReason !== null) {
+        throw new SessionError(
+          'SESSION_FINALIZATION_STARTED',
+          'Finalization has already started. Candidate mutations are no longer permitted.',
         );
       }
 
@@ -650,6 +664,13 @@ export class SessionService {
         );
       }
 
+      if (current.closureReason !== null) {
+        throw new SessionError(
+          'SESSION_FINALIZATION_STARTED',
+          'Finalization has already started. Candidate mutations are no longer permitted.',
+        );
+      }
+
       const deadline = deriveSessionDeadline(current);
       const now = this.now();
       if (deadline !== null && isDeadlineExceeded(deadline, now)) {
@@ -784,6 +805,7 @@ export class SessionService {
     tokenHash: string,
     admittedAt: string,
     requestedClosureReason: 'candidate_submission' | 'timeout',
+    resumeAdmitted = false,
   ) {
     const session = this.store.findByCandidateTokenHash(tokenHash);
 
@@ -814,18 +836,25 @@ export class SessionService {
         );
       }
 
+      const alreadyAdmitted = current.closureReason !== null;
+      if (alreadyAdmitted && !resumeAdmitted) {
+        return current;
+      }
+
       const deadline = deriveSessionDeadline(current);
       if (
+        !alreadyAdmitted &&
         requestedClosureReason === 'timeout' &&
         !isDeadlineExceeded(deadline, admittedAt)
       ) {
         return current;
       }
-      const closureReason =
-        requestedClosureReason === 'candidate_submission' &&
+      let closureReason =
+        current.closureReason ??
+        (requestedClosureReason === 'candidate_submission' &&
         !isDeadlineExceeded(deadline, admittedAt)
           ? 'candidate_submission'
-          : 'timeout';
+          : 'timeout');
 
       let submittedDiff: string | null = null;
       const isMultiFile =
@@ -840,7 +869,7 @@ export class SessionService {
         let baselineTree: string | undefined;
         try {
           const alreadyFrozen = await this.sandboxAdapter.isFrozen(current.id);
-          if (!alreadyFrozen) {
+          if (!alreadyAdmitted && !alreadyFrozen) {
             await this.detectAndRecordDrift(current.id);
             baselineTree = await this.sandboxAdapter.getBaselineTree(
               current.id,
@@ -867,6 +896,14 @@ export class SessionService {
           );
         }
 
+        if (!alreadyAdmitted) {
+          const admitted = this.store.admitFinalization(
+            current.id,
+            closureReason,
+          );
+          closureReason = admitted.closureReason!;
+        }
+
         // Phase 2: Freeze the primary sandbox container.
         //
         // This is the authoritative final workspace boundary:
@@ -881,8 +918,8 @@ export class SessionService {
         try {
           await this.sandboxAdapter.freeze(current.id);
         } catch (error) {
-          // Freeze failed: session remains ACTIVE. The candidate's workspace
-          // is preserved intact in the named volume. Do NOT commit submission.
+          // Freeze failed after durable finalization admission. The candidate's
+          // workspace is preserved intact in the named volume.
           if (this.eventStore) {
             this.eventStore.append({
               id: `evt_${this.createId()}`,
@@ -899,7 +936,7 @@ export class SessionService {
           }
           throw new SessionError(
             'PLATFORM_CAPTURE_FAILED',
-            `Failed to freeze sandbox for finalization: ${error instanceof Error ? error.message : String(error)}. Session remains active.`,
+            `Failed to freeze sandbox for finalization: ${error instanceof Error ? error.message : String(error)}. Finalization remains admitted.`,
           );
         }
 
@@ -910,7 +947,8 @@ export class SessionService {
         // scripts. Do NOT unpause on failure — workspace must remain frozen
         // to prevent new candidate mutations.
         //
-        // Failure: session stays ACTIVE (primary stays paused), no submission.
+        // Failure: session stays ACTIVE with admitted closure reason. Primary
+        // stays paused and no submission is fabricated.
         let submittedTree: string | null = null;
         try {
           const frozen = await this.sandboxAdapter.captureFrozenEvidence(
@@ -971,9 +1009,17 @@ export class SessionService {
           }
           throw new SessionError(
             'PLATFORM_CAPTURE_FAILED',
-            `Failed to capture frozen workspace evidence: ${error instanceof Error ? error.message : String(error)}. Session remains active; sandbox is frozen.`,
+            `Failed to capture frozen workspace evidence: ${error instanceof Error ? error.message : String(error)}. Finalization remains admitted; sandbox is frozen.`,
           );
         }
+      }
+
+      if (!alreadyAdmitted && !(this.sandboxAdapter && isMultiFile)) {
+        const admitted = this.store.admitFinalization(
+          current.id,
+          closureReason,
+        );
+        closureReason = admitted.closureReason!;
       }
 
       // Phase 4: Atomic SQLite finalization.
@@ -981,8 +1027,7 @@ export class SessionService {
       // status = SUBMITTED with the closure reason fixed by trusted admission.
       //
       // If this fails after freeze/capture: primary remains paused, volume
-      // intact. Session stays ACTIVE. Do NOT unpause. The current architecture
-      // A later in-process sweep or request retries the same paused workspace.
+      // intact, and ACTIVE retains its admitted closure reason. Do NOT unpause.
       const submitted = this.transactionRunner.run((database) => {
         const fresh = this.store.findByIdWithDatabase(database, current.id);
         if (!fresh) {
@@ -1072,7 +1117,8 @@ export class SessionService {
     return this.finalizeByTokenHash(
       session.candidateTokenHash,
       observedAt,
-      'timeout',
+      session.closureReason ?? 'timeout',
+      session.closureReason !== null,
     );
   }
 
@@ -1099,7 +1145,10 @@ export class SessionService {
         }
       } else if (session.status === 'ACTIVE') {
         const deadline = deriveSessionDeadline(session);
-        if (deadline !== null && isDeadlineExceeded(deadline, observedAt)) {
+        if (
+          session.closureReason !== null ||
+          (deadline !== null && isDeadlineExceeded(deadline, observedAt))
+        ) {
           const { containerStatus, volumeExists } =
             await this.sandboxAdapter.inspectResources(session.id);
 
@@ -1156,9 +1205,12 @@ export class SessionService {
 
   async sweepTimedOutSessions(observedAt = this.now()) {
     const overdue = this.store
-      .findActiveTimed()
-      .filter((session) =>
-        isDeadlineExceeded(deriveSessionDeadline(session), observedAt),
+      .findAllActiveAndSubmitted()
+      .filter(
+        (session) =>
+          session.status === 'ACTIVE' &&
+          (session.closureReason !== null ||
+            isDeadlineExceeded(deriveSessionDeadline(session), observedAt)),
       );
     return Promise.allSettled(
       overdue.map((session) =>

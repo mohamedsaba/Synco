@@ -71,12 +71,12 @@ Slice 6C implements the synchronous candidate AI provider execution lifecycle:
    - When a candidate submits an assessment, `SessionService.submit` acquires the session lock, inspects workspace drift, and enters an atomic multi-store SQLite transaction (`BEGIN IMMEDIATE`).
    - Within this transaction, all open AI interactions (`ADMITTED`, `DISPATCH_STARTED`) are transitioned to `CANCELLED` with `terminalReason: 'session_ended'` and appended with `AI_REQUEST_CANCELLED` events with deterministic ordering (`started_sequence ASC, id ASC`) and local durations.
    - In the same transaction, the session status transitions to `SUBMITTED`.
-   - If the transaction fails, the entire closure rolls back atomically, leaving the session `ACTIVE`, open interactions uncancelled, and container teardown unperformed.
+   - If the final transaction fails, AI closure rolls back atomically while the session remains `ACTIVE` with its previously admitted `closureReason`; open interactions remain uncancelled and teardown is not performed. Recovery retries the same final transaction.
 
 3. **Existing-ID Replay vs. New Admission**:
    - When an AI request arrives, `admitInteraction` immediately queries for an existing record by `(sessionId, clientRequestId)` inside a `BEGIN IMMEDIATE` transaction.
    - If an existing interaction is found, it is returned immediately without re-checking session active status, capability flags, prompt length, or context attachment validity. `executeInteraction` maps this to an idempotent HTTP 200 response without redispatching to the provider.
-   - If no existing interaction is found, the session MUST be `ACTIVE`. New request IDs arriving after submission closure are rejected with HTTP 409 `SESSION_NOT_ACTIVE`, resulting in zero database rows, zero events, and zero provider dispatches.
+   - If no existing interaction is found, the session MUST be mutable `ACTIVE + closureReason = null`. New request IDs arriving after finalization admission are rejected with HTTP 409 `SESSION_FINALIZATION_STARTED`; requests after durable submission remain `SESSION_NOT_ACTIVE`. Both produce zero database rows, zero events, and zero provider dispatches.
 
 4. **Late Provider Output Isolation & Evidence Stability**:
    - If an in-flight AI provider call settles (success, error, or timeout) after the interaction has been closed as `CANCELLED / session_ended` by submission, `recordCompletion` and `recordFailure` detect the terminal state and drop the late result.

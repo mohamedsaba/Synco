@@ -31,7 +31,9 @@ Status: Authoritative Foundation (Slice T1A.1)
    - Session completion and closure reasons are distinguished cleanly by `closureReason`:
      - Candidate manual submission: `status = SUBMITTED`, `closureReason = candidate_submission`
      - Assessment expiry/timeout: `status = SUBMITTED`, `closureReason = timeout`
-   - Active and created sessions maintain `closureReason = null`.
+   - `CREATED` sessions maintain `closureReason = null`.
+   - `ACTIVE + closureReason = null` is mutable subject to deadline and capability checks.
+   - `ACTIVE + closureReason != null` means finalization is durably admitted and candidate mutation can never resume; backend recovery may still be pending.
 
 6. **Legacy Untimed Compatibility**:
    - Historical sessions predating authoritative timing retain `duration_seconds = NULL`.
@@ -115,15 +117,17 @@ T1A.3A establishes the frozen workspace finality foundation for manual candidate
 
 4. **Manual Submission Finality Sequence**:
    - Pre-freeze drift detection (preserves audit trail of prior mutations)
+   - Durable finalization admission (`ACTIVE`, `closureReason = candidate_submission`)
    - Freeze primary sandbox → verify via inspect
    - Capture frozen evidence via helper (currentTree + rawDiff)
    - Atomic SQLite finalization (`status = SUBMITTED`, `closureReason = candidate_submission`)
    - Teardown (container then volume)
 
 5. **Failure Semantics (strict)**:
-   - Freeze fails → session stays `ACTIVE`, no submission committed, no teardown, `WORKSPACE_CAPTURE_FAILED` event appended (`phase = submission_freeze`).
-   - Capture fails after freeze → session stays `ACTIVE`, primary remains paused, no submission, no teardown, `WORKSPACE_CAPTURE_FAILED` event (`phase = submission_frozen_capture`).
-   - SQLite commit fails after freeze/capture → session stays `ACTIVE`, primary remains paused, volume intact. No unpause. Frozen sandbox and volume are discoverable for T1B recovery.
+   - Pre-freeze drift capture fails → session stays mutable `ACTIVE + closureReason = null`; no freeze or teardown.
+   - Freeze fails → session stays `ACTIVE + closureReason != null`, no submission committed, no teardown, `WORKSPACE_CAPTURE_FAILED` event appended (`phase = submission_freeze`).
+   - Capture fails after freeze → session stays `ACTIVE + closureReason != null`, primary remains paused, no submission, no teardown, `WORKSPACE_CAPTURE_FAILED` event (`phase = submission_frozen_capture`).
+   - SQLite commit fails after freeze/capture → session stays `ACTIVE + closureReason != null`, primary remains paused, volume intact. No unpause.
    - Teardown fails after successful commit → session is `SUBMITTED`, error logged, `SANDBOX_CLEANUP_FAILED` event appended. Session closure is not reopened.
 
 6. **Closure Reason**:
@@ -163,8 +167,8 @@ T1B.1 converges overdue timed sessions through the frozen-workspace finality pat
 4. **Background Sweeper (`SessionTimeoutSweeper`)**:
    - Registered once via `apps/web/instrumentation.ts` at Next.js server startup using a `Symbol.for('delimit.sessionTimeoutSweeper')` global guard to prevent duplicate intervals.
    - Runs `SessionService.sweepTimedOutSessions()` on a 1-second interval using a re-entrancy guard.
-   - `sweepTimedOutSessions` queries all `ACTIVE` timed sessions with a non-null `activated_at` and non-null `duration_seconds`, filters those whose deadline has been reached, and calls `finalizeTimedOutSession` for each.
-   - `finalizeTimedOutSession` resolves the session token hash and delegates to `finalizeByTokenHash` with `closureReason = timeout`.
+   - `sweepTimedOutSessions` selects overdue `ACTIVE` sessions and every `ACTIVE` session whose finalization was already admitted, including legacy untimed sessions requiring recovery.
+   - `finalizeTimedOutSession` uses the durable closure reason when present; only a not-yet-admitted overdue session receives `timeout`.
    - FIFO ordering: the sweeper enqueues through the same per-session coordinator as manual submissions. FIFO order determines which operation wins when both are in flight for the same session.
 
 5. **Already-Paused State Retry (freeze-then-capture recovery)**:
@@ -178,8 +182,8 @@ T1B.1 converges overdue timed sessions through the frozen-workspace finality pat
    - A `SANDBOX_CLEANUP_FAILED` event is appended; the error is logged but not propagated to the sweeper or the route caller.
 
 7. **Legacy Untimed Compatibility**:
-   - Sessions with `durationSeconds = null` are never swept; `findActiveTimed()` filters on `duration_seconds IS NOT NULL`.
-   - Such sessions remain eligible for manual candidate submission with `closureReason = candidate_submission`.
+   - Mutable sessions with `durationSeconds = null` are never timeout-finalized.
+   - An untimed session with a durable closure reason is recoverable because admission, not deadline, is authoritative.
 
 8. **AI Interaction Closure**:
    - Timeout finalization cancels all open AI interactions (`ADMITTED`, `DISPATCH_STARTED`) as `CANCELLED / session_ended`, consistent with the manual submission path.
@@ -212,5 +216,15 @@ T1B.2 establishes the durable reconciliation of session timing across server res
    - **Untimed / Future Sessions** (R6, R7): Safely ignored.
 
 3. **No Speculative State**:
-   - Reconciliation relies strictly on the intersection of the authoritative SQLite truth (`status`, `deadline`) and the authoritative Docker truth (`docker inspect`).
+   - Reconciliation uses SQLite (`status`, `closureReason`, deadline) for domain truth and Docker inspection only for infrastructure recovery.
    - If either truth cannot be aligned safely (R3, R4), the system halts that session's state machine and emits a `WORKSPACE_CAPTURE_FAILED` event rather than guessing.
+
+## 12. Finality Recovery and Projection Correction (C8A)
+
+`closureReason` is the irreversible finalization-admission marker. The store writes the first reason in an immediate SQLite transaction after successful pre-freeze drift capture and before `freeze()`. Admission changes no other session field and never overwrites an existing reason. The final Phase 4 transaction changes `status` to `SUBMITTED` while preserving that reason.
+
+Candidate save, workspace save, command, submit, and new AI admission are gated from SQLite truth. `ACTIVE + closureReason != null` returns `SESSION_FINALIZATION_STARTED` for new mutations; duplicate submit returns the authoritative admitted session without restarting freeze or capture. Docker pause state is never an authorization input.
+
+Startup reconciliation resumes admitted manual or timeout finalization without deadline re-admission. Running and already-paused containers converge through the same freeze/capture path. Missing-container or missing-volume mismatches retain existing fail-closed behavior and preserve the reason and recoverable resources.
+
+No schema column or durable status was added. Existing `closure_reason` constraints already admit either reason independently of `status`, so legacy `ACTIVE + null` and `SUBMITTED + reason` rows remain compatible.

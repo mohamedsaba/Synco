@@ -233,6 +233,48 @@ describe('C1 — Candidate Projection / State Foundation', () => {
     expect(proj.capabilities.canEdit).toBe(false);
   });
 
+  it('projects durable ACTIVE finalization as FINALIZING with every capability disabled', () => {
+    for (const closureReason of ['candidate_submission', 'timeout'] as const) {
+      const proj = projectCandidateExperience({
+        serverSession: { ...baseSession, closureReason },
+        calibratedNowMs: Date.parse('2026-09-21T12:00:00.000Z'),
+        uiMode: 'workspace',
+      });
+
+      expect(proj).toMatchObject({
+        uxState: 'FINALIZING',
+        serverStatus: 'ACTIVE',
+        closureReason,
+        completionVariant: null,
+        capabilities: {
+          canEdit: false,
+          canRunCommands: false,
+          canUseAi: false,
+          canSubmit: false,
+          canActivate: false,
+        },
+      });
+    }
+  });
+
+  it('reconstructs durable ACTIVE finalization after refresh without local state', () => {
+    const admitted = {
+      ...baseSession,
+      closureReason: 'candidate_submission' as const,
+    };
+    const first = projectCandidateExperience({
+      serverSession: admitted,
+      calibratedNowMs: Date.parse('2026-09-21T10:20:00.000Z'),
+    });
+    const refreshed = projectCandidateExperience({
+      serverSession: JSON.parse(JSON.stringify(admitted)),
+      calibratedNowMs: Date.parse('2026-09-21T10:20:00.000Z'),
+    });
+
+    expect(refreshed).toEqual(first);
+    expect(refreshed.uxState).toBe('FINALIZING');
+  });
+
   // Requirement 11: refresh reconstruction from same server snapshot yields same candidate projection
   it('11. refresh reconstruction from same server snapshot yields same candidate projection', () => {
     const fixedNowMs = Date.parse('2026-09-21T10:20:00.000Z');

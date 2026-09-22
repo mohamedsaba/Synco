@@ -118,4 +118,24 @@ describe('C3 — Candidate workspace shell', () => {
     expect(html).not.toContain('Assessment submitted successfully');
     expect(html).not.toContain('aria-live="polite" class="workspace-timer');
   });
+
+  it('presents durable ACTIVE finalization without reopening workspace controls', () => {
+    const html = renderToStaticMarkup(
+      <CandidateWorkspace
+        initialSession={{
+          ...activeSession,
+          closureReason: 'candidate_submission',
+        }}
+        token="c8a-token"
+      />,
+    );
+
+    expect(html).toContain('data-workspace-state="FINALIZING"');
+    expect(html).toContain('Finalizing your assessment…');
+    expect(html).toContain('>Finalizing</span>');
+    expect(html).not.toContain('aria-label="Workspace navigation"');
+    expect(html).not.toContain('>Save</button>');
+    expect(html).not.toContain('>Submit assessment</button>');
+    expect(html).not.toContain('class="workspace-timer');
+  });
 });

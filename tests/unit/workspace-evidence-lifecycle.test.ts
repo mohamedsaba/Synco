@@ -193,7 +193,7 @@ describe('Workspace Evidence Lifecycle & Edge Cases (Mock)', () => {
     );
   });
 
-  it('handles submission capture failure: preserves ACTIVE session and sandbox', async () => {
+  it('handles submission capture failure: preserves admitted ACTIVE session and sandbox', async () => {
     const store = new SqliteSessionStore(dbPath);
     const eventStore = new SqliteEventStore(dbPath);
     const mockSandbox = new MockSandboxAdapter();
@@ -211,12 +211,13 @@ describe('Workspace Evidence Lifecycle & Edge Cases (Mock)', () => {
     mockSandbox.failCaptureFrozenEvidence = true;
 
     await expect(service.submit(candidateToken)).rejects.toThrow(
-      /Failed to capture frozen workspace evidence.*Session remains active/,
+      /Failed to capture frozen workspace evidence.*Finalization remains admitted/,
     );
 
-    // Session remains ACTIVE in database
+    // Session remains ACTIVE but durably non-mutable in database
     const sessionAfter = service.getCandidateSession(candidateToken);
     expect(sessionAfter.status).toBe('ACTIVE');
+    expect(sessionAfter.closureReason).toBe('candidate_submission');
 
     // Sandbox container is NOT torn down
     expect(mockSandbox.hasSandbox(session.id)).toBe(true);

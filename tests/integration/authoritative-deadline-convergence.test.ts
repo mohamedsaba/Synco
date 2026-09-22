@@ -328,7 +328,10 @@ describe('T1B.1 — Authoritative Deadline Convergence', () => {
     sandbox.failFreeze = true;
     now = '2026-09-21T10:00:11.000Z';
     await service.sweepTimedOutSessions();
-    expect(store.findById(freezeFailure.session.id)?.status).toBe('ACTIVE');
+    expect(store.findById(freezeFailure.session.id)).toMatchObject({
+      status: 'ACTIVE',
+      closureReason: 'timeout',
+    });
     expect(sandbox.hasSandbox(freezeFailure.session.id)).toBe(true);
     sandbox.failFreeze = false;
 
@@ -337,7 +340,10 @@ describe('T1B.1 — Authoritative Deadline Convergence', () => {
     sandbox.failCaptureFrozenEvidence = true;
     now = '2026-09-21T11:00:11.000Z';
     await service.sweepTimedOutSessions();
-    expect(store.findById(captureFailure.session.id)?.status).toBe('ACTIVE');
+    expect(store.findById(captureFailure.session.id)).toMatchObject({
+      status: 'ACTIVE',
+      closureReason: 'timeout',
+    });
     expect(sandbox.isFrozen(captureFailure.session.id)).toBe(true);
     sandbox.failCaptureFrozenEvidence = false;
     await service.sweepTimedOutSessions();
@@ -352,7 +358,10 @@ describe('T1B.1 — Authoritative Deadline Convergence', () => {
     });
     now = '2026-09-21T12:00:11.000Z';
     await service.sweepTimedOutSessions();
-    expect(store.findById(databaseFailure.session.id)?.status).toBe('ACTIVE');
+    expect(store.findById(databaseFailure.session.id)).toMatchObject({
+      status: 'ACTIVE',
+      closureReason: 'timeout',
+    });
     expect(sandbox.isFrozen(databaseFailure.session.id)).toBe(true);
     await service.sweepTimedOutSessions();
     expect(store.findById(databaseFailure.session.id)?.closureReason).toBe(

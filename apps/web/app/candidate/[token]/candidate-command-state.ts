@@ -97,6 +97,9 @@ export const commandPlatformError = (
   if (code === 'SESSION_DEADLINE_EXCEEDED') {
     return 'Command could not be run because the assessment time limit has been reached.';
   }
+  if (code === 'SESSION_FINALIZATION_STARTED') {
+    return 'Command could not be run because finalization has started.';
+  }
   if (message) return message;
   if (status === null) return 'Delimit could not run the command. Try again.';
   return 'Delimit could not run the command.';

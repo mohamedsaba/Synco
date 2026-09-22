@@ -1,14 +1,95 @@
 :root {
   color-scheme: light;
+
+  /* Typography Stacks */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-serif:
+    'Iowan Old Style', Baskerville, 'Times New Roman', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  --font-body: var(--font-sans);
+  --font-display: var(--font-serif);
+  --font-header: var(--font-sans);
+
+  /* Color Palette - Light, Warm Neutral & Restrained */
   --ink: #171714;
-  --muted: #68675f;
-  --paper: #f2f0e8;
-  --surface: #fbfaf5;
-  --line: #c9c5b8;
-  --accent: #d8ff36;
-  --accent-dark: #283108;
-  --danger: #9c2f20;
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  --ink-secondary: #383733;
+  --muted: #5c5a53;
+  --muted-light: #7c7970;
+
+  --paper: #f4f2ea;
+  --paper-subtle: #eeece3;
+  --surface: #ffffff;
+  --surface-subtle: #faf9f5;
+  --surface-note: #f1eee5;
+  --surface-muted: #e7e4da;
+
+  /* Structural Borders */
+  --line: #d4d0c2;
+  --line-strong: #171714;
+  --line-subtle: #e4e0d4;
+
+  /* Restrained Technical Accent - Deep Slate / Indigo */
+  --accent: #244b5a;
+  --accent-light: #e8f0f4;
+  --accent-dark: #162f39;
+
+  /* Focus Indicator - Accessible High-Contrast Cobalt */
+  --focus-ring: #1d4ed8;
+  --focus-ring-offset: 2px;
+
+  /* Status Palette - Deliberate, Calm, Non-Alarming */
+  --status-success-bg: #ecfdf3;
+  --status-success-text: #166534;
+  --status-success-border: #bbf7d0;
+
+  --status-warning-bg: #fffbeb;
+  --status-warning-text: #92400e;
+  --status-warning-border: #fde68a;
+
+  --status-danger-bg: #fef2f2;
+  --status-danger-text: #991b1b;
+  --status-danger-border: #fecaca;
+  --danger: #991b1b;
+
+  --notice-bg: #f8fafc;
+  --notice-text: #334155;
+  --notice-border: #cbd5e1;
+
+  /* Semantic Aliases */
+  --status-success-background: var(--status-success-bg);
+  --status-warning-background: var(--status-warning-bg);
+  --status-danger-background: var(--status-danger-bg);
+  --notice-background: var(--notice-bg);
+
+  /* Code, Terminal & Diff Surfaces */
+  --code-background: #faf9f6;
+  --code-surface: #ffffff;
+  --code-border: #d4d0c2;
+  --code-text: #171714;
+  --code-muted: #5c5a53;
+  --terminal-command-text: #171714;
+  --terminal-output-text: #242422;
+  --terminal-error-text: #991b1b;
+
+  --diff-addition-background: #ecfdf3;
+  --diff-addition-text: #166534;
+  --diff-deletion-background: #fef2f2;
+  --diff-deletion-text: #991b1b;
+
+  /* Radii & Shadows Scale */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  --shadow-sm: 0 1px 2px rgba(23, 23, 20, 0.04);
+  --shadow-md:
+    0 4px 12px rgba(23, 23, 20, 0.05), 0 1px 2px rgba(23, 23, 20, 0.03);
+  --shadow-card:
+    0 4px 16px rgba(23, 23, 20, 0.06), 0 1px 3px rgba(23, 23, 20, 0.04);
+
+  font-family: var(--font-body);
   background: var(--paper);
   color: var(--ink);
 }
@@ -19,9 +100,11 @@
 
 body {
   margin: 0;
-  background:
-    linear-gradient(rgba(23, 23, 20, 0.035) 1px, transparent 1px), var(--paper);
-  background-size: 100% 2rem;
+  font-family: var(--font-body);
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 button,
@@ -40,22 +123,23 @@ a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 summary:focus-visible {
-  outline: 3px solid #5e720d;
-  outline-offset: 3px;
+  outline: 2px solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 h1,
 h2,
+h3,
 p {
   margin-top: 0;
 }
 
 h1 {
-  font-family: 'Iowan Old Style', Baskerville, 'Times New Roman', serif;
-  font-size: clamp(2.4rem, 6vw, 5.8rem);
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 4.8rem);
   font-weight: 500;
-  letter-spacing: -0.055em;
-  line-height: 0.94;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
 }
 
 h2 {
@@ -70,60 +154,80 @@ h2 {
 .file-kicker,
 .section-number {
   color: var(--muted);
+  font-family: var(--font-sans);
   font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .summary,
 .brief-copy {
   color: var(--muted);
-  font-family: 'Iowan Old Style', Baskerville, 'Times New Roman', serif;
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
-  line-height: 1.55;
+  font-family: var(--font-sans);
+  font-size: clamp(0.95rem, 1.8vw, 1.15rem);
+  line-height: 1.6;
 }
 
 .button {
-  min-height: 2.9rem;
-  padding: 0.78rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.55rem 1.1rem;
   border: 1px solid var(--ink);
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-decoration: none;
+  transition:
+    background 120ms ease-out,
+    border-color 120ms ease-out,
+    color 120ms ease-out;
 }
 
 .button-primary {
   background: var(--ink);
   color: var(--surface);
+  border-color: var(--ink);
 }
 
 .button-primary:hover:not(:disabled) {
   background: var(--accent);
-  color: var(--ink);
+  border-color: var(--accent);
+  color: var(--surface);
 }
 
 .button-secondary {
   background: transparent;
   color: var(--ink);
+  border-color: var(--line);
 }
 
 .button-secondary:hover:not(:disabled) {
-  background: #e3e0d5;
+  background: var(--surface-muted);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .button:disabled {
   cursor: not-allowed;
-  opacity: 0.48;
+  opacity: 0.45;
 }
 
 .text-link {
   color: var(--ink);
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-underline-offset: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-underline-offset: 0.25rem;
+}
+
+.text-link:hover {
+  color: var(--accent);
 }
 
 .form-error {

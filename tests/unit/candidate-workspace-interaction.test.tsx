@@ -1,4 +1,6 @@
 // @vitest-environment happy-dom
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -520,5 +522,24 @@ describe('C9A — Candidate workspace interactive navigation and focus', () => {
       container?.querySelector<HTMLHeadingElement>('#finalizing-title');
     expect(finalizingHeading).not.toBeNull();
     expect(document.activeElement).toBe(finalizingHeading);
+  });
+
+  it('provides explicit focus treatment for command terminal input', async () => {
+    await renderWorkspace();
+
+    const terminalInput = container?.querySelector<HTMLInputElement>(
+      'input.terminal-input',
+    );
+    expect(terminalInput).not.toBeNull();
+    terminalInput?.focus();
+    expect(document.activeElement).toBe(terminalInput);
+
+    const workspaceCss = readFileSync(
+      path.join(process.cwd(), 'apps/web/app/workspace.css'),
+      'utf8',
+    );
+    expect(workspaceCss).toMatch(
+      /\.terminal-form:focus-within\s*\{[^}]*outline:\s*2px\s*solid/,
+    );
   });
 });

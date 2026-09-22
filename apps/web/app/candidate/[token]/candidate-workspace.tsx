@@ -31,6 +31,21 @@ type ExecutedCommand = Readonly<{
   result: CommandExecResult;
 }>;
 
+type WorkspacePanel = 'scenario' | 'files' | 'editor' | 'commands' | 'ai';
+
+const formatRemainingTime = (remainingMs: number | null): string => {
+  if (remainingMs === null) return 'Untimed';
+
+  const remainingSeconds = Math.floor(remainingMs / 1_000);
+  const hours = Math.floor(remainingSeconds / 3_600);
+  const minutes = Math.floor((remainingSeconds % 3_600) / 60);
+  const seconds = remainingSeconds % 60;
+
+  return [hours, minutes, seconds]
+    .map((value) => String(value).padStart(2, '0'))
+    .join(':');
+};
+
 export const CandidateWorkspace = ({
   initialSession,
   token,
@@ -70,6 +85,8 @@ export const CandidateWorkspace = ({
   const [notice, setNotice] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [activeWorkspacePanel, setActiveWorkspacePanel] =
+    useState<WorkspacePanel>('editor');
 
   // Command console state
   const [commandInput, setCommandInput] = useState('');
@@ -82,6 +99,9 @@ export const CandidateWorkspace = ({
     null,
   );
   const workspaceHeadingRef = useRef<HTMLHeadingElement>(null);
+  const workspacePanelRefs = useRef<
+    Partial<Record<WorkspacePanel, HTMLElement>>
+  >({});
   const prevUxStateRef = useRef(projection.uxState);
 
   // Focus management: shift focus to workspace heading upon entering ACTIVE_WORKSPACE
@@ -449,6 +469,13 @@ export const CandidateWorkspace = ({
   const isActive =
     session.status === 'ACTIVE' && projection.capabilities.canEdit;
   const isSubmitted = session.status === 'SUBMITTED';
+  const selectWorkspacePanel = (panel: WorkspacePanel) => {
+    setActiveWorkspacePanel(panel);
+    requestAnimationFrame(() => {
+      workspacePanelRefs.current[panel]?.focus({ preventScroll: true });
+      workspacePanelRefs.current[panel]?.scrollIntoView({ block: 'start' });
+    });
+  };
 
   if (session.status === 'CREATED') {
     return (
@@ -465,23 +492,73 @@ export const CandidateWorkspace = ({
   }
 
   return (
-    <main className="workspace-shell">
+    <main
+      className={`workspace-shell ${projection.uxState === 'ACTIVE_WORKSPACE' ? 'workspace-shell-active' : 'workspace-shell-readonly'}`}
+      data-workspace-state={projection.uxState}
+    >
       <header className="workspace-header">
         <div>
           <p className="eyebrow">Candidate workspace</p>
           <p className="session-reference">Session {session.id}</p>
         </div>
-        <span
-          className={`status status-${projection.uxState === 'TIME_LIMIT_REACHED' ? 'timeout' : session.status.toLowerCase()}`}
-        >
-          {projection.uxState === 'TIME_LIMIT_REACHED'
-            ? 'Time limit reached'
-            : session.status}
-        </span>
+        <div className="workspace-session-actions">
+          <p className="workspace-timer">
+            <span>Time remaining</span>
+            <strong>{formatRemainingTime(projection.remainingMs)}</strong>
+          </p>
+          {isActive ? (
+            <button
+              className="button button-primary"
+              disabled={isBusy}
+              onClick={submit}
+              type="button"
+            >
+              Submit assessment
+            </button>
+          ) : null}
+          <span
+            className={`status status-${projection.uxState === 'TIME_LIMIT_REACHED' ? 'timeout' : session.status.toLowerCase()}`}
+          >
+            {projection.uxState === 'TIME_LIMIT_REACHED'
+              ? 'Time limit reached'
+              : session.status}
+          </span>
+        </div>
       </header>
 
-      <div className="workspace-grid">
-        <section className="brief-panel" aria-labelledby="scenario-title">
+      {isActive ? (
+        <nav className="workspace-navigation" aria-label="Workspace navigation">
+          {(
+            [
+              ['scenario', 'Scenario'],
+              ['files', 'Files'],
+              ['editor', 'Editor'],
+              ['commands', 'Commands'],
+              ['ai', 'AI'],
+            ] as const
+          ).map(([panel, label]) => (
+            <button
+              aria-pressed={activeWorkspacePanel === panel}
+              className="workspace-navigation-button"
+              key={panel}
+              onClick={() => selectWorkspacePanel(panel)}
+              type="button"
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      ) : null}
+
+      <div className={`workspace-grid workspace-view-${activeWorkspacePanel}`}>
+        <section
+          className="brief-panel"
+          aria-labelledby="scenario-title"
+          ref={(element) => {
+            workspacePanelRefs.current.scenario = element ?? undefined;
+          }}
+          tabIndex={-1}
+        >
           <p className="fixture-label">
             {isMultiFile ? 'Scenario 001 fixture' : 'Slice 2 fixture'} · v
             {session.scenario.version}
@@ -504,16 +581,17 @@ export const CandidateWorkspace = ({
             isolated multi-service sandbox container. It does not include
             automated candidate evaluation.
           </div>
-
-          <CandidateAiPanel
-            token={token}
-            sessionStatus={session.status}
-            aiCapability={session.aiCapability}
-            availableFiles={availableFiles}
-          />
         </section>
 
-        <section className="editor-panel" aria-labelledby="file-name">
+        <section
+          className="editor-panel"
+          aria-labelledby="file-name"
+          ref={(element) => {
+            workspacePanelRefs.current.editor = element ?? undefined;
+            workspacePanelRefs.current.files = element ?? undefined;
+          }}
+          tabIndex={-1}
+        >
           <div className="file-bar">
             <div>
               <span className="file-kicker">
@@ -581,21 +659,21 @@ export const CandidateWorkspace = ({
                   >
                     Save
                   </button>
-                  <button
-                    className="button button-primary"
-                    disabled={isBusy}
-                    onClick={submit}
-                    type="button"
-                  >
-                    {isMultiFile ? 'Submit assessment' : 'Submit final file'}
-                  </button>
                 </>
               ) : null}
             </div>
           </div>
+        </section>
 
-          {/* Sandbox command console */}
-          <div className="terminal-panel" aria-labelledby="terminal-title">
+        <aside className="workspace-auxiliary" aria-label="Workspace tools">
+          <section
+            className="terminal-panel"
+            aria-labelledby="terminal-title"
+            ref={(element) => {
+              workspacePanelRefs.current.commands = element ?? undefined;
+            }}
+            tabIndex={-1}
+          >
             <div className="terminal-header">
               <h3 id="terminal-title">Sandbox command console</h3>
               <span className="file-kicker">
@@ -677,8 +755,23 @@ export const CandidateWorkspace = ({
                 ))}
               </div>
             ) : null}
+          </section>
+
+          <div
+            className="workspace-ai"
+            ref={(element) => {
+              workspacePanelRefs.current.ai = element ?? undefined;
+            }}
+            tabIndex={-1}
+          >
+            <CandidateAiPanel
+              token={token}
+              sessionStatus={session.status}
+              aiCapability={session.aiCapability}
+              availableFiles={availableFiles}
+            />
           </div>
-        </section>
+        </aside>
       </div>
     </main>
   );

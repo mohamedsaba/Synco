@@ -218,6 +218,55 @@ describe('E3 evaluator role-depth contract', () => {
     },
   );
 
+  it('uses minimum-safe evidence defaults without explicit capability props', () => {
+    const html = renderToStaticMarkup(
+      <RecordedActivity
+        activities={briefing.observedActivity}
+        verification={briefing.recordedVerification}
+        evidenceEntries={review.evidenceEntries}
+      />,
+    );
+
+    expect(html).not.toContain('View evidence');
+    expect(html).not.toContain('Terminal activity');
+  });
+
+  it('renders factual later-workspace context only when verification chronology is enabled', () => {
+    const verification = {
+      ...briefing.recordedVerification,
+      runs: briefing.recordedVerification.runs.map((run, index) =>
+        index === 0
+          ? { ...run, laterWorkspaceEdits: true, laterCaptureGaps: true }
+          : run,
+      ),
+    };
+    const enabled = renderToStaticMarkup(
+      <RecordedActivity
+        activities={briefing.observedActivity}
+        verification={verification}
+        evidenceEntries={review.evidenceEntries}
+        showVerificationChronology
+      />,
+    );
+    const disabled = renderToStaticMarkup(
+      <RecordedActivity
+        activities={briefing.observedActivity}
+        verification={verification}
+        evidenceEntries={review.evidenceEntries}
+        showVerificationChronology={false}
+      />,
+    );
+
+    expect(enabled).toContain('Later workspace changes were recorded.');
+    expect(enabled).toContain('Later workspace capture gaps were recorded.');
+    expect(enabled).not.toContain('because');
+    expect(enabled).not.toContain('caused');
+    expect(disabled).not.toContain('Later workspace changes were recorded.');
+    expect(disabled).not.toContain(
+      'Later workspace capture gaps were recorded.',
+    );
+  });
+
   it('uses factual, exhaustive closure-reason labels', () => {
     expect(formatEvaluatorClosureReason('candidate_submission')).toBe(
       'Submitted by candidate',

@@ -80,9 +80,13 @@ only from `defaultDepth`.
 
 ## Verification
 
-- Focused evaluator suites: 96 tests in 5 files passed.
-- Evaluator regression: 134 tests in 10 files passed.
-- `npm run verify` ran twice. The first run stopped at a stale prop type error;
-  the second passed formatting, lint, and typechecking, then Docker-backed tests
-  could not access `/var/run/docker.sock`, so its chained build did not run.
-- A separate production build passed after the Docker-blocked test phase.
+- E3 independent review had Docker available and found four stale evaluator
+  briefing artifact tests after `evidenceLimitations` changed for the generalist
+  profile. The mismatch was artifact snapshots, not a Docker limitation.
+- E3A regenerated the C, D, F, and G evaluator briefing artifacts with the
+  supported writer, then added focused coverage for minimum-safe evidence
+  defaults and factual verification chronology context.
+- E3A focused evaluator checks passed. Its final `npm run verify` passed
+  formatting, lint, and typechecking, then Docker-backed integration tests
+  failed because this Codex environment could not access `/var/run/docker.sock`;
+  the chained build did not run.

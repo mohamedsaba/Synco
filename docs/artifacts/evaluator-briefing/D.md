@@ -210,7 +210,7 @@ Default detail:
   "technicalFootprint": false,
   "verificationChronology": false,
   "conciseSubmissionScope": true,
-  "evidenceLimitations": false,
+  "evidenceLimitations": true,
   "artifactAvailability": false,
   "reviewGuidance": true,
   "directEvidenceLinks": false,

@@ -14,6 +14,7 @@ import {
 } from './editor-persistence';
 import {
   executeFileSwitch,
+  executeSubmitAssessment,
   formatSaveFailureBeforeSubmit,
   formatSaveFailureBeforeSwitch,
   reconcileSubmissionResponse,
@@ -492,41 +493,42 @@ export const CandidateWorkspace = ({
     setIsBusy(true);
     setNotice(null);
     try {
-      if (isDirty) {
-        try {
-          if ((await saveCurrentFile()) === false) {
-            setNotice(
-              'Your newer edits are still unsaved. The assessment was not submitted.',
-            );
-            return;
+      await executeSubmitAssessment({
+        isDirty,
+        isBusy: false,
+        saveCurrentFile,
+        submitAssessment: async () => {
+          setFinalizationState('in_flight');
+          try {
+            const nextSession = await request('/submit', { method: 'POST' });
+            setSession(nextSession);
+          } catch {
+            try {
+              const response = await fetch(`/api/candidate/sessions/${token}`);
+              if (!response.ok) throw new Error('Session refresh failed.');
+              const nextSession =
+                (await response.json()) as CandidateSessionView;
+              setSession(nextSession);
+              if (reconcileSubmissionResponse(nextSession) === 'resume') {
+                setFinalizationState('idle');
+                setUiMode('workspace');
+                setNotice(
+                  'Submission was not admitted. Check the current assessment status.',
+                );
+              }
+            } catch {
+              setNotice("We're checking your submission status.");
+            }
           }
-        } catch {
-          setNotice(formatSaveFailureBeforeSubmit());
-          return;
-        }
-      }
-
-      setFinalizationState('in_flight');
-      try {
-        const nextSession = await request('/submit', { method: 'POST' });
-        setSession(nextSession);
-      } catch {
-        try {
-          const response = await fetch(`/api/candidate/sessions/${token}`);
-          if (!response.ok) throw new Error('Session refresh failed.');
-          const nextSession = (await response.json()) as CandidateSessionView;
-          setSession(nextSession);
-          if (reconcileSubmissionResponse(nextSession) === 'resume') {
-            setFinalizationState('idle');
-            setUiMode('workspace');
-            setNotice(
-              'Submission was not admitted. Check the current assessment status.',
-            );
-          }
-        } catch {
-          setNotice("We're checking your submission status.");
-        }
-      }
+        },
+        onSaveFailure: () => setNotice(formatSaveFailureBeforeSubmit()),
+        onSaveIncomplete: () =>
+          setNotice(
+            'Your newer edits are still unsaved. The assessment was not submitted.',
+          ),
+        onSubmitSuccess: () => {},
+        onSubmitFailure: () => {},
+      });
     } finally {
       setIsBusy(false);
     }

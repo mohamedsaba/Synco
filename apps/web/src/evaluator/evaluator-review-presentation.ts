@@ -105,6 +105,21 @@ export type EvaluatorReviewPresentation = Readonly<{
 export const notObservedExplanation =
   'No recorded activity was linked to this area by the current evidence relation. Relevant activity may exist elsewhere in the technical chronology. An empty relation does not mean the candidate lacks the underlying capability.';
 
+export const formatEvaluatorClosureReason = (
+  closureReason: SessionClosureReason,
+) => {
+  switch (closureReason) {
+    case 'candidate_submission':
+      return 'Submitted by candidate';
+    case 'timeout':
+      return 'Assessment time ended';
+    default: {
+      const exhaustive: never = closureReason;
+      throw new Error(`Unsupported closure reason: ${exhaustive}`);
+    }
+  }
+};
+
 const formatDuration = (activatedAt: string | null, submittedAt: string) => {
   if (!activatedAt) return null;
   const durationMs = Date.parse(submittedAt) - Date.parse(activatedAt);

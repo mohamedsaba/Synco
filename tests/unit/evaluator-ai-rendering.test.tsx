@@ -113,7 +113,7 @@ describe('Slice 6E — Evaluator AI Evidence Presentation Rendering', () => {
         <CompactAiSummary
           summary={baseAiSummary}
           showConfiguredModel={depth.aiConfiguredModel}
-          activeRole="ENGINEER"
+          showInterleaving={depth.technicalFootprint}
         />,
       );
 
@@ -138,7 +138,7 @@ describe('Slice 6E — Evaluator AI Evidence Presentation Rendering', () => {
             configuredProviderId: null,
           }}
           showConfiguredModel={generalistDepth.aiConfiguredModel}
-          activeRole="GENERALIST_RECRUITER"
+          showInterleaving={generalistDepth.technicalFootprint}
         />,
       );
 
@@ -167,7 +167,7 @@ describe('Slice 6E — Evaluator AI Evidence Presentation Rendering', () => {
         <CompactAiSummary
           summary={zeroSummary}
           showConfiguredModel={depth.aiConfiguredModel}
-          activeRole="TECHNICAL_RECRUITER"
+          showInterleaving={depth.technicalFootprint}
         />,
       );
 
@@ -198,7 +198,7 @@ describe('Slice 6E — Evaluator AI Evidence Presentation Rendering', () => {
         <CompactAiSummary
           summary={disabledSummary}
           showConfiguredModel={depth.aiConfiguredModel}
-          activeRole="ENGINEERING_MANAGER"
+          showInterleaving={depth.technicalFootprint}
         />,
       );
 
@@ -226,7 +226,7 @@ describe('Slice 6E — Evaluator AI Evidence Presentation Rendering', () => {
         <CompactAiSummary
           summary={legacySummary}
           showConfiguredModel={depth.aiConfiguredModel}
-          activeRole="GENERALIST_RECRUITER"
+          showInterleaving={depth.technicalFootprint}
         />,
       );
 
@@ -250,7 +250,7 @@ describe('Slice 6E — Evaluator AI Evidence Presentation Rendering', () => {
         <CompactAiSummary
           summary={failedSummary}
           showConfiguredModel={depth.aiConfiguredModel}
-          activeRole="ENGINEER"
+          showInterleaving={depth.technicalFootprint}
         />,
       );
 
@@ -670,8 +670,8 @@ describe('Slice 6E — Evaluator AI Evidence Presentation Rendering', () => {
         <RecordedActivity
           activities={activities}
           evidenceEntries={catalog.entries}
-          activeRole="ENGINEER"
           aiSummary={baseAiSummary}
+          showDetailedTechnical={depth.technicalFootprint}
           showConfiguredModel={depth.aiConfiguredModel}
           showTokenTelemetry={depth.aiTokenTelemetry}
           activatedAt="2026-09-17T10:00:00.000Z"
@@ -710,8 +710,8 @@ describe('Slice 6E — Evaluator AI Evidence Presentation Rendering', () => {
         <RecordedActivity
           activities={activities}
           evidenceEntries={catalog.entries}
-          activeRole="ENGINEER"
           aiSummary={baseAiSummary}
+          showDetailedTechnical={depth.technicalFootprint}
           showConfiguredModel={depth.aiConfiguredModel}
           showTokenTelemetry={depth.aiTokenTelemetry}
           activatedAt="2026-09-17T10:00:00.000Z"
@@ -779,8 +779,8 @@ describe('Slice 6E — Evaluator AI Evidence Presentation Rendering', () => {
         <RecordedActivity
           activities={activities}
           evidenceEntries={catalog.entries}
-          activeRole="ENGINEER"
           aiSummary={baseAiSummary}
+          showDetailedTechnical={depth.technicalFootprint}
           showConfiguredModel={depth.aiConfiguredModel}
           showTokenTelemetry={depth.aiTokenTelemetry}
           activatedAt="2026-09-17T10:00:00.000Z"

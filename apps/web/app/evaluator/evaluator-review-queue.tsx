@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { formatEvaluatorClosureReason } from '../../src/evaluator/evaluator-review-presentation';
 import { useEffect, useState } from 'react';
 
 import type {
@@ -84,11 +85,7 @@ export const EvaluatorReviewQueueContent = ({
             {formatDuration(session.durationSeconds) ? (
               <span>{formatDuration(session.durationSeconds)} assessment</span>
             ) : null}
-            <span>
-              {session.closureReason === 'timeout'
-                ? 'Assessment time ended'
-                : 'Submitted by candidate'}
-            </span>
+            <span>{formatEvaluatorClosureReason(session.closureReason)}</span>
           </Link>
         </li>
       ))}

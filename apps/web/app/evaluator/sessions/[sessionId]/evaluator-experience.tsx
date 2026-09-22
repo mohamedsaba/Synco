@@ -41,8 +41,8 @@ export const EvaluatorExperience = ({
         sessionId={sessionId}
         scenarioTitle={evidence.scenario.title}
         sessionDuration={briefing.sessionDuration}
-        submittedAt={evidence.submittedAt}
-        closureReason={evidence.closureReason}
+        submittedAt={review.session.submittedAt}
+        closureReason={review.session.closureReason}
         activeRole={activeRole}
         searchParams={searchParams}
       />
@@ -58,7 +58,13 @@ export const EvaluatorExperience = ({
 
       <div className="evaluator-main-layout">
         <section id="review-overview" aria-label="Review overview">
-          <PlatformNotice limitations={briefing.evidenceLimitations} />
+          <PlatformNotice
+            limitations={
+              defaultDepth.evidenceLimitations
+                ? briefing.evidenceLimitations
+                : []
+            }
+          />
           <TaskBrief
             taskContext={briefing.taskContext}
             showScenarioReference={defaultDepth.scenarioReference}
@@ -73,10 +79,12 @@ export const EvaluatorExperience = ({
           verification={briefing.recordedVerification}
           evidenceEntries={review.evidenceEntries}
           showDetailedTechnical={defaultDepth.technicalFootprint}
+          showStructuredEvidence={defaultDepth.structuredEvidence}
+          showDirectEvidenceLinks={defaultDepth.directEvidenceLinks}
+          showVerificationChronology={defaultDepth.verificationChronology}
           aiSummary={defaultDepth.aiSummary ? briefing.aiSummary : undefined}
           showConfiguredModel={defaultDepth.aiConfiguredModel}
           showTokenTelemetry={defaultDepth.aiTokenTelemetry}
-          activeRole={activeRole}
           activatedAt={evidence.activatedAt}
         />
 
@@ -94,7 +102,7 @@ export const EvaluatorExperience = ({
           <ArtifactAvailabilityCard
             availability={briefing.artifactAvailability}
             provenance={briefing.provenance}
-            showTechnicalDetails={activeRole === 'ENGINEER'}
+            showTechnicalDetails={defaultDepth.technicalRecord}
           />
         ) : null}
 

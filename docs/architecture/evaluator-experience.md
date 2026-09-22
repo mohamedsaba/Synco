@@ -75,7 +75,44 @@ The production visual experience implements the complete Evaluator Experience v2
 AUTHORITATIVE EVIDENCE -> DETERMINISTIC RECONSTRUCTION -> SEMANTIC BRIEFING -> SERVER-FIRST ROLE PROJECTION -> FINAL UI
 ```
 
-The route server component projects the requested role (`?depth=...`), passing only the single projected briefing into the UI. The React UI (`apps/web/app/evaluator/sessions/[sessionId]/`) contains zero secondary interpretation engine. All textual summaries, counts, and disclosures are pre-computed in the typed briefing model (`EvaluatorBriefing` and `projectBriefing`). No raw diff or command parsing exists in UI components.
+The route server component projects the requested role (`?depth=...`, with
+legacy `?role=...` accepted by the page). The UI receives that projection plus
+the existing authorized review presentation and evidence input needed to render
+literal submitted diffs and source records. Those inputs are not a second
+interpretation path: the UI does not parse raw diff, command, output, prompt,
+or response text to decide role behavior or candidate meaning. It consumes
+explicit projection capabilities and typed presentation data only.
+
+### Role-depth contract
+
+Depth is a default presentation preference, never authorization. The existing
+evaluator cookie authorizes the same submitted evidence independently of
+`depth` or `role`; a switch neither mutates a session nor persists role state.
+
+| Flag                     | Presentation meaning                                                                                 | Consumer                                |
+| ------------------------ | ---------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `structuredEvidence`     | Render typed command, file, and AI source records after a source disclosure opens.                   | `RecordedActivity` / `EvidenceItemCard` |
+| `directEvidenceLinks`    | Render per-statement source-disclosure affordances. When absent, factual chronology remains visible. | `RecordedActivity`                      |
+| `technicalRecord`        | Render complete chronology and raw-record inspection.                                                | `TechnicalRecord`                       |
+| `scenarioReference`      | Render authored invariants, verification areas, and warnings.                                        | `TaskBrief`                             |
+| `technicalFootprint`     | Render relevant recorded paths and technical AI/activity metadata.                                   | `RecordedActivity`                      |
+| `verificationChronology` | Render typed later-edit and later-capture-gap context beside its recorded verification run.          | `RecordedActivity`                      |
+| `conciseSubmissionScope` | Keep the authoritative submitted diff behind a native disclosure.                                    | `SubmittedWork`                         |
+| `evidenceLimitations`    | Render material platform notices in overview; capture gaps always remain in chronology.              | `PlatformNotice`                        |
+| `artifactAvailability`   | Render artifact-status presentation.                                                                 | `ArtifactAvailabilityCard`              |
+| `reviewGuidance`         | Render authored, non-verdict review policy.                                                          | `ReviewGuidance`                        |
+| `aiSummary`              | Render typed AI capability/activity summary.                                                         | `CompactAiSummary`                      |
+| `aiConfiguredModel`      | Render configured/reported AI model identifiers.                                                     | AI presentation components              |
+| `aiTokenTelemetry`       | Render recorded AI token telemetry.                                                                  | `EvidenceItemCard`                      |
+
+`GENERALIST_RECRUITER` uses concise submission scope and limitation notices but
+no direct source controls or structured source records. `TECHNICAL_RECRUITER`
+uses structured source records, direct evidence, technical footprint, scenario
+reference, and verification context. `ENGINEER` additionally receives the
+technical record, artifact provenance, and token telemetry. `ENGINEERING_MANAGER`
+retains concise scope, limitation and artifact context, and direct source
+references without structured raw records. All views retain the same factual
+ordering, submitted state, source references, and human decision boundary.
 
 Key architectural components:
 

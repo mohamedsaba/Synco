@@ -12,8 +12,8 @@ import { getAuthorizedReconstruction } from '../../../../src/reconstruction/evid
 import { SessionError } from '../../../../src/sessions/session';
 import { buildEvaluatorBriefing } from '../../../../src/evaluator/build-evaluator-briefing';
 import {
-  briefingDepthProfiles,
   projectBriefing,
+  resolveBriefingDepthProfile,
   type BriefingDepthProfile,
 } from '../../../../src/evaluator/project-evaluator-briefing';
 import { submittedChangesAnchor } from './submitted-diff';
@@ -81,10 +81,7 @@ const EvidencePage = async ({ params, searchParams }: EvidencePageProps) => {
   const rawRole = resolvedSearchParams?.depth || resolvedSearchParams?.role;
   const requestedRole = Array.isArray(rawRole) ? rawRole[0] : rawRole;
   const activeRole: BriefingDepthProfile =
-    requestedRole &&
-    briefingDepthProfiles.includes(requestedRole as BriefingDepthProfile)
-      ? (requestedRole as BriefingDepthProfile)
-      : 'GENERALIST_RECRUITER';
+    resolveBriefingDepthProfile(requestedRole);
 
   const projection = projectBriefing(briefing, activeRole);
 

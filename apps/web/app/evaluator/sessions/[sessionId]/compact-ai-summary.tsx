@@ -1,19 +1,15 @@
 import type { BriefingAiSummary } from '../../../../src/evaluator/evaluator-briefing';
-import type { BriefingDepthProfile } from '../../../../src/evaluator/project-evaluator-briefing';
-
 type CompactAiSummaryProps = Readonly<{
   summary: BriefingAiSummary;
   showConfiguredModel?: boolean;
-  activeRole?: BriefingDepthProfile;
+  showInterleaving?: boolean;
 }>;
 
 export const CompactAiSummary = ({
   summary,
   showConfiguredModel = false,
-  activeRole,
+  showInterleaving = false,
 }: CompactAiSummaryProps) => {
-  const isGeneralist = activeRole === 'GENERALIST_RECRUITER';
-
   return (
     <aside
       className={`compact-ai-summary compact-ai-summary-${summary.capabilityState}`}
@@ -40,7 +36,7 @@ export const CompactAiSummary = ({
         </p>
       ) : null}
 
-      {summary.interleaved && !isGeneralist ? (
+      {summary.interleaved && showInterleaving ? (
         <p className="ai-summary-interleaving">
           Recorded AI activity was interleaved with terminal commands and
           workspace changes.

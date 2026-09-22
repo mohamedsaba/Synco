@@ -6,7 +6,6 @@ import type {
   ObservedStatement,
   RecordedVerification,
 } from '../../../../src/evaluator/evaluator-briefing';
-import type { BriefingDepthProfile } from '../../../../src/evaluator/project-evaluator-briefing';
 import type { EvidenceCatalogEntry } from '../../../../src/reconstruction/evidence-reference-catalog';
 import type { ReconstructionItem } from '../../../../src/evidence/chronological-reconstruction';
 import { formatElapsed } from '../../../../src/evaluator/evaluator-review-presentation';
@@ -18,10 +17,12 @@ type RecordedActivityProps = Readonly<{
   verification?: RecordedVerification;
   evidenceEntries: readonly EvidenceCatalogEntry[];
   showDetailedTechnical?: boolean;
+  showStructuredEvidence?: boolean;
+  showDirectEvidenceLinks?: boolean;
+  showVerificationChronology?: boolean;
   aiSummary?: BriefingAiSummary;
   showConfiguredModel?: boolean;
   showTokenTelemetry?: boolean;
-  activeRole?: BriefingDepthProfile;
   activatedAt?: string | null;
 }>;
 
@@ -155,10 +156,12 @@ export const RecordedActivity = ({
   verification = { runs: [], scope: 'recognized_recorded_executions_only' },
   evidenceEntries = [],
   showDetailedTechnical = false,
+  showStructuredEvidence = true,
+  showDirectEvidenceLinks = true,
+  showVerificationChronology = false,
   aiSummary,
   showConfiguredModel = false,
   showTokenTelemetry = false,
-  activeRole,
   activatedAt,
 }: RecordedActivityProps) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -256,7 +259,7 @@ export const RecordedActivity = ({
               ) : null}
             </div>
 
-            {matchingEntries.length > 0 ? (
+            {showDirectEvidenceLinks && matchingEntries.length > 0 ? (
               <button
                 type="button"
                 className="evidence-toggle-button"
@@ -281,12 +284,30 @@ export const RecordedActivity = ({
           </div>
 
           {verificationRun ? (
-            <p className="activity-verification-result">
-              {verificationRun.result?.text ??
-                (verificationRun.timedOut
-                  ? 'The recorded test execution timed out.'
-                  : `The recorded test execution exited with status ${verificationRun.exitCode ?? 'not recorded'}.`)}
-            </p>
+            <>
+              <p className="activity-verification-result">
+                {verificationRun.result?.text ??
+                  (verificationRun.timedOut
+                    ? 'The recorded test execution timed out.'
+                    : `The recorded test execution exited with status ${verificationRun.exitCode ?? 'not recorded'}.`)}
+              </p>
+              {showVerificationChronology &&
+              (verificationRun.laterWorkspaceEdits ||
+                verificationRun.laterCaptureGaps) ? (
+                <p className="activity-verification-context">
+                  {verificationRun.laterWorkspaceEdits
+                    ? 'Later workspace changes were recorded.'
+                    : null}
+                  {verificationRun.laterWorkspaceEdits &&
+                  verificationRun.laterCaptureGaps
+                    ? ' '
+                    : null}
+                  {verificationRun.laterCaptureGaps
+                    ? 'Later workspace capture gaps were recorded.'
+                    : null}
+                </p>
+              ) : null}
+            </>
           ) : null}
 
           {showDetailedTechnical &&
@@ -302,7 +323,9 @@ export const RecordedActivity = ({
             </div>
           ) : null}
 
-          {isExpanded && matchingEntries.length > 0 ? (
+          {showDirectEvidenceLinks &&
+          isExpanded &&
+          matchingEntries.length > 0 ? (
             <div
               id={`evidence-drawer-${activity.id}`}
               className="activity-evidence-drawer"
@@ -319,13 +342,17 @@ export const RecordedActivity = ({
                       <span className="entry-kind">{entry.kind}</span>
                       <code className="entry-ref">{entry.evidenceRef}</code>
                     </div>
-                    {entry.item ? (
+                    {entry.item && showStructuredEvidence ? (
                       <EvidenceItemCard
                         item={entry.item}
                         showConfiguredModel={showConfiguredModel}
                         showTokenTelemetry={showTokenTelemetry}
                         showTechnicalDetails={showDetailedTechnical}
                       />
+                    ) : entry.item ? (
+                      <p className="empty-evidence-copy">
+                        Source evidence reference: {entry.evidenceRef}.
+                      </p>
                     ) : (
                       <p className="empty-evidence-copy">
                         Recorded submission diff reference.
@@ -363,7 +390,7 @@ export const RecordedActivity = ({
         <CompactAiSummary
           summary={aiSummary}
           showConfiguredModel={showConfiguredModel}
-          activeRole={activeRole}
+          showInterleaving={showDetailedTechnical}
         />
       ) : null}
 

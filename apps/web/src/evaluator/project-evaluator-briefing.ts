@@ -16,6 +16,14 @@ export const briefingDepthProfiles = [
 ] as const;
 export type BriefingDepthProfile = (typeof briefingDepthProfiles)[number];
 
+export const resolveBriefingDepthProfile = (
+  requestedProfile: string | null | undefined,
+): BriefingDepthProfile =>
+  requestedProfile &&
+  briefingDepthProfiles.includes(requestedProfile as BriefingDepthProfile)
+    ? (requestedProfile as BriefingDepthProfile)
+    : 'GENERALIST_RECRUITER';
+
 export type BriefingDefaultDepth = Readonly<{
   structuredEvidence: boolean;
   technicalRecord: boolean;
@@ -40,7 +48,7 @@ const depth: Record<BriefingDepthProfile, BriefingDefaultDepth> = {
     technicalFootprint: false,
     verificationChronology: false,
     conciseSubmissionScope: true,
-    evidenceLimitations: false,
+    evidenceLimitations: true,
     artifactAvailability: false,
     reviewGuidance: true,
     directEvidenceLinks: false,
@@ -243,8 +251,7 @@ export const projectBriefing = (
     briefing: roleBriefing,
     defaultDepth: depth[profile],
     // Presentation contract: The abstraction level may change. The underlying truth may not.
-    // All profiles retain the full index and direct source access. Technical evidence remains available
-    // through the technical record even if the role projection does not display every field by default.
+    // Every projection retains source references; its depth controls whether it renders direct source affordances.
     expandedEvidenceRefs: depth[profile].technicalRecord
       ? briefing.evidenceIndex.map((entry) => entry.evidenceRef)
       : [],

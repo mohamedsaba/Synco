@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { BriefingDepthProfile } from '../../../../src/evaluator/project-evaluator-briefing';
 import type { BriefingSessionDuration } from '../../../../src/evaluator/evaluator-briefing';
 import type { SessionClosureReason } from '../../../../src/sessions/session';
+import { formatEvaluatorClosureReason } from '../../../../src/evaluator/evaluator-review-presentation';
 import {
   RoleLensSwitcher,
   type RoleLensSearchParams,
@@ -53,9 +54,7 @@ export const EvaluatorHeader = ({
             Submitted
           </span>
           <span className="duration-indicator">
-            {closureReason === 'timeout'
-              ? 'Assessment time ended'
-              : 'Submitted by candidate'}
+            {formatEvaluatorClosureReason(closureReason)}
           </span>
           {sessionDuration?.status === 'available' ? (
             <span

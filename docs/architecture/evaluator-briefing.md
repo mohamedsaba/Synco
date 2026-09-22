@@ -71,7 +71,7 @@ The full diff parser uses the existing `diff` dependency; it validates hunk coun
 
 ## Depth and authorized output
 
-`projectBriefing` is a pure wrapper around the same base briefing. Profiles are `GENERALIST_RECRUITER`, `TECHNICAL_RECRUITER`, `ENGINEER`, `ENGINEERING_MANAGER`. Default structured/technical/scenario-reference depth changes, with engineer source entries marked expanded. Every profile retains identical core IDs, parameters, refs, qualification, results and material limitations, and all can reach the complete source index. Depth is not authorization.
+`projectBriefing` is a pure wrapper around the same base briefing. Profiles are `GENERALIST_RECRUITER`, `TECHNICAL_RECRUITER`, `ENGINEER`, `ENGINEERING_MANAGER`. Default structured/technical/scenario-reference depth changes, with engineer source entries marked expanded. Every profile retains source references, verification, limitations, submitted state, and grounded factual content; each profile's explicit presentation flags determine its rendered density and source affordances. Depth is not authorization.
 
 `GET /api/evaluator/sessions/{sessionId}/briefing` returns the base. Optional `?depth=ENGINEER` (or another supported profile) returns the projection. It uses existing evaluator-cookie evidence/reconstruction guards, exposes no attempt token or candidate credential, performs no reconstruction ensure/retry or evidence mutation, and sends private/no-store successful responses. Invalid depth returns 400; unauthorized requests retain 401. No evaluator React page or final visual design is changed.
 

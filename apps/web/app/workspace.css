@@ -521,6 +521,51 @@ textarea:disabled {
   font-size: clamp(2.5rem, 7vw, 4.8rem);
 }
 
+.evaluator-entry-card {
+  width: min(62rem, 100%);
+}
+
+.evaluator-entry-card h2 {
+  margin: 2rem 0 0.75rem;
+}
+
+.evaluator-review-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evaluator-review-link {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.evaluator-review-link:hover {
+  border-color: var(--ink);
+}
+
+.evaluator-review-title {
+  font-weight: 700;
+}
+
+.evaluator-review-reference {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.evaluator-known-session {
+  margin-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+
 .access-form {
   display: grid;
   gap: 1.2rem;
@@ -2183,38 +2228,6 @@ details[open] > summary > .disclosure-chevron {
   font-size: 1.05rem;
   line-height: 1.5;
   color: var(--ink);
-}
-
-.handoff-action-bar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
-}
-
-.action-button-handoff {
-  padding: 0.65rem 1.4rem;
-  border: 1px solid var(--ink);
-  background: var(--ink);
-  color: var(--surface);
-  font-family: var(--font-body);
-  font-size: 0.92rem;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.15);
-}
-
-.action-button-handoff:disabled {
-  opacity: 0.85;
-  cursor: default;
-}
-
-.handoff-affordance-note {
-  font-size: 0.8rem;
-  color: var(--muted);
-  font-style: italic;
 }
 
 /* Artifact Availability */

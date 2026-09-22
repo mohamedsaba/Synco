@@ -46,6 +46,10 @@ import {
   toCandidateTimingProjection,
 } from './session-timing';
 import { SqliteSessionStore } from './sqlite-session-store';
+import {
+  evaluatorReviewLimit,
+  type EvaluatorReviewEntry,
+} from '../evaluator/evaluator-review-entry';
 
 const maximumContentLength = MAX_WORKSPACE_FILE_READ_BYTES;
 
@@ -1261,6 +1265,10 @@ export class SessionService {
       events,
       aiCapabilitySnapshot: submitted.aiCapabilitySnapshot ?? null,
     };
+  }
+
+  listSubmittedReviewEntries(): readonly EvaluatorReviewEntry[] {
+    return this.store.findSubmittedReviewEntries(evaluatorReviewLimit);
   }
 
   getSessionEvents(candidateToken: string) {

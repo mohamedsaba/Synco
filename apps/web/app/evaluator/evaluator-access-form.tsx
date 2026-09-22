@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export const EvaluatorAccessForm = () => {
+export const EvaluatorAccessForm = ({
+  authenticated = false,
+}: Readonly<{ authenticated?: boolean }>) => {
   const router = useRouter();
   const [sessionId, setSessionId] = useState('');
   const [credential, setCredential] = useState('');
@@ -16,6 +18,13 @@ export const EvaluatorAccessForm = () => {
     setError(null);
 
     try {
+      if (authenticated) {
+        router.push(
+          `/evaluator/sessions/${encodeURIComponent(sessionId.trim())}`,
+        );
+        return;
+      }
+
       const response = await fetch('/api/evaluator/access', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -28,9 +37,13 @@ export const EvaluatorAccessForm = () => {
         throw new Error(result.error?.message ?? 'Evaluator access failed.');
       }
 
-      router.push(
-        `/evaluator/sessions/${encodeURIComponent(sessionId.trim())}`,
-      );
+      if (sessionId.trim()) {
+        router.push(
+          `/evaluator/sessions/${encodeURIComponent(sessionId.trim())}`,
+        );
+      } else {
+        router.refresh();
+      }
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -44,26 +57,36 @@ export const EvaluatorAccessForm = () => {
   return (
     <form className="access-form" onSubmit={openEvidence}>
       <label>
-        Session ID
+        {authenticated
+          ? 'Known session reference'
+          : 'Known session reference (optional)'}
         <input
           autoComplete="off"
           onChange={(event) => setSessionId(event.target.value)}
-          required
+          required={authenticated}
           value={sessionId}
         />
       </label>
-      <label>
-        Evaluator credential
-        <input
-          autoComplete="current-password"
-          onChange={(event) => setCredential(event.target.value)}
-          required
-          type="password"
-          value={credential}
-        />
-      </label>
+      {authenticated ? null : (
+        <label>
+          Evaluator credential
+          <input
+            autoComplete="current-password"
+            onChange={(event) => setCredential(event.target.value)}
+            required
+            type="password"
+            value={credential}
+          />
+        </label>
+      )}
       <button className="button button-primary" disabled={isBusy} type="submit">
-        {isBusy ? 'Checking access…' : 'Open evidence'}
+        {isBusy
+          ? 'Checking access…'
+          : authenticated
+            ? 'Open known session'
+            : sessionId.trim()
+              ? 'Open known session'
+              : 'Continue to review queue'}
       </button>
       {error ? (
         <p className="form-error" aria-live="polite">

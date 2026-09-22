@@ -15,6 +15,7 @@ import {
   submitSession,
   type SubmittedSession,
 } from './session';
+import type { EvaluatorReviewEntry } from '../evaluator/evaluator-review-entry';
 
 type SessionRow = Readonly<{
   id: string;
@@ -39,6 +40,14 @@ type SessionRow = Readonly<{
   scenario_evaluation_context: string | null;
   scenario_semantic_snapshot: string | null;
   ai_capability_snapshot: string | null;
+}>;
+
+type EvaluatorReviewRow = Readonly<{
+  session_id: string;
+  scenario_title: string;
+  submitted_at: string;
+  duration_seconds: number | null;
+  closure_reason: SessionClosureReason;
 }>;
 
 const schema = `
@@ -241,6 +250,32 @@ export class SqliteSessionStore {
         )
         .all() as SessionRow[];
       return rows.map(toSession);
+    });
+  }
+
+  findSubmittedReviewEntries(limit: number): readonly EvaluatorReviewEntry[] {
+    return this.withDatabase((database) => {
+      const rows = database
+        .prepare(
+          `SELECT id AS session_id, scenario_title, submitted_at,
+                  duration_seconds, closure_reason
+           FROM assessment_sessions
+           WHERE status = 'SUBMITTED'
+             AND submitted_content IS NOT NULL
+             AND submitted_at IS NOT NULL
+             AND closure_reason IS NOT NULL
+           ORDER BY submitted_at DESC, id DESC
+           LIMIT ?`,
+        )
+        .all(limit) as EvaluatorReviewRow[];
+
+      return rows.map((row) => ({
+        sessionId: row.session_id,
+        scenarioTitle: row.scenario_title,
+        submittedAt: row.submitted_at,
+        durationSeconds: row.duration_seconds,
+        closureReason: row.closure_reason,
+      }));
     });
   }
 

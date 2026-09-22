@@ -699,8 +699,8 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
     });
   });
 
-  describe('ReviewGuidance & Handoff Affordance', () => {
-    it('renders policy text and disabled non-operational handoff affordance', () => {
+  describe('ReviewGuidance', () => {
+    it('renders factual policy text without a non-operational handoff action', () => {
       const html = renderToStaticMarkup(
         <ReviewGuidance guidance={mockBriefing.reviewGuidance} />,
       );
@@ -709,11 +709,11 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       expect(html).toContain(
         'Final automated verification alone is not a hiring decision.',
       );
-      expect(html).toContain('Request engineering review');
-      expect(html).toContain('disabled');
       expect(html).toContain(
-        'Standard review routing: technical judgment requires an evaluator verdict.',
+        'Technical judgment remains a human evaluator decision.',
       );
+      expect(html).not.toContain('Request engineering review');
+      expect(html).not.toContain('disabled');
     });
   });
 

@@ -2,6 +2,26 @@
 
 Slice 5.1 presents an evidence-first review rather than an analytics dashboard.
 
+## Review entry and discovery
+
+`/evaluator` is the evaluator entry point. The existing single global
+`DELIMIT_EVALUATOR_KEY` produces the HTTP-only `delimit_evaluator` cookie; a
+valid cookie is the complete current evaluator authorization scope. There is no
+evaluator identity, organization, tenant, or session-specific grant.
+
+After that same server-side authorization check, `GET /api/evaluator/sessions`
+returns at most 50 reviewable submitted sessions in `submittedAt DESC, id DESC`
+order. A queue item contains only session reference, scenario title, submission
+time, assessment duration, and closure reason. It never returns candidate
+tokens, raw evidence, diffs, events, AI content, or reconstruction payloads.
+The queue includes only final `SUBMITTED` sessions with frozen submitted content,
+submission timestamp, and closure reason. Direct authorized links to
+`/evaluator/sessions/[sessionId]` remain valid.
+
+The entry UI distinguishes an empty queue from invalid evaluator access and a
+discovery service failure. Discovery is navigation only: it adds no assignment,
+ranking, reviewer routing, notification, or evaluator verdict.
+
 ## Default hierarchy
 
 1. Factual session context: assessment, scenario, submitted status, duration, submission time, and session reference.
@@ -67,7 +87,8 @@ Key architectural components:
 5. `VerificationSummary`: Factual progression of recorded test runs without scorecards or verdict badges.
 6. `RecordedActivity`: Factual activity timeline with inline evidence disclosures.
 7. `SubmittedWork`: Authoritative diff viewer with line modification statistics and anchor navigation.
-8. `ReviewGuidance`: Evaluation policy constraints and a non-operational `[ Request engineering review ]` handoff affordance.
+8. `ReviewGuidance`: Evaluation policy constraints that retain human evaluator
+   ownership without offering a non-functional routing action.
 9. `ArtifactAvailabilityCard`: Clean integrity indicators for recruiters and EM; cryptographic SHA-256 and generator versions for engineers.
 
 Scenario semantics enrich presentation only. They do not change evidence truth.

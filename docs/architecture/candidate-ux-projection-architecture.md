@@ -202,12 +202,11 @@ controls. `SUBMITTED` renders a terminal completion surface. Its wording is
 selected only from authoritative `closureReason`: manual submission and timeout
 are distinct. These terminal surfaces show no timer, save control, command
 input, AI composer, or submit control. Finalizing and completion headings are
-focused once per transition; review focus is set on entry. C9 remains the full
-accessibility/responsive audit and C10 remains visual polish.
+focused once per transition; review focus is set on entry. C9 hardens
+accessibility and responsive behavior; C10 remains visual polish.
 
 The following areas remain deferred:
 
-- **C9**: Full accessibility and responsive hardening.
 - **C10**: Final visual polish.
 - **Practice Environment**: Interactive sandbox tutorial/playground.
 
@@ -245,3 +244,33 @@ navigation but do not survive a browser refresh. C5 adds no browser storage or
 backend API changes. Output is labeled standard output or standard error and is
 not placed in a live output region; only the brief running status uses status
 semantics.
+
+## 12. C9 Candidate Accessibility and Responsive Hardening
+
+Workspace destinations use native buttons in a named navigation landmark, not
+ARIA tabs: every surface remains mounted and narrow layouts reveal one existing
+surface at a time. The current destination and current file use `aria-current`;
+keyboard activation remains native. Selecting a destination reveals its mounted
+surface without moving focus away from the activated navigation control.
+
+Entering review focuses its heading once. Review makes the still-mounted
+workspace inert and hidden from assistive technology, then Back restores focus
+to the review opener. Finalizing has one polite status announcement and focuses
+its heading once; completion focuses its heading once. Deadline presentation
+announces the transition once and never steals focus from active work.
+
+The timer remains non-live while visibly including threshold text. Save,
+command, AI, and submission errors retain their existing associated status or
+alert semantics; command output and AI history are not live regions. Existing
+visible focus outlines apply to all native controls. Selected/current states,
+command outcomes, timer thresholds, and unavailable states include text, not
+color alone.
+
+Desktop retains the three-surface layout. Below `72rem`, the existing navigation
+switches to a single visible, mounted surface before desktop columns become
+cramped. At narrow widths, headers and action rows stack, controls retain useful
+tap height, and navigation scrolls inside its own strip rather than causing page
+overflow. Panels, file names, and long output may wrap; preformatted command and
+AI content retains its own horizontal scrolling. Candidate motion stays behind
+`prefers-reduced-motion: no-preference`; the file selector no longer adds a
+transition.

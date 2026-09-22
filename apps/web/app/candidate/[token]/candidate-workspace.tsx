@@ -93,6 +93,7 @@ export const CandidateWorkspace = ({
   );
   const workspaceHeadingRef = useRef<HTMLHeadingElement>(null);
   const reviewHeadingRef = useRef<HTMLHeadingElement>(null);
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
   const terminalHeadingRef = useRef<HTMLHeadingElement>(null);
   const workspacePanelRefs = useRef<
     Partial<Record<WorkspacePanel, HTMLElement>>
@@ -618,9 +619,13 @@ export const CandidateWorkspace = ({
   const selectWorkspacePanel = (panel: WorkspacePanel) => {
     setActiveWorkspacePanel(panel);
     requestAnimationFrame(() => {
-      workspacePanelRefs.current[panel]?.focus({ preventScroll: true });
       workspacePanelRefs.current[panel]?.scrollIntoView({ block: 'start' });
     });
+  };
+
+  const closeSubmissionReview = () => {
+    setUiMode('workspace');
+    requestAnimationFrame(() => submitButtonRef.current?.focus());
   };
 
   if (session.status === 'CREATED') {
@@ -705,6 +710,7 @@ export const CandidateWorkspace = ({
               className="button button-primary"
               disabled={isBusy}
               onClick={() => setUiMode('submission_review')}
+              ref={submitButtonRef}
               type="button"
             >
               Submit assessment
@@ -750,7 +756,7 @@ export const CandidateWorkspace = ({
             <button
               className="button button-secondary"
               disabled={isBusy || finalizationState === 'in_flight'}
-              onClick={() => setUiMode('workspace')}
+              onClick={closeSubmissionReview}
               type="button"
             >
               Back
@@ -778,307 +784,329 @@ export const CandidateWorkspace = ({
         </section>
       ) : null}
 
-      {isActive ? (
-        <nav className="workspace-navigation" aria-label="Workspace navigation">
-          {(
-            [
-              ['scenario', 'Scenario'],
-              ['files', 'Files'],
-              ['editor', 'Editor'],
-              ['commands', 'Commands'],
-              ['ai', 'AI'],
-            ] as const
-          ).map(([panel, label]) => (
-            <button
-              aria-pressed={activeWorkspacePanel === panel}
-              className="workspace-navigation-button"
-              key={panel}
-              onClick={() => selectWorkspacePanel(panel)}
-              type="button"
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
-      ) : null}
-
-      <div className={`workspace-grid workspace-view-${activeWorkspacePanel}`}>
-        <section
-          className="brief-panel"
-          aria-labelledby="scenario-title"
-          ref={(element) => {
-            workspacePanelRefs.current.scenario = element ?? undefined;
-          }}
-          tabIndex={-1}
-        >
-          <p className="fixture-label">
-            {isMultiFile ? 'Scenario 001 fixture' : 'Slice 2 fixture'} · v
-            {session.scenario.version}
-          </p>
-          <h1 id="scenario-title" tabIndex={-1} ref={workspaceHeadingRef}>
-            {session.scenario.title}
-          </h1>
-          <p className="brief-copy">{session.scenario.brief}</p>
-
-          <h2>Expected behavior</h2>
-          <ul className="criteria-list">
-            {(session.scenario.acceptanceCriteria ?? []).map((criterion) => (
-              <li key={criterion}>{criterion}</li>
+      <div
+        aria-hidden={projection.uxState === 'SUBMISSION_REVIEW' || undefined}
+        inert={projection.uxState === 'SUBMISSION_REVIEW'}
+      >
+        {isActive ? (
+          <nav
+            className="workspace-navigation"
+            aria-label="Workspace navigation"
+          >
+            {(
+              [
+                ['scenario', 'Scenario'],
+                ['files', 'Files'],
+                ['editor', 'Editor'],
+                ['commands', 'Commands'],
+                ['ai', 'AI'],
+              ] as const
+            ).map(([panel, label]) => (
+              <button
+                aria-controls={
+                  panel === 'files' ? 'workspace-editor' : `workspace-${panel}`
+                }
+                aria-current={
+                  activeWorkspacePanel === panel ? 'page' : undefined
+                }
+                className="workspace-navigation-button"
+                key={panel}
+                onClick={() => selectWorkspacePanel(panel)}
+                type="button"
+              >
+                {label}
+              </button>
             ))}
-          </ul>
+          </nav>
+        ) : null}
 
-          <div className="capture-note">
-            This scenario records saved workspace file mutations, authoritative
-            command lifecycle events, and integrated AI interactions inside an
-            isolated multi-service sandbox container. It does not include
-            automated candidate evaluation.
-          </div>
-        </section>
-
-        <section
-          className="editor-panel"
-          aria-labelledby="file-name"
-          ref={(element) => {
-            workspacePanelRefs.current.editor = element ?? undefined;
-            workspacePanelRefs.current.files = element ?? undefined;
-          }}
-          tabIndex={-1}
+        <div
+          className={`workspace-grid workspace-view-${activeWorkspacePanel}`}
         >
-          <div className="file-bar">
-            <div>
-              <span className="file-kicker">
-                {isMultiFile ? 'Workspace file' : 'Permitted file'}
-              </span>
-              <h2 id="file-name">
-                {isMultiFile ? selectedFile : session.scenario.filePath}
-              </h2>
-            </div>
-            <span
-              className={`editor-persistence editor-persistence-${persistenceState.toLowerCase()}`}
-              role="status"
-              aria-live="polite"
-            >
-              {editorPersistenceMessage(
-                persistenceState,
-                isSaving && content !== persistedContent,
-              )}
-            </span>
-          </div>
-
-          {isMultiFile && isActive && workspaceFiles.length > 0 ? (
-            <div
-              className="workspace-file-selector"
-              role="tablist"
-              aria-label="Workspace files"
-            >
-              {workspaceFiles.map((file) => (
-                <button
-                  key={file.path}
-                  type="button"
-                  role="tab"
-                  aria-selected={file.path === selectedFile}
-                  className={`file-tab ${file.path === selectedFile ? 'file-tab-active' : ''}`}
-                  onClick={() => handleSelectFile(file.path)}
-                  disabled={!isActive || isBusy}
-                >
-                  {file.path}
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          <textarea
-            aria-label={`Edit ${isMultiFile ? selectedFile : session.scenario.filePath}`}
-            disabled={!isActive || (isBusy && !isSaving)}
-            onChange={(event) => {
-              updateEditorContent(event.target.value);
-              setNotice(null);
-            }}
-            spellCheck={false}
-            value={content}
-          />
-
-          <div className="editor-footer">
-            {saveFailure ? (
-              <p className="editor-message save-failure" role="alert">
-                We could not save your changes. Your edits are still here. Try
-                saving again.
-              </p>
-            ) : (
-              <p className="editor-message" aria-live="polite">
-                {notice ??
-                  (projection.uxState === 'TIME_LIMIT_REACHED'
-                    ? 'The assessment time limit has been reached. New modifications are no longer permitted.'
-                    : isSubmitted
-                      ? (projection.completionMessage ??
-                        `Submitted ${new Date(session.submittedAt ?? '').toLocaleString()}.`)
-                      : 'Edits persist only after Save or Submit.')}
-              </p>
-            )}
-            <div className="button-row">
-              {isActive ? (
-                <>
-                  <button
-                    className="button button-secondary"
-                    disabled={isBusy || isSaving || !isDirty}
-                    onClick={save}
-                    type="button"
-                  >
-                    Save
-                  </button>
-                </>
-              ) : null}
-            </div>
-          </div>
-        </section>
-
-        <aside className="workspace-auxiliary" aria-label="Workspace tools">
           <section
-            className="terminal-panel"
-            aria-labelledby="terminal-title"
+            id="workspace-scenario"
+            className="brief-panel"
+            aria-labelledby="scenario-title"
             ref={(element) => {
-              workspacePanelRefs.current.commands = element ?? undefined;
+              workspacePanelRefs.current.scenario = element ?? undefined;
             }}
             tabIndex={-1}
           >
-            <div className="terminal-header">
-              <div>
-                <h3 id="terminal-title">Commands</h3>
-                <p className="command-description">
-                  Run commands and tests inside the assessment environment.
-                </p>
-              </div>
-              <span className="file-kicker">
-                {canRunCommands
-                  ? 'Available'
-                  : projection.uxState === 'TIME_LIMIT_REACHED'
-                    ? 'Unavailable: time limit reached'
-                    : isSubmitted
-                      ? 'Unavailable: assessment submitted'
-                      : 'Unavailable: assessment inactive'}
-              </span>
+            <p className="fixture-label">
+              {isMultiFile ? 'Scenario 001 fixture' : 'Slice 2 fixture'} · v
+              {session.scenario.version}
+            </p>
+            <h1 id="scenario-title" tabIndex={-1} ref={workspaceHeadingRef}>
+              {session.scenario.title}
+            </h1>
+            <p className="brief-copy">{session.scenario.brief}</p>
+
+            <h2>Expected behavior</h2>
+            <ul className="criteria-list">
+              {(session.scenario.acceptanceCriteria ?? []).map((criterion) => (
+                <li key={criterion}>{criterion}</li>
+              ))}
+            </ul>
+
+            <div className="capture-note">
+              This scenario records saved workspace file mutations,
+              authoritative command lifecycle events, and integrated AI
+              interactions inside an isolated multi-service sandbox container.
+              It does not include automated candidate evaluation.
             </div>
-
-            <form className="terminal-form" onSubmit={executeCommand}>
-              <input
-                aria-label="Command"
-                className="terminal-input"
-                disabled={!canRunCommands || isExecuting}
-                onChange={(e) => setCommandInput(e.target.value)}
-                placeholder={
-                  canRunCommands
-                    ? 'Example: npm test'
-                    : 'Commands are unavailable'
-                }
-                type="text"
-                value={commandInput}
-              />
-              <button
-                className="terminal-button"
-                disabled={
-                  !canRunCommands || isExecuting || !commandInput.trim()
-                }
-                type="submit"
-              >
-                {isExecuting ? 'Running…' : 'Run'}
-              </button>
-            </form>
-
-            {commandHistory.length > 0 ? (
-              <ol className="terminal-log" aria-label="Command history">
-                {commandHistory.map((item) => (
-                  <li className="command-entry" key={item.id}>
-                    <div className="command-meta">
-                      <code className="command-text">{item.command}</code>
-                      {item.state === 'RUNNING' ? (
-                        <span className="badge badge-running" role="status">
-                          Command running
-                        </span>
-                      ) : item.state === 'TIMED_OUT' ? (
-                        <span className="badge badge-timeout">
-                          Command timed out
-                        </span>
-                      ) : item.state === 'COMPLETED_SUCCESS' ? (
-                        <span className="badge badge-success">
-                          Completed: exit 0
-                        </span>
-                      ) : item.state === 'COMPLETED_FAILURE' ? (
-                        <span className="badge badge-error">
-                          {item.result?.exitCode === null
-                            ? 'Completed without an exit code'
-                            : `Completed: non-zero exit ${item.result?.exitCode}`}
-                        </span>
-                      ) : (
-                        <span className="badge badge-error">
-                          Delimit could not run command
-                        </span>
-                      )}
-                      {item.result ? (
-                        <span>{item.result.durationMs}ms</span>
-                      ) : null}
-                      {item.result?.stdoutTruncated ? (
-                        <span className="badge badge-truncated">
-                          Standard output truncated ({item.result.stdoutBytes}{' '}
-                          B)
-                        </span>
-                      ) : null}
-                      {item.result?.stderrTruncated ? (
-                        <span className="badge badge-truncated">
-                          Standard error truncated ({item.result.stderrBytes} B)
-                        </span>
-                      ) : null}
-                    </div>
-
-                    {item.platformError ? (
-                      <p className="command-platform-error" role="alert">
-                        {item.platformError}
-                      </p>
-                    ) : null}
-
-                    {item.result?.stdoutPreview ? (
-                      <section aria-label="Standard output">
-                        <p className="command-output-label">Standard output</p>
-                        <pre className="command-output">
-                          {item.result.stdoutPreview}
-                        </pre>
-                      </section>
-                    ) : null}
-
-                    {item.result?.stderrPreview ? (
-                      <section aria-label="Standard error">
-                        <p className="command-output-label">Standard error</p>
-                        <pre className="command-output stderr">
-                          {item.result.stderrPreview}
-                        </pre>
-                      </section>
-                    ) : null}
-                  </li>
-                ))}
-              </ol>
-            ) : null}
           </section>
 
-          <div
-            className="workspace-ai"
+          <section
+            id="workspace-editor"
+            className="editor-panel"
+            aria-labelledby="file-name"
             ref={(element) => {
-              workspacePanelRefs.current.ai = element ?? undefined;
+              workspacePanelRefs.current.editor = element ?? undefined;
+              workspacePanelRefs.current.files = element ?? undefined;
             }}
             tabIndex={-1}
           >
-            <CandidateAiPanel
-              token={token}
-              sessionStatus={session.status}
-              aiCapability={session.aiCapability}
-              activeFilePath={selectedFile}
-              canUseAi={projection.capabilities.canUseAi}
-              unavailableMessage={
-                projection.uxState === 'TIME_LIMIT_REACHED'
-                  ? 'The assessment time limit has been reached. AI is unavailable.'
-                  : undefined
-              }
+            <div className="file-bar">
+              <div>
+                <span className="file-kicker">
+                  {isMultiFile ? 'Workspace file' : 'Permitted file'}
+                </span>
+                <h2 id="file-name">
+                  {isMultiFile ? selectedFile : session.scenario.filePath}
+                </h2>
+              </div>
+              <span
+                className={`editor-persistence editor-persistence-${persistenceState.toLowerCase()}`}
+                role="status"
+                aria-live="polite"
+              >
+                {editorPersistenceMessage(
+                  persistenceState,
+                  isSaving && content !== persistedContent,
+                )}
+              </span>
+            </div>
+
+            {isMultiFile && isActive && workspaceFiles.length > 0 ? (
+              <nav
+                className="workspace-file-selector"
+                aria-label="Workspace files"
+              >
+                {workspaceFiles.map((file) => (
+                  <button
+                    key={file.path}
+                    type="button"
+                    aria-current={
+                      file.path === selectedFile ? 'page' : undefined
+                    }
+                    className={`file-tab ${file.path === selectedFile ? 'file-tab-active' : ''}`}
+                    onClick={() => handleSelectFile(file.path)}
+                    disabled={!isActive || isBusy}
+                  >
+                    {file.path}
+                  </button>
+                ))}
+              </nav>
+            ) : null}
+
+            <textarea
+              aria-label={`Edit ${isMultiFile ? selectedFile : session.scenario.filePath}`}
+              disabled={!isActive || (isBusy && !isSaving)}
+              onChange={(event) => {
+                updateEditorContent(event.target.value);
+                setNotice(null);
+              }}
+              spellCheck={false}
+              value={content}
             />
-          </div>
-        </aside>
+
+            <div className="editor-footer">
+              {saveFailure ? (
+                <p className="editor-message save-failure" role="alert">
+                  We could not save your changes. Your edits are still here. Try
+                  saving again.
+                </p>
+              ) : (
+                <p className="editor-message" aria-live="polite">
+                  {notice ??
+                    (projection.uxState === 'TIME_LIMIT_REACHED'
+                      ? 'The assessment time limit has been reached. New modifications are no longer permitted.'
+                      : isSubmitted
+                        ? (projection.completionMessage ??
+                          `Submitted ${new Date(session.submittedAt ?? '').toLocaleString()}.`)
+                        : 'Edits persist only after Save or Submit.')}
+                </p>
+              )}
+              <div className="button-row">
+                {isActive ? (
+                  <>
+                    <button
+                      className="button button-secondary"
+                      disabled={isBusy || isSaving || !isDirty}
+                      onClick={save}
+                      type="button"
+                    >
+                      Save
+                    </button>
+                  </>
+                ) : null}
+              </div>
+            </div>
+          </section>
+
+          <aside className="workspace-auxiliary" aria-label="Workspace tools">
+            <section
+              id="workspace-commands"
+              className="terminal-panel"
+              aria-labelledby="terminal-title"
+              ref={(element) => {
+                workspacePanelRefs.current.commands = element ?? undefined;
+              }}
+              tabIndex={-1}
+            >
+              <div className="terminal-header">
+                <div>
+                  <h3 id="terminal-title">Commands</h3>
+                  <p className="command-description">
+                    Run commands and tests inside the assessment environment.
+                  </p>
+                </div>
+                <span className="file-kicker">
+                  {canRunCommands
+                    ? 'Available'
+                    : projection.uxState === 'TIME_LIMIT_REACHED'
+                      ? 'Unavailable: time limit reached'
+                      : isSubmitted
+                        ? 'Unavailable: assessment submitted'
+                        : 'Unavailable: assessment inactive'}
+                </span>
+              </div>
+
+              <form className="terminal-form" onSubmit={executeCommand}>
+                <input
+                  aria-label="Command"
+                  className="terminal-input"
+                  disabled={!canRunCommands || isExecuting}
+                  onChange={(e) => setCommandInput(e.target.value)}
+                  placeholder={
+                    canRunCommands
+                      ? 'Example: npm test'
+                      : 'Commands are unavailable'
+                  }
+                  type="text"
+                  value={commandInput}
+                />
+                <button
+                  className="terminal-button"
+                  disabled={
+                    !canRunCommands || isExecuting || !commandInput.trim()
+                  }
+                  type="submit"
+                >
+                  {isExecuting ? 'Running…' : 'Run'}
+                </button>
+              </form>
+
+              {commandHistory.length > 0 ? (
+                <ol className="terminal-log" aria-label="Command history">
+                  {commandHistory.map((item) => (
+                    <li className="command-entry" key={item.id}>
+                      <div className="command-meta">
+                        <code className="command-text">{item.command}</code>
+                        {item.state === 'RUNNING' ? (
+                          <span className="badge badge-running" role="status">
+                            Command running
+                          </span>
+                        ) : item.state === 'TIMED_OUT' ? (
+                          <span className="badge badge-timeout">
+                            Command timed out
+                          </span>
+                        ) : item.state === 'COMPLETED_SUCCESS' ? (
+                          <span className="badge badge-success">
+                            Completed: exit 0
+                          </span>
+                        ) : item.state === 'COMPLETED_FAILURE' ? (
+                          <span className="badge badge-error">
+                            {item.result?.exitCode === null
+                              ? 'Completed without an exit code'
+                              : `Completed: non-zero exit ${item.result?.exitCode}`}
+                          </span>
+                        ) : (
+                          <span className="badge badge-error">
+                            Delimit could not run command
+                          </span>
+                        )}
+                        {item.result ? (
+                          <span>{item.result.durationMs}ms</span>
+                        ) : null}
+                        {item.result?.stdoutTruncated ? (
+                          <span className="badge badge-truncated">
+                            Standard output truncated ({item.result.stdoutBytes}{' '}
+                            B)
+                          </span>
+                        ) : null}
+                        {item.result?.stderrTruncated ? (
+                          <span className="badge badge-truncated">
+                            Standard error truncated ({item.result.stderrBytes}{' '}
+                            B)
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {item.platformError ? (
+                        <p className="command-platform-error" role="alert">
+                          {item.platformError}
+                        </p>
+                      ) : null}
+
+                      {item.result?.stdoutPreview ? (
+                        <section aria-label="Standard output">
+                          <p className="command-output-label">
+                            Standard output
+                          </p>
+                          <pre className="command-output">
+                            {item.result.stdoutPreview}
+                          </pre>
+                        </section>
+                      ) : null}
+
+                      {item.result?.stderrPreview ? (
+                        <section aria-label="Standard error">
+                          <p className="command-output-label">Standard error</p>
+                          <pre className="command-output stderr">
+                            {item.result.stderrPreview}
+                          </pre>
+                        </section>
+                      ) : null}
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
+            </section>
+
+            <div
+              className="workspace-ai"
+              id="workspace-ai"
+              ref={(element) => {
+                workspacePanelRefs.current.ai = element ?? undefined;
+              }}
+              tabIndex={-1}
+            >
+              <CandidateAiPanel
+                token={token}
+                sessionStatus={session.status}
+                aiCapability={session.aiCapability}
+                activeFilePath={selectedFile}
+                canUseAi={projection.capabilities.canUseAi}
+                unavailableMessage={
+                  projection.uxState === 'TIME_LIMIT_REACHED'
+                    ? 'The assessment time limit has been reached. AI is unavailable.'
+                    : undefined
+                }
+              />
+            </div>
+          </aside>
+        </div>
       </div>
     </main>
   );

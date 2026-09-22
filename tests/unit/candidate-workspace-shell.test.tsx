@@ -61,14 +61,16 @@ describe('C3 — Candidate workspace shell', () => {
     expect(html).not.toContain('role="log"');
   });
 
-  it('represents the active file and selected navigation accessibly', () => {
+  it('represents current workspace destination and active file accessibly', () => {
     const html = renderToStaticMarkup(
       <CandidateWorkspace initialSession={activeSession} token="c3-token" />,
     );
 
     expect(html).toContain('inventory/service.py');
     expect(html).toContain('aria-label="Edit inventory/service.py"');
-    expect(html).toContain('aria-pressed="true"');
+    expect(html).toContain('aria-current="page"');
+    expect(html).toContain('aria-controls="workspace-editor"');
+    expect(html).not.toContain('role="tablist"');
     expect(html).toContain('role="status"');
     expect(html).toContain('Saved');
   });

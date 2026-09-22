@@ -153,7 +153,7 @@
   font-weight: 700;
 }
 
-.workspace-navigation-button[aria-pressed='true'] {
+.workspace-navigation-button[aria-current='page'] {
   border-color: var(--ink);
   background: var(--ink);
   color: var(--surface);
@@ -301,7 +301,6 @@
   font-size: 0.72rem;
   cursor: pointer;
   border-radius: 0;
-  transition: all 0.1s ease;
 }
 
 .file-tab:hover {
@@ -550,7 +549,7 @@ textarea:disabled {
   color: var(--status-danger-text);
 }
 
-@media (max-width: 800px) {
+@media (max-width: 72rem) {
   .home-intro,
   .workspace-grid {
     grid-template-columns: 1fr;
@@ -597,6 +596,70 @@ textarea:disabled {
     align-items: stretch;
     flex-direction: column;
     gap: 1rem;
+  }
+
+  .workspace-session-actions {
+    justify-content: flex-start;
+  }
+
+  .workspace-navigation {
+    padding-bottom: 0.25rem;
+  }
+
+  .workspace-navigation-button {
+    flex: 0 0 auto;
+  }
+
+  .workspace-grid {
+    min-height: 0;
+  }
+
+  .brief-panel,
+  .editor-panel,
+  .workspace-auxiliary {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .terminal-form {
+    flex-wrap: wrap;
+  }
+
+  .terminal-input {
+    min-width: 12rem;
+  }
+
+  .terminal-button {
+    min-height: 2.75rem;
+  }
+}
+
+@media (max-width: 34rem) {
+  .workspace-shell {
+    padding: 1rem;
+  }
+
+  .workspace-session-actions,
+  .button-row,
+  .file-bar,
+  .terminal-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .workspace-session-actions .button,
+  .button-row .button,
+  .terminal-button {
+    width: 100%;
+  }
+
+  .terminal-input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .workspace-navigation-button {
+    min-height: 2.75rem;
   }
 }
 

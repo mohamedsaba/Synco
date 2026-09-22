@@ -2269,6 +2269,30 @@ details[open] > summary > .disclosure-chevron {
   letter-spacing: 0.05em;
 }
 
+.ai-panel-description,
+.ai-local-notice,
+.ai-context-summary {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.ai-conversation {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-conversation-entry {
+  padding: 1rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
 .ai-notice-card {
   padding: 0.9rem 1.1rem;
   border-left: 0.3rem solid var(--accent-dark);

@@ -1348,7 +1348,7 @@ describe('Delimit Architecture Correction A1/A2 — Same-Session Coordination + 
 
     expect(resolved.submissionState).toBe('failed');
     expect(resolved.errorMessage).toBe(
-      'Delimit closed this AI interaction because the assessment session ended.',
+      'AI is unavailable because the assessment is no longer active.',
     );
 
     // Ensure forbidden blame/causal terms are not present

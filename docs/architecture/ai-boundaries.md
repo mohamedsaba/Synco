@@ -102,7 +102,7 @@ Slice 6E implements the frozen presentation architecture for candidate AI eviden
 - Presentation-only burst grouping for 3+ consecutive successful interactions, expandable to full chronological order.
 - Epistemic invariants strictly preserved: no candidate scores, rankings, or competence inferences.
 
-### Candidate Integrated AI Surface (Slice 6F)
+### Candidate Integrated AI Surface (C6)
 
 Slice 6F implements the candidate-facing integrated AI interaction surface within the active assessment workspace:
 
@@ -112,18 +112,23 @@ Slice 6F implements the candidate-facing integrated AI interaction surface withi
    - Preserves candidate workspace concurrency: in-flight AI requests do not lock the editor or command console.
    - Factual capability states: handles enabled, disabled, legacy/missing capability, inactive (CREATED), and submitted states without fabricating availability.
 
-2. **Prompt Composer & Context Selection**:
+2. **Prompt Composer & Context**:
    - Accessible multiline textarea with native submit button and polite screen reader announcements.
-   - Candidate selects workspace context references (file paths only); the browser never reads or sends authoritative file contents.
+   - Each request captures the currently active workspace file as one path reference. The browser never reads or sends persisted file content or unsaved editor content to the AI endpoint.
+   - Delimit metadata contains scenario ID/version and configuration version only. It is separate from candidate input; no evaluator context, provider secret, model selection, or hidden browser history is sent.
    - Candidate-authored prompts only: no templates, suggestions, auto-complete, or prompt scoring.
 
 3. **Client Idempotency & Error Handling**:
-   - Each candidate submission receives a stable `clientRequestId` reused across re-renders and in-flight states.
+   - Each candidate submission receives a stable `clientRequestId`; a local chronological entry captures its prompt and context before dispatch, then only that entry receives its terminal result.
    - Server remains authoritative for duplicate handling and provider dispatch.
    - Truthful terminal mapping: completed responses, provider errors, timeouts, and ambiguous dispatches (HTTP 409) are presented factually.
-   - Strictly no automatic retries: new attempts require explicit candidate action, generating a fresh `clientRequestId`.
+   - Browser UI allows one in-flight request. Strictly no automatic retries: explicit retry preserves the prompt but generates a fresh `clientRequestId`.
 
-4. **Epistemic Invariants & Zero Causal Claims**:
+4. **Local Conversation Boundary**:
+   - Conversation and draft are local UI state, kept across C3 panel navigation but not a browser refresh. Server-persisted interaction/evidence records remain distinct from the candidate's rendered history.
+   - Responses render as escaped React text. The conversation is not a live region; only current pending status and errors announce.
+
+5. **Epistemic Invariants & Zero Causal Claims**:
    - Strictly forbidden terms and concepts: "applied", "copied", "AI-authored", "generated change", "accepted suggestion".
    - AI response is presented purely as readable technical text; manual code editing remains manual workspace activity.
 

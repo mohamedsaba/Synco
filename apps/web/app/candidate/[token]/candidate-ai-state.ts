@@ -6,27 +6,29 @@ import {
 export type SubmissionState =
   'idle' | 'submitting' | 'completed' | 'failed' | 'ambiguous';
 
-export type CompletedInteraction = Readonly<{
+export type CandidateAiConversationEntry = Readonly<{
+  requestId: string;
   prompt: string;
-  responseText: string;
+  context: readonly CandidateContextAttachment[];
+  status: Exclude<SubmissionState, 'idle'>;
+  responseText?: string;
+  errorMessage?: string;
 }>;
 
 export type CandidateAiState = Readonly<{
   prompt: string;
-  selectedContext: readonly CandidateContextAttachment[];
+  conversation: readonly CandidateAiConversationEntry[];
   submissionState: SubmissionState;
   clientRequestId: string | null;
   errorMessage: string | null;
-  completedInteraction: CompletedInteraction | null;
 }>;
 
 export const INITIAL_CANDIDATE_AI_STATE: CandidateAiState = {
   prompt: '',
-  selectedContext: [],
+  conversation: [],
   submissionState: 'idle',
   clientRequestId: null,
   errorMessage: null,
-  completedInteraction: null,
 };
 
 export const MAXIMUM_PROMPT_CHARS = MAXIMUM_PROMPT_LENGTH;
@@ -44,73 +46,48 @@ export const generateClientRequestId = (): string => {
 export const setPromptText = (
   state: CandidateAiState,
   prompt: string,
-): CandidateAiState => ({
-  ...state,
-  prompt,
-});
-
-export const addContextAttachment = (
-  state: CandidateAiState,
-  filePath: string,
-): CandidateAiState => {
-  if (!filePath) return state;
-  if (state.selectedContext.some((c) => c.filePath === filePath)) {
-    return state;
-  }
-  return {
-    ...state,
-    selectedContext: [...state.selectedContext, { filePath }],
-  };
-};
-
-export const removeContextAttachment = (
-  state: CandidateAiState,
-  filePath: string,
-): CandidateAiState => {
-  if (state.submissionState === 'submitting') return state;
-  return {
-    ...state,
-    selectedContext: state.selectedContext.filter(
-      (c) => c.filePath !== filePath,
-    ),
-  };
-};
+): CandidateAiState => ({ ...state, prompt });
 
 export const startNewRequest = (state: CandidateAiState): CandidateAiState => ({
+  ...state,
+  prompt: '',
+  submissionState: 'idle',
+  clientRequestId: null,
+  errorMessage: null,
+});
+
+export const retryRequest = (state: CandidateAiState): CandidateAiState => ({
   ...state,
   submissionState: 'idle',
   clientRequestId: null,
   errorMessage: null,
-  // If moving from completed, clear response and prompt.
-  // If moving from error/ambiguous/failed, keep candidate prompt so they don't have to retype.
-  prompt: state.submissionState === 'completed' ? '' : state.prompt,
-  completedInteraction: null,
 });
 
 export const beginSubmission = (
   state: CandidateAiState,
+  context: readonly CandidateContextAttachment[],
   forcedRequestId?: string,
 ): { nextState: CandidateAiState; requestId: string } | null => {
-  if (state.submissionState === 'submitting') {
-    return null;
-  }
-  const trimmed = state.prompt.trim();
-  if (!trimmed) {
-    return null;
-  }
+  if (state.submissionState === 'submitting') return null;
 
-  // Idempotency: reuse existing stable clientRequestId if one exists, otherwise generate new
+  const prompt = state.prompt.trim();
+  if (!prompt) return null;
+
   const requestId =
     forcedRequestId ?? state.clientRequestId ?? generateClientRequestId();
 
   return {
+    requestId,
     nextState: {
       ...state,
+      conversation: [
+        ...state.conversation,
+        { requestId, prompt, context, status: 'submitting' },
+      ],
       submissionState: 'submitting',
       clientRequestId: requestId,
       errorMessage: null,
     },
-    requestId,
   };
 };
 
@@ -118,125 +95,115 @@ export type ServerInteractionResponse = Readonly<{
   status?: string;
   terminalReason?: string | null;
   responseText?: string | null;
-  configuredModelId?: string;
-  reportedModelId?: string | null;
   interactionId?: string;
-  durationMs?: number | null;
-  error?: {
-    code?: string;
-    message?: string;
-  };
+  error?: { code?: string; message?: string };
 }>;
+
+const updateCurrentEntry = (
+  state: CandidateAiState,
+  entry: Omit<CandidateAiConversationEntry, 'requestId' | 'prompt' | 'context'>,
+): CandidateAiState => ({
+  ...state,
+  conversation: state.conversation.map((item) =>
+    item.requestId === state.clientRequestId ? { ...item, ...entry } : item,
+  ),
+});
+
+const fail = (
+  state: CandidateAiState,
+  errorMessage: string,
+  status: 'failed' | 'ambiguous' = 'failed',
+): CandidateAiState => {
+  const nextState = updateCurrentEntry(state, { status, errorMessage });
+  return { ...nextState, submissionState: status, errorMessage };
+};
 
 export const resolveSubmissionResult = (
   state: CandidateAiState,
   httpStatus: number,
   data: ServerInteractionResponse | null,
 ): CandidateAiState => {
-  if (httpStatus === 200 && data) {
-    if (data.status === 'COMPLETED') {
-      return {
-        ...state,
-        submissionState: 'completed',
-        completedInteraction: {
-          prompt: state.prompt.trim(),
-          responseText: data.responseText ?? '',
-        },
-        errorMessage: null,
-      };
+  if (httpStatus === 200 && data?.status === 'COMPLETED') {
+    if (typeof data.responseText !== 'string') {
+      return fail(
+        state,
+        'Delimit received an incomplete AI result. Try again.',
+      );
     }
-
-    if (
-      data.terminalReason === 'AMBIGUOUS_DISPATCH' ||
-      data.status === 'DISPATCH_STARTED'
-    ) {
-      return {
-        ...state,
-        submissionState: 'ambiguous',
-        errorMessage:
-          'This request was already submitted, but Delimit cannot safely determine whether the provider completed it. Start a new request if you want to try again.',
-      };
-    }
-
-    if (
-      (data.status === 'CANCELLED' &&
-        data.terminalReason === 'session_ended') ||
-      data.terminalReason === 'session_ended'
-    ) {
-      return {
-        ...state,
-        submissionState: 'failed',
-        errorMessage:
-          'Delimit closed this AI interaction because the assessment session ended.',
-      };
-    }
-
-    if (data.terminalReason === 'TIMEOUT') {
-      return {
-        ...state,
-        submissionState: 'failed',
-        errorMessage: 'The AI request timed out.',
-      };
-    }
-
-    return {
-      ...state,
-      submissionState: 'failed',
-      errorMessage: 'The AI provider returned an error.',
-    };
+    const nextState = updateCurrentEntry(state, {
+      status: 'completed',
+      responseText: data.responseText,
+    });
+    return { ...nextState, submissionState: 'completed', errorMessage: null };
   }
 
-  // Non-200 HTTP responses
-  if (httpStatus === 409 && data?.error?.code === 'AMBIGUOUS_DISPATCH') {
-    return {
-      ...state,
-      submissionState: 'ambiguous',
-      errorMessage:
-        'This request was already submitted, but Delimit cannot safely determine whether the provider completed it. Start a new request if you want to try again.',
-    };
+  if (
+    data?.terminalReason === 'AMBIGUOUS_DISPATCH' ||
+    data?.status === 'DISPATCH_STARTED' ||
+    data?.error?.code === 'AMBIGUOUS_DISPATCH'
+  ) {
+    return fail(
+      state,
+      'This request may already be in progress. Delimit will not send it again automatically.',
+      'ambiguous',
+    );
   }
 
-  if (httpStatus === 409 && data?.error?.code === 'AI_NOT_ENABLED') {
-    return {
-      ...state,
-      submissionState: 'failed',
-      errorMessage:
-        'Integrated AI assistance is not enabled for this assessment.',
-    };
+  if (data?.terminalReason === 'session_ended') {
+    return fail(
+      state,
+      'AI is unavailable because the assessment is no longer active.',
+    );
+  }
+
+  if (data?.terminalReason === 'TIMEOUT') {
+    return fail(
+      state,
+      'The AI request timed out. Try again while the assessment is active.',
+    );
+  }
+
+  if (data?.error?.code === 'SESSION_DEADLINE_EXCEEDED') {
+    return fail(
+      state,
+      'The assessment time limit has been reached. AI is unavailable.',
+    );
+  }
+
+  if (data?.error?.code === 'SESSION_NOT_ACTIVE') {
+    return fail(
+      state,
+      'AI is unavailable because the assessment is no longer active.',
+    );
+  }
+
+  if (data?.error?.code === 'AI_NOT_ENABLED') {
+    return fail(
+      state,
+      'Integrated AI assistance is not enabled for this assessment.',
+    );
   }
 
   if (
     httpStatus === 400 &&
     data?.error?.message?.toLowerCase().includes('context')
   ) {
-    return {
-      ...state,
-      submissionState: 'failed',
-      errorMessage: 'One or more selected context files could not be included.',
-    };
+    return fail(state, 'The current file context could not be included.');
   }
 
-  return {
-    ...state,
-    submissionState: 'failed',
-    errorMessage: 'The AI provider returned an error.',
-  };
+  return fail(state, 'AI could not respond. Try again.');
 };
 
 export const resolveSubmissionNetworkError = (
   state: CandidateAiState,
-): CandidateAiState => ({
-  ...state,
-  submissionState: 'failed',
-  errorMessage: 'The AI provider returned an error.',
-});
+): CandidateAiState => fail(state, 'Delimit could not reach AI. Try again.');
 
 export const buildAiInteractionPayload = (
   state: CandidateAiState,
   requestId: string,
+  context: readonly CandidateContextAttachment[],
 ) => ({
   clientRequestId: requestId,
   candidatePromptText: state.prompt.trim(),
-  candidateContext:
-    state.selectedContext.length > 0 ? state.selectedContext : undefined,
+  candidateContext: context.length > 0 ? context : undefined,
 });

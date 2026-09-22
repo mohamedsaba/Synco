@@ -5,14 +5,13 @@ import { useState } from 'react';
 import type { SessionStatus } from '../../../src/sessions/session';
 import type { CandidateAiCapability } from '../../../src/sessions/candidate-session-view';
 import {
-  addContextAttachment,
   beginSubmission,
   buildAiInteractionPayload,
   INITIAL_CANDIDATE_AI_STATE,
   MAXIMUM_PROMPT_CHARS,
-  removeContextAttachment,
   resolveSubmissionNetworkError,
   resolveSubmissionResult,
+  retryRequest,
   setPromptText,
   startNewRequest,
   type CandidateAiState,
@@ -23,7 +22,9 @@ export type CandidateAiPanelProps = Readonly<{
   token: string;
   sessionStatus: SessionStatus;
   aiCapability: CandidateAiCapability | null;
-  availableFiles?: readonly string[];
+  activeFilePath?: string;
+  canUseAi?: boolean;
+  unavailableMessage?: string;
   onSubmissionChange?: (isSubmitting: boolean) => void;
   initialState?: CandidateAiState;
 }>;
@@ -32,91 +33,21 @@ export const CandidateAiPanel = ({
   token,
   sessionStatus,
   aiCapability,
-  availableFiles = [],
+  activeFilePath,
+  canUseAi = sessionStatus === 'ACTIVE',
+  unavailableMessage,
   onSubmissionChange,
   initialState = INITIAL_CANDIDATE_AI_STATE,
 }: CandidateAiPanelProps) => {
   const [state, setState] = useState<CandidateAiState>(initialState);
-  const [fileToAdd, setFileToAdd] = useState('');
-
-  // Capability checks
-  if (aiCapability === null) {
-    return (
-      <section className="candidate-ai-panel" aria-labelledby="ai-panel-title">
-        <div className="ai-panel-header">
-          <span className="file-kicker">Integrated capability</span>
-          <h2 id="ai-panel-title">Engineering assistant</h2>
-        </div>
-        <div className="ai-notice-card" role="status">
-          <p>Integrated AI assistance is unavailable for this assessment.</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (!aiCapability.enabled) {
-    return (
-      <section className="candidate-ai-panel" aria-labelledby="ai-panel-title">
-        <div className="ai-panel-header">
-          <span className="file-kicker">Integrated capability</span>
-          <h2 id="ai-panel-title">Engineering assistant</h2>
-        </div>
-        <div className="ai-notice-card" role="status">
-          <p>Integrated AI assistance is not enabled for this assessment.</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (sessionStatus === 'CREATED') {
-    return (
-      <section className="candidate-ai-panel" aria-labelledby="ai-panel-title">
-        <div className="ai-panel-header">
-          <span className="file-kicker">Integrated capability</span>
-          <h2 id="ai-panel-title">Engineering assistant</h2>
-        </div>
-        <div className="ai-notice-card" role="status">
-          <p>Start session to use integrated AI assistance.</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (sessionStatus === 'SUBMITTED' && !state.completedInteraction) {
-    return (
-      <section className="candidate-ai-panel" aria-labelledby="ai-panel-title">
-        <div className="ai-panel-header">
-          <span className="file-kicker">Integrated capability</span>
-          <h2 id="ai-panel-title">Engineering assistant</h2>
-        </div>
-        <div className="ai-notice-card" role="status">
-          <p>Assessment submitted. Integrated AI assistance is closed.</p>
-        </div>
-      </section>
-    );
-  }
-
   const isSubmitting = state.submissionState === 'submitting';
+  const context = activeFilePath ? [{ filePath: activeFilePath }] : [];
 
-  const handleAddContext = () => {
-    if (!fileToAdd) return;
-    setState((prev) => addContextAttachment(prev, fileToAdd));
-    setFileToAdd('');
-  };
+  const handleSubmit = async (event?: React.FormEvent) => {
+    event?.preventDefault();
+    if (!canUseAi || isSubmitting) return;
 
-  const handleRemoveContext = (filePath: string) => {
-    setState((prev) => removeContextAttachment(prev, filePath));
-  };
-
-  const handleStartNewRequest = () => {
-    setState((prev) => startNewRequest(prev));
-  };
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (isSubmitting) return;
-
-    const admission = beginSubmission(state);
+    const admission = beginSubmission(state, context);
     if (!admission) return;
 
     setState(admission.nextState);
@@ -129,182 +60,152 @@ export const CandidateAiPanel = ({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(
-            buildAiInteractionPayload(state, admission.requestId),
+            buildAiInteractionPayload(state, admission.requestId, context),
           ),
         },
       );
-
       const data = (await response
         .json()
         .catch(() => null)) as ServerInteractionResponse | null;
-      setState((prev) => resolveSubmissionResult(prev, response.status, data));
+      setState((previous) =>
+        resolveSubmissionResult(previous, response.status, data),
+      );
     } catch {
-      setState((prev) => resolveSubmissionNetworkError(prev));
+      setState((previous) => resolveSubmissionNetworkError(previous));
     } finally {
       onSubmissionChange?.(false);
     }
   };
 
-  const unselectedFiles = availableFiles.filter(
-    (file) => !state.selectedContext.some((c) => c.filePath === file),
-  );
+  const availabilityMessage = !aiCapability
+    ? 'Integrated AI assistance is unavailable for this assessment.'
+    : !aiCapability.enabled
+      ? 'Integrated AI assistance is not enabled for this assessment.'
+      : sessionStatus === 'CREATED'
+        ? 'Start the assessment to use integrated AI assistance.'
+        : sessionStatus === 'SUBMITTED'
+          ? 'Assessment submitted. Integrated AI assistance is closed.'
+          : (unavailableMessage ??
+            'AI is unavailable while the assessment is not active.');
+
+  const showComposer = aiCapability?.enabled && canUseAi;
 
   return (
     <section className="candidate-ai-panel" aria-labelledby="ai-panel-title">
       <div className="ai-panel-header">
-        <span className="file-kicker">Integrated capability</span>
+        <span className="file-kicker">Integrated tool</span>
         <h2 id="ai-panel-title">Engineering assistant</h2>
+        <p className="ai-panel-description">
+          AI is part of the working environment. You remain responsible for
+          submitted work.
+        </p>
       </div>
 
-      {sessionStatus === 'SUBMITTED' && state.completedInteraction ? (
-        <div className="ai-submitted-banner" role="status">
-          <p>Assessment submitted. Integrated AI assistance is closed.</p>
+      {state.conversation.length > 0 ? (
+        <ol className="ai-conversation" aria-label="AI conversation">
+          {state.conversation.map((entry) => (
+            <li className="ai-conversation-entry" key={entry.requestId}>
+              <section aria-label="Your request">
+                <h3 className="ai-section-subtitle">Your request</h3>
+                <pre className="activity-excerpt">{entry.prompt}</pre>
+                <p className="ai-context-summary">
+                  {entry.context.length > 0
+                    ? `Included context: ${entry.context.map((item) => item.filePath).join(', ')}. File references only; unsaved editor edits are not included.`
+                    : 'Included context: none.'}
+                  {
+                    ' Delimit also includes assessment metadata for this request.'
+                  }
+                </p>
+              </section>
+
+              {entry.status === 'submitting' ? (
+                <p className="ai-submitting-status" role="status">
+                  AI is preparing a response for this request.
+                </p>
+              ) : null}
+
+              {entry.status === 'completed' ? (
+                <section aria-label="AI response">
+                  <h3 className="ai-section-subtitle">AI response</h3>
+                  <pre className="activity-excerpt ai-response-content">
+                    {entry.responseText}
+                  </pre>
+                </section>
+              ) : null}
+
+              {entry.status === 'failed' || entry.status === 'ambiguous' ? (
+                <p className="ai-error-text" role="alert">
+                  {entry.errorMessage}
+                </p>
+              ) : null}
+            </li>
+          ))}
+        </ol>
+      ) : null}
+
+      {!showComposer ? (
+        <div className="ai-notice-card" role="status">
+          <p>{availabilityMessage}</p>
         </div>
       ) : null}
 
-      {/* Completed result presentation */}
-      {state.submissionState === 'completed' && state.completedInteraction ? (
-        <div className="ai-result-area" role="region" aria-label="AI response">
-          <div className="ai-request-summary">
-            <h3 className="ai-section-subtitle">Your request</h3>
-            <pre className="activity-excerpt">
-              {state.completedInteraction.prompt}
-            </pre>
-          </div>
-
-          <div className="ai-response-summary">
-            <h3 id="ai-response-heading" className="ai-section-subtitle">
-              AI response
-            </h3>
-            <pre className="activity-excerpt ai-response-content">
-              {state.completedInteraction.responseText}
-            </pre>
-          </div>
-
-          {sessionStatus === 'ACTIVE' ? (
-            <div className="ai-action-row">
-              <button
-                type="button"
-                className="button button-secondary"
-                onClick={handleStartNewRequest}
-              >
-                New request
-              </button>
-            </div>
-          ) : null}
+      {showComposer && state.submissionState === 'completed' ? (
+        <div className="ai-action-row">
+          <button
+            className="button button-secondary"
+            onClick={() => setState((previous) => startNewRequest(previous))}
+            type="button"
+          >
+            New request
+          </button>
         </div>
       ) : null}
 
-      {/* Failure / Timeout state */}
-      {state.submissionState === 'failed' && state.errorMessage ? (
-        <div role="alert" className="ai-error-state">
-          <p className="ai-error-text">{state.errorMessage}</p>
-          {sessionStatus === 'ACTIVE' ? (
-            <div className="ai-action-row">
-              <button
-                type="button"
-                className="button button-secondary"
-                onClick={handleStartNewRequest}
-              >
-                Try new request
-              </button>
-            </div>
-          ) : null}
+      {showComposer &&
+      (state.submissionState === 'failed' ||
+        state.submissionState === 'ambiguous') ? (
+        <div className="ai-action-row">
+          <button
+            className="button button-secondary"
+            onClick={() => setState((previous) => retryRequest(previous))}
+            type="button"
+          >
+            Retry request
+          </button>
         </div>
       ) : null}
 
-      {/* Ambiguous dispatch state */}
-      {state.submissionState === 'ambiguous' && state.errorMessage ? (
-        <div role="alert" className="ai-error-state">
-          <p className="ai-error-text">{state.errorMessage}</p>
-          {sessionStatus === 'ACTIVE' ? (
-            <div className="ai-action-row">
-              <button
-                type="button"
-                className="button button-secondary"
-                onClick={handleStartNewRequest}
-              >
-                Start new request
-              </button>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
-      {/* Active composer (available when active and not showing completed response) */}
-      {sessionStatus === 'ACTIVE' && state.submissionState !== 'completed' ? (
+      {showComposer &&
+      state.submissionState !== 'completed' &&
+      state.submissionState !== 'failed' &&
+      state.submissionState !== 'ambiguous' ? (
         <form className="ai-composer-form" onSubmit={handleSubmit}>
-          {/* Workspace context selection */}
-          <div className="ai-context-section">
-            <span className="ai-field-label">Workspace context</span>
-
-            {state.selectedContext.length > 0 ? (
-              <div
-                className="ai-context-list"
-                aria-label="Selected workspace context"
-              >
-                {state.selectedContext.map((item) => (
-                  <div key={item.filePath} className="ai-context-chip">
-                    <span className="ai-context-label">
-                      Context: {item.filePath}
-                    </span>
-                    <button
-                      type="button"
-                      className="ai-context-remove"
-                      aria-label={`Remove context ${item.filePath}`}
-                      onClick={() => handleRemoveContext(item.filePath)}
-                      disabled={isSubmitting}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-
-            {unselectedFiles.length > 0 ? (
-              <div className="ai-context-picker">
-                <select
-                  aria-label="Select file context"
-                  className="ai-context-select"
-                  value={fileToAdd}
-                  onChange={(e) => setFileToAdd(e.target.value)}
-                  disabled={isSubmitting}
-                >
-                  <option value="">Choose a workspace file…</option>
-                  {unselectedFiles.map((file) => (
-                    <option key={file} value={file}>
-                      {file}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  className="button button-secondary ai-context-add-button"
-                  onClick={handleAddContext}
-                  disabled={!fileToAdd || isSubmitting}
-                >
-                  Add context
-                </button>
-              </div>
-            ) : null}
+          <div className="ai-context-section" id="candidate-ai-context">
+            <span className="ai-field-label">Included context</span>
+            <p className="ai-context-summary">
+              {activeFilePath
+                ? `Current file: ${activeFilePath}. File reference only; unsaved editor edits are not included.`
+                : 'No active file is included.'}
+              {' Delimit also includes assessment metadata for this request.'}
+            </p>
           </div>
 
-          {/* Prompt input */}
           <div className="ai-prompt-section">
             <label htmlFor="candidate-ai-prompt" className="ai-field-label">
               Request
             </label>
             <textarea
-              id="candidate-ai-prompt"
-              aria-label="Write a request for the AI assistant"
+              aria-describedby="candidate-ai-context"
               className="ai-prompt-input"
               disabled={isSubmitting}
+              id="candidate-ai-prompt"
               maxLength={MAXIMUM_PROMPT_CHARS}
-              onChange={(e) =>
-                setState((prev) => setPromptText(prev, e.target.value))
+              onChange={(event) =>
+                setState((previous) =>
+                  setPromptText(previous, event.target.value),
+                )
               }
-              placeholder="Ask questions about architecture, debugging, syntax, or test failures…"
+              placeholder="Ask about the work in this assessment…"
               rows={4}
               value={state.prompt}
             />
@@ -316,27 +217,23 @@ export const CandidateAiPanel = ({
             ) : null}
           </div>
 
-          {/* Submit action */}
           <div className="ai-composer-footer">
-            {isSubmitting ? (
-              <div
-                role="status"
-                aria-live="polite"
-                className="ai-submitting-status"
-              >
-                Waiting for AI response…
-              </div>
-            ) : null}
-
             <button
-              type="submit"
               className="button button-primary ai-submit-button"
               disabled={isSubmitting || !state.prompt.trim()}
+              type="submit"
             >
-              {isSubmitting ? 'Waiting for AI response…' : 'Submit request'}
+              {isSubmitting ? 'Preparing response…' : 'Send request'}
             </button>
           </div>
         </form>
+      ) : null}
+
+      {showComposer ? (
+        <p className="ai-local-notice">
+          Conversation history stays in this browser while this page remains
+          open. Refreshing does not restore it.
+        </p>
       ) : null}
     </section>
   );

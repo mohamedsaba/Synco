@@ -163,11 +163,20 @@ does not create another session lifecycle.
 - Server mutation authority remains unchanged: active-session and deadline
   checks are still enforced by existing routes and `SessionService`.
 
-## 9. Deferred Work
+## 9. C6 Integrated AI Experience
+
+C6 keeps candidate AI as a server-gated capability projected through the C1 model. The composer receives `projection.capabilities.canUseAi`; a projected deadline disables it without pretending that the browser changed durable session status. Server admission remains authoritative.
+
+The panel is mounted with the C3 workspace and owns only local draft, in-flight, and conversation presentation state. Each browser submission creates one stable request ID and appends a local request entry before dispatch. The terminal result updates the matching entry. One browser request is allowed at once. Completed and failed entries remain while navigating workspace panels, but draft/history are not browser-persisted and disappear on refresh.
+
+Candidate context is exactly one current active-file path reference when a file is selected. It is captured at send time and displayed on the matching entry. Neither persisted file content nor unsaved editor content is sent by C6. This preserves C4 editor ownership. C6 does not read or mutate C5 command state.
+
+The panel renders prompts and responses as React text, never raw HTML. Only pending status and per-request errors use announcement semantics; the conversation has no live region. It uses neutral permitted-tool framing, does not expose model/provider controls or evaluator heuristics, and reports provider, network, malformed-result, deadline, and finality outcomes factually.
+
+## 10. Deferred Work
 
 The following areas are explicitly deferred to future slices:
 
-- **C6**: Integrated AI experience redesign.
 - **C8**: Submission review modal and completion screens.
 - **Practice Environment**: Interactive sandbox tutorial/playground.
 

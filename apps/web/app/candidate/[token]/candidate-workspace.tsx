@@ -77,16 +77,6 @@ export const CandidateWorkspace = ({
     session.scenario.filePath || 'inventory/service.py',
   );
 
-  const availableFiles = Array.from(
-    new Set(
-      [
-        ...workspaceFiles.map((f) => f.path),
-        selectedFile,
-        session.scenario.filePath,
-      ].filter((p): p is string => Boolean(p && typeof p === 'string')),
-    ),
-  );
-
   const [content, setContent] = useState(initialSession.workingContent);
   const [persistedContent, setPersistedContent] = useState(
     initialSession.workingContent,
@@ -947,7 +937,13 @@ export const CandidateWorkspace = ({
               token={token}
               sessionStatus={session.status}
               aiCapability={session.aiCapability}
-              availableFiles={availableFiles}
+              activeFilePath={selectedFile}
+              canUseAi={projection.capabilities.canUseAi}
+              unavailableMessage={
+                projection.uxState === 'TIME_LIMIT_REACHED'
+                  ? 'The assessment time limit has been reached. AI is unavailable.'
+                  : undefined
+              }
             />
           </div>
         </aside>

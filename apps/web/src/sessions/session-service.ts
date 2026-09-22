@@ -659,8 +659,10 @@ export class SessionService {
         );
       }
 
+      const normalized = normalizeLineEndings(content);
+
       if (!this.sandboxAdapter) {
-        return { ok: true, path: filePath };
+        return { ok: true, path: filePath, content: normalized };
       }
 
       const isMultiFile =
@@ -680,7 +682,6 @@ export class SessionService {
         }
       }
 
-      const normalized = normalizeLineEndings(content);
       await this.sandboxAdapter.writeFile(current.id, filePath, normalized);
 
       let afterTree: string | null = null;
@@ -766,7 +767,7 @@ export class SessionService {
         }
       }
 
-      return { ok: true, path: filePath };
+      return { ok: true, path: filePath, content: normalized };
     });
   }
 

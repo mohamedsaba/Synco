@@ -144,12 +144,29 @@ Platform provisioning does **not** consume candidate assessment time:
 - Animations and transitions respect `prefers-reduced-motion`.
 - Upon transitioning from `PROVISIONING` to `ACTIVE_WORKSPACE`, focus is programmatically moved to the primary workspace heading (`tabIndex={-1}`) without surprising jumping.
 
-## 8. Deferred Work
+## 8. C4 Editor Persistence
+
+The editor retains a local content buffer and a separate baseline of the exact
+content confirmed by the save response. The client derives `SAVED`, `DIRTY`,
+`SAVING`, and `SAVE_FAILED` from those values and the active save request; it
+does not create another session lifecycle.
+
+- A save serializes in the browser. Its request captures one file and content
+  snapshot. A response advances only the persisted baseline for that snapshot.
+- If the candidate types while a save is in flight, newer content remains
+  `DIRTY`; an older response cannot mark it as saved or replace it.
+- A failed save keeps the editor buffer, retains dirty truth, and gives an
+  accessible factual retry message. Browser refresh does not preserve unsaved
+  text.
+- Dirty file switches and manual submission save first. If a save fails, or
+  newer edits remain after it, the switch or submission does not proceed.
+- Server mutation authority remains unchanged: active-session and deadline
+  checks are still enforced by existing routes and `SessionService`.
+
+## 9. Deferred Work
 
 The following areas are explicitly deferred to future slices:
 
-- **C3**: Candidate Workspace Shell redesign and layout optimization.
-- **C4**: Workspace persistence redesign and autosave semantics.
 - **C5**: Terminal and Command console redesign.
 - **C6**: Integrated AI experience redesign.
 - **C8**: Submission review modal and completion screens.

@@ -232,9 +232,14 @@
   text-transform: none;
 }
 
-.unsaved {
-  color: var(--notice-border);
+.editor-persistence {
   font-size: 0.68rem;
+}
+
+.editor-persistence-dirty,
+.editor-persistence-save_failed,
+.save-failure {
+  color: var(--notice-border);
 }
 
 .workspace-file-selector {

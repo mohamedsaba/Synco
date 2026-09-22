@@ -11,6 +11,10 @@ import { useCandidateSession } from '../../../src/candidate/use-candidate-sessio
 import { CandidateAiPanel } from './candidate-ai-panel';
 import { CandidatePrestart } from './candidate-prestart';
 import {
+  deriveEditorPersistenceState,
+  editorPersistenceMessage,
+} from './editor-persistence';
+import {
   executeFileSwitch,
   executeSubmitAssessment,
   formatSaveFailureBeforeSubmit,
@@ -82,9 +86,13 @@ export const CandidateWorkspace = ({
   );
 
   const [content, setContent] = useState(initialSession.workingContent);
+  const [persistedContent, setPersistedContent] = useState(
+    initialSession.workingContent,
+  );
   const [notice, setNotice] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveFailure, setSaveFailure] = useState<Error | null>(null);
   const [activeWorkspacePanel, setActiveWorkspacePanel] =
     useState<WorkspacePanel>('editor');
 
@@ -103,6 +111,34 @@ export const CandidateWorkspace = ({
     Partial<Record<WorkspacePanel, HTMLElement>>
   >({});
   const prevUxStateRef = useRef(projection.uxState);
+  const contentRef = useRef(content);
+  const selectedFileRef = useRef(selectedFile);
+  const saveInFlightRef = useRef<Promise<boolean> | null>(null);
+
+  const replaceEditorContent = (nextContent: string) => {
+    contentRef.current = nextContent;
+    setContent(nextContent);
+    setPersistedContent(nextContent);
+    setSaveFailure(null);
+  };
+
+  const updateEditorContent = (nextContent: string) => {
+    contentRef.current = nextContent;
+    setContent(nextContent);
+  };
+
+  const updateSelectedFile = (nextFile: string) => {
+    selectedFileRef.current = nextFile;
+    setSelectedFile(nextFile);
+  };
+
+  const persistenceState = deriveEditorPersistenceState({
+    content,
+    persistedContent,
+    isSaving,
+    saveFailed: saveFailure !== null,
+  });
+  const isDirty = content !== persistedContent;
 
   // Focus management: shift focus to workspace heading upon entering ACTIVE_WORKSPACE
   useEffect(() => {
@@ -143,9 +179,8 @@ export const CandidateWorkspace = ({
       path: string;
       content: string;
     };
-    setContent(data.content);
-    setSelectedFile(data.path);
-    setIsDirty(false);
+    replaceEditorContent(data.content);
+    updateSelectedFile(data.path);
   };
 
   const loadFile = async (filePath: string) => {
@@ -164,6 +199,8 @@ export const CandidateWorkspace = ({
 
   useEffect(() => {
     let active = true;
+    const initialContent = contentRef.current;
+    const initialFile = selectedFileRef.current;
     if (session.status === 'ACTIVE' && isMultiFile) {
       void (async () => {
         try {
@@ -179,14 +216,19 @@ export const CandidateWorkspace = ({
           }
 
           const fileRes = await fetch(
-            `/api/candidate/sessions/${token}/workspace/file?path=${encodeURIComponent(selectedFile)}`,
+            `/api/candidate/sessions/${token}/workspace/file?path=${encodeURIComponent(initialFile)}`,
           );
-          if (fileRes.ok && active) {
+          if (
+            fileRes.ok &&
+            active &&
+            selectedFileRef.current === initialFile &&
+            contentRef.current === initialContent
+          ) {
             const fileData = (await fileRes.json()) as {
               path: string;
               content: string;
             };
-            setContent(fileData.content);
+            replaceEditorContent(fileData.content);
           }
         } catch {
           // Ignore background fetch error
@@ -196,7 +238,7 @@ export const CandidateWorkspace = ({
     return () => {
       active = false;
     };
-  }, [session.status, isMultiFile, token, selectedFile]);
+  }, [session.status, isMultiFile, token]);
 
   const request = async (path: string, init: RequestInit = {}) => {
     const response = await fetch(
@@ -213,31 +255,62 @@ export const CandidateWorkspace = ({
     return (await response.json()) as CandidateSessionView;
   };
 
-  const saveCurrentFile = async (): Promise<void> => {
-    if (isMultiFile) {
-      const res = await fetch(
-        `/api/candidate/sessions/${token}/workspace/file`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: selectedFile, content }),
-        },
-      );
-      if (!res.ok) {
-        const err = (await res.json()) as ApiError;
-        throw new Error(err.error?.message ?? 'Failed to save file.');
+  const saveCurrentFile = (): Promise<boolean> => {
+    if (saveInFlightRef.current) return saveInFlightRef.current;
+
+    const savedContent = contentRef.current;
+    const savedFile = selectedFileRef.current;
+    setIsSaving(true);
+    setSaveFailure(null);
+
+    const saveAttempt = (async () => {
+      try {
+        let serverContent: string;
+        if (isMultiFile) {
+          const res = await fetch(
+            `/api/candidate/sessions/${token}/workspace/file`,
+            {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: savedFile, content: savedContent }),
+            },
+          );
+          if (!res.ok) {
+            const err = (await res.json()) as ApiError;
+            throw new Error(err.error?.message ?? 'Failed to save file.');
+          }
+          serverContent = ((await res.json()) as { content: string }).content;
+          await refreshFiles();
+        } else {
+          const nextSession = await request('/file', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: savedContent }),
+          });
+          setSession(nextSession);
+          serverContent = nextSession.workingContent;
+        }
+
+        setPersistedContent(serverContent);
+        const stillCurrent =
+          contentRef.current === savedContent &&
+          selectedFileRef.current === savedFile;
+        if (stillCurrent) updateEditorContent(serverContent);
+        return stillCurrent;
+      } catch (error) {
+        const failure =
+          error instanceof Error
+            ? error
+            : new Error('The save request failed.');
+        setSaveFailure(failure);
+        throw failure;
+      } finally {
+        setIsSaving(false);
+        saveInFlightRef.current = null;
       }
-      setIsDirty(false);
-      await refreshFiles();
-    } else {
-      const nextSession = await request('/file', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
-      });
-      setSession(nextSession);
-      setIsDirty(false);
-    }
+    })();
+    saveInFlightRef.current = saveAttempt;
+    return saveAttempt;
   };
 
   const handleSelectFile = async (filePath: string) => {
@@ -262,16 +335,20 @@ export const CandidateWorkspace = ({
           }
           return (await response.json()) as { path: string; content: string };
         },
-        onSaveFailure: (error) => {
-          setNotice(formatSaveFailureBeforeSwitch(selectedFile, error));
+        onSaveFailure: () => {
+          setNotice(formatSaveFailureBeforeSwitch(selectedFile));
         },
         onSwitchSuccess: (loaded) => {
-          setContent(loaded.content);
-          setSelectedFile(loaded.path);
-          setIsDirty(false);
+          replaceEditorContent(loaded.content);
+          updateSelectedFile(loaded.path);
         },
         onLoadFailure: (error) => {
           setNotice(error.message);
+        },
+        onSaveIncomplete: () => {
+          setNotice(
+            'Your newer edits are still unsaved. Save again before switching files.',
+          );
         },
       });
     } finally {
@@ -301,9 +378,9 @@ export const CandidateWorkspace = ({
     try {
       const nextSession = await request('/activate', { method: 'POST' });
       setSession(nextSession);
-      setContent(nextSession.workingContent);
+      replaceEditorContent(nextSession.workingContent);
       if (nextSession.scenario?.filePath) {
-        setSelectedFile(nextSession.scenario.filePath);
+        updateSelectedFile(nextSession.scenario.filePath);
       }
       setNotice('Session active. Sandbox is ready and editing is enabled.');
       if (
@@ -335,9 +412,9 @@ export const CandidateWorkspace = ({
           const freshSession = (await checkRes.json()) as CandidateSessionView;
           if (freshSession.status === 'ACTIVE') {
             setSession(freshSession);
-            setContent(freshSession.workingContent);
+            replaceEditorContent(freshSession.workingContent);
             if (freshSession.scenario?.filePath) {
-              setSelectedFile(freshSession.scenario.filePath);
+              updateSelectedFile(freshSession.scenario.filePath);
             }
             setNotice(
               'Session active. Sandbox is ready and editing is enabled.',
@@ -386,17 +463,20 @@ export const CandidateWorkspace = ({
 
   const save = () =>
     runAction(async () => {
-      await saveCurrentFile();
+      const savedCurrentContent = await saveCurrentFile();
       setNotice(
-        isMultiFile
-          ? `Saved ${selectedFile} to container.`
-          : 'Saved to the server.',
+        savedCurrentContent
+          ? isMultiFile
+            ? `Saved ${selectedFile} to container.`
+            : 'Saved to the server.'
+          : 'Your newer edits are still unsaved. Save again when ready.',
       );
     });
 
   const submit = () =>
     runAction(async () => {
       let saveFailedError: Error | null = null;
+      let saveIncomplete = false;
       let submitFailedError: Error | null = null;
       const success = await executeSubmitAssessment({
         isDirty,
@@ -405,7 +485,6 @@ export const CandidateWorkspace = ({
         submitAssessment: async () => {
           const nextSession = await request('/submit', { method: 'POST' });
           setSession(nextSession);
-          setIsDirty(false);
         },
         onSaveFailure: (error) => {
           saveFailedError = error;
@@ -418,11 +497,19 @@ export const CandidateWorkspace = ({
         onSubmitFailure: (error) => {
           submitFailedError = error;
         },
+        onSaveIncomplete: () => {
+          saveIncomplete = true;
+        },
       });
 
       if (!success) {
         if (saveFailedError) {
-          throw new Error(formatSaveFailureBeforeSubmit(saveFailedError));
+          throw new Error(formatSaveFailureBeforeSubmit());
+        }
+        if (saveIncomplete) {
+          throw new Error(
+            'Your newer edits are still unsaved. The assessment was not submitted.',
+          );
         }
         if (submitFailedError) {
           throw submitFailedError;
@@ -601,7 +688,16 @@ export const CandidateWorkspace = ({
                 {isMultiFile ? selectedFile : session.scenario.filePath}
               </h2>
             </div>
-            {isDirty ? <span className="unsaved">Unsaved</span> : null}
+            <span
+              className={`editor-persistence editor-persistence-${persistenceState.toLowerCase()}`}
+              role="status"
+              aria-live="polite"
+            >
+              {editorPersistenceMessage(
+                persistenceState,
+                isSaving && content !== persistedContent,
+              )}
+            </span>
           </div>
 
           {isMultiFile && isActive && workspaceFiles.length > 0 ? (
@@ -628,10 +724,9 @@ export const CandidateWorkspace = ({
 
           <textarea
             aria-label={`Edit ${isMultiFile ? selectedFile : session.scenario.filePath}`}
-            disabled={!isActive || isBusy}
+            disabled={!isActive || (isBusy && !isSaving)}
             onChange={(event) => {
-              setContent(event.target.value);
-              setIsDirty(true);
+              updateEditorContent(event.target.value);
               setNotice(null);
             }}
             spellCheck={false}
@@ -639,21 +734,28 @@ export const CandidateWorkspace = ({
           />
 
           <div className="editor-footer">
-            <p className="editor-message" aria-live="polite">
-              {notice ??
-                (projection.uxState === 'TIME_LIMIT_REACHED'
-                  ? 'The assessment time limit has been reached. New modifications are no longer permitted.'
-                  : isSubmitted
-                    ? (projection.completionMessage ??
-                      `Submitted ${new Date(session.submittedAt ?? '').toLocaleString()}.`)
-                    : 'Edits persist only after Save or Submit.')}
-            </p>
+            {saveFailure ? (
+              <p className="editor-message save-failure" role="alert">
+                We could not save your changes. Your edits are still here. Try
+                saving again.
+              </p>
+            ) : (
+              <p className="editor-message" aria-live="polite">
+                {notice ??
+                  (projection.uxState === 'TIME_LIMIT_REACHED'
+                    ? 'The assessment time limit has been reached. New modifications are no longer permitted.'
+                    : isSubmitted
+                      ? (projection.completionMessage ??
+                        `Submitted ${new Date(session.submittedAt ?? '').toLocaleString()}.`)
+                      : 'Edits persist only after Save or Submit.')}
+              </p>
+            )}
             <div className="button-row">
               {isActive ? (
                 <>
                   <button
                     className="button button-secondary"
-                    disabled={isBusy || !isDirty}
+                    disabled={isBusy || isSaving || !isDirty}
                     onClick={save}
                     type="button"
                   >

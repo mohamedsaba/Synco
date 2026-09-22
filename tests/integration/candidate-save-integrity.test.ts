@@ -241,6 +241,7 @@ describe('Candidate Save Integrity — Integration & Persistence Invariants', ()
         'fixed write\n',
       );
       expect(saveRes.ok).toBe(true);
+      expect(saveRes.content).toBe('fixed write\n');
 
       // Submission now proceeds cleanly
       const submitted = await service.submit(candidateToken);

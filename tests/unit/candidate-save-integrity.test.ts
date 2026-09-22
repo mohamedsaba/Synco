@@ -95,10 +95,9 @@ describe('Candidate Save Integrity — Client Workflow & Action Coordination', (
           path,
           content: 'models.py content that should never be loaded',
         }),
-        onSaveFailure: (error) => {
+        onSaveFailure: () => {
           editorState.notice = formatSaveFailureBeforeSwitch(
             editorState.selectedFile,
-            error,
           );
         },
         onSwitchSuccess: (loaded) => {
@@ -120,7 +119,7 @@ describe('Candidate Save Integrity — Client Workflow & Action Coordination', (
       expect(editorState.isDirty).toBe(true);
       // Factual notice displayed to candidate
       expect(editorState.notice).toBe(
-        'Your changes to inventory/service.py could not be saved: Network connection reset by peer. Retry saving before switching files.',
+        'We could not save your changes to inventory/service.py. Your edits are still here. Retry saving before switching files.',
       );
     });
 
@@ -154,10 +153,9 @@ describe('Candidate Save Integrity — Client Workflow & Action Coordination', (
           path,
           content: 'models content',
         }),
-        onSaveFailure: (error) => {
+        onSaveFailure: () => {
           editorState.notice = formatSaveFailureBeforeSwitch(
             editorState.selectedFile,
-            error,
           );
         },
         onSwitchSuccess: (loaded) => {
@@ -173,7 +171,9 @@ describe('Candidate Save Integrity — Client Workflow & Action Coordination', (
       expect(editorState.selectedFile).toBe('inventory/service.py');
       expect(editorState.content).toBe('def compute_inventory(): return 42');
       expect(editorState.isDirty).toBe(true);
-      expect(editorState.notice).toContain('503 Service Unavailable');
+      expect(editorState.notice).toBe(
+        'We could not save your changes to inventory/service.py. Your edits are still here. Retry saving before switching files.',
+      );
 
       // 2. Platform/sandbox recovers, candidate retries the switch
       shouldSucceedOnRetry = true;
@@ -188,10 +188,9 @@ describe('Candidate Save Integrity — Client Workflow & Action Coordination', (
           path,
           content: 'models content',
         }),
-        onSaveFailure: (error) => {
+        onSaveFailure: () => {
           editorState.notice = formatSaveFailureBeforeSwitch(
             editorState.selectedFile,
-            error,
           );
         },
         onSwitchSuccess: (loaded) => {
@@ -338,8 +337,6 @@ describe('Candidate Save Integrity — Client Workflow & Action Coordination', (
         notice: null as string | null,
       };
 
-      let failureError: Error | null = null;
-
       const success = await executeSubmitAssessment({
         isDirty: candidateState.isDirty,
         isBusy: false,
@@ -349,9 +346,7 @@ describe('Candidate Save Integrity — Client Workflow & Action Coordination', (
         submitAssessment: async () => {
           candidateState.status = 'SUBMITTED';
         },
-        onSaveFailure: (error) => {
-          failureError = error;
-        },
+        onSaveFailure: vi.fn(),
         onSubmitSuccess: vi.fn(),
         onSubmitFailure: vi.fn(),
       });
@@ -367,9 +362,9 @@ describe('Candidate Save Integrity — Client Workflow & Action Coordination', (
       expect(candidateState.status).toBe('ACTIVE');
 
       // Formats factual message
-      const formattedNotice = formatSaveFailureBeforeSubmit(failureError!);
+      const formattedNotice = formatSaveFailureBeforeSubmit();
       expect(formattedNotice).toBe(
-        'Your latest changes could not be saved: I/O error during workspace diff capture. The assessment was not submitted.',
+        'We could not save your changes. Your edits are still here. The assessment was not submitted.',
       );
     });
 
@@ -412,5 +407,48 @@ describe('Candidate Save Integrity — Client Workflow & Action Coordination', (
       expect(saveSpy).not.toHaveBeenCalled();
       expect(submitCalled).toBe(true);
     });
+
+    it('blocks submission when newer edits remain after an in-flight save', async () => {
+      const submitAssessment = vi.fn();
+      const onSaveIncomplete = vi.fn();
+
+      const success = await executeSubmitAssessment({
+        isDirty: true,
+        isBusy: false,
+        saveCurrentFile: async () => false,
+        submitAssessment,
+        onSaveFailure: vi.fn(),
+        onSubmitSuccess: vi.fn(),
+        onSubmitFailure: vi.fn(),
+        onSaveIncomplete,
+      });
+
+      expect(success).toBe(false);
+      expect(submitAssessment).not.toHaveBeenCalled();
+      expect(onSaveIncomplete).toHaveBeenCalledOnce();
+    });
+  });
+
+  it('blocks a file switch when newer edits remain after an in-flight save', async () => {
+    const loadTargetFile = vi.fn();
+    const onSaveIncomplete = vi.fn();
+
+    const success = await executeFileSwitch({
+      currentFile: 'inventory/service.py',
+      targetFile: 'inventory/models.py',
+      content: 'newer local edit',
+      isDirty: true,
+      isBusy: false,
+      saveCurrentFile: async () => false,
+      loadTargetFile,
+      onSaveFailure: vi.fn(),
+      onSwitchSuccess: vi.fn(),
+      onLoadFailure: vi.fn(),
+      onSaveIncomplete,
+    });
+
+    expect(success).toBe(false);
+    expect(loadTargetFile).not.toHaveBeenCalled();
+    expect(onSaveIncomplete).toHaveBeenCalledOnce();
   });
 });

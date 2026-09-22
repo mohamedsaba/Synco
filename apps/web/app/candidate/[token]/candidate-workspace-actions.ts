@@ -4,11 +4,12 @@ export interface FileSwitchParams {
   content: string;
   isDirty: boolean;
   isBusy: boolean;
-  saveCurrentFile: () => Promise<void>;
+  saveCurrentFile: () => Promise<boolean | void>;
   loadTargetFile: (path: string) => Promise<{ path: string; content: string }>;
   onSaveFailure: (error: Error) => void;
   onSwitchSuccess: (loaded: { path: string; content: string }) => void;
   onLoadFailure: (error: Error) => void;
+  onSaveIncomplete?: () => void;
 }
 
 export const executeFileSwitch = async ({
@@ -21,6 +22,7 @@ export const executeFileSwitch = async ({
   onSaveFailure,
   onSwitchSuccess,
   onLoadFailure,
+  onSaveIncomplete,
 }: FileSwitchParams): Promise<boolean> => {
   if (targetFile === currentFile || isBusy) {
     return false;
@@ -28,7 +30,10 @@ export const executeFileSwitch = async ({
 
   if (isDirty) {
     try {
-      await saveCurrentFile();
+      if ((await saveCurrentFile()) === false) {
+        onSaveIncomplete?.();
+        return false;
+      }
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       onSaveFailure(err);
@@ -50,11 +55,12 @@ export const executeFileSwitch = async ({
 export interface SubmitAssessmentParams {
   isDirty: boolean;
   isBusy: boolean;
-  saveCurrentFile: () => Promise<void>;
+  saveCurrentFile: () => Promise<boolean | void>;
   submitAssessment: () => Promise<void>;
   onSaveFailure: (error: Error) => void;
   onSubmitSuccess: () => void;
   onSubmitFailure: (error: Error) => void;
+  onSaveIncomplete?: () => void;
 }
 
 export const executeSubmitAssessment = async ({
@@ -65,6 +71,7 @@ export const executeSubmitAssessment = async ({
   onSaveFailure,
   onSubmitSuccess,
   onSubmitFailure,
+  onSaveIncomplete,
 }: SubmitAssessmentParams): Promise<boolean> => {
   if (isBusy) {
     return false;
@@ -72,7 +79,10 @@ export const executeSubmitAssessment = async ({
 
   if (isDirty) {
     try {
-      await saveCurrentFile();
+      if ((await saveCurrentFile()) === false) {
+        onSaveIncomplete?.();
+        return false;
+      }
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       onSaveFailure(err);
@@ -91,11 +101,8 @@ export const executeSubmitAssessment = async ({
   }
 };
 
-export const formatSaveFailureBeforeSwitch = (
-  fileName: string,
-  error: Error,
-): string =>
-  `Your changes to ${fileName} could not be saved: ${error.message}. Retry saving before switching files.`;
+export const formatSaveFailureBeforeSwitch = (fileName: string): string =>
+  `We could not save your changes to ${fileName}. Your edits are still here. Retry saving before switching files.`;
 
-export const formatSaveFailureBeforeSubmit = (error: Error): string =>
-  `Your latest changes could not be saved: ${error.message}. The assessment was not submitted.`;
+export const formatSaveFailureBeforeSubmit = (): string =>
+  'We could not save your changes. Your edits are still here. The assessment was not submitted.';

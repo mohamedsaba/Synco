@@ -56,6 +56,8 @@ describe('C3 — Candidate workspace shell', () => {
     expect(html).toContain('inventory/service.py');
     expect(html).toContain('aria-label="Edit inventory/service.py"');
     expect(html).toContain('aria-pressed="true"');
+    expect(html).toContain('role="status"');
+    expect(html).toContain('Saved');
   });
 
   it('does not expose active workspace navigation after authoritative submission', () => {

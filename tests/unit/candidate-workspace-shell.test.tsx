@@ -41,11 +41,24 @@ describe('C3 — Candidate workspace shell', () => {
     expect(html).toContain('Editor');
     expect(html).toContain('Commands');
     expect(html).toContain('AI');
-    expect(html).toContain('Sandbox command console');
+    expect(html).toContain(
+      'Run commands and tests inside the assessment environment.',
+    );
     expect(html).toContain('Engineering assistant');
     expect(html).toContain('Time remaining');
     expect(html).toContain('Submit assessment');
     expect(html).not.toContain('class="workspace-timer" aria-live');
+  });
+
+  it('renders semantic command controls without terminal chrome or output live regions', () => {
+    const html = renderToStaticMarkup(
+      <CandidateWorkspace initialSession={activeSession} token="c5-token" />,
+    );
+
+    expect(html).toContain('aria-label="Command"');
+    expect(html).toContain('>Run</button>');
+    expect(html).not.toContain('Sandbox shell command');
+    expect(html).not.toContain('role="log"');
   });
 
   it('represents the active file and selected navigation accessibly', () => {

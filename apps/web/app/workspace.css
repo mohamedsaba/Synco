@@ -370,18 +370,16 @@ textarea:disabled {
   letter-spacing: 0.05em;
 }
 
+.command-description {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
 .terminal-form {
   display: flex;
   border-bottom: 1px solid var(--line);
   background: var(--code-surface);
-}
-
-.terminal-prompt {
-  padding: 0.8rem 0.5rem 0.8rem 1rem;
-  color: var(--code-muted);
-  font-family: var(--font-mono, monospace);
-  font-size: 0.8rem;
-  user-select: none;
 }
 
 .terminal-input {
@@ -422,9 +420,10 @@ textarea:disabled {
   background: var(--code-background);
   color: var(--code-text);
   padding: 1rem;
-  font-family: var(--font-mono, monospace);
   font-size: 0.75rem;
   line-height: 1.5;
+  list-style: none;
+  margin: 0;
 }
 
 .command-entry {
@@ -450,6 +449,7 @@ textarea:disabled {
 .command-text {
   color: var(--terminal-command-text);
   font-weight: 700;
+  font-family: var(--font-mono, monospace);
 }
 
 .badge {
@@ -462,6 +462,11 @@ textarea:disabled {
 .badge-success {
   background: var(--status-success-background);
   color: var(--status-success-text);
+}
+
+.badge-running {
+  background: var(--notice-background);
+  color: var(--notice-border);
 }
 
 .badge-error {
@@ -484,10 +489,24 @@ textarea:disabled {
   white-space: pre-wrap;
   word-break: break-all;
   color: var(--terminal-output-text);
+  font-family: var(--font-mono, monospace);
 }
 
 .command-output.stderr {
   color: var(--terminal-error-text);
+}
+
+.command-output-label,
+.command-platform-error {
+  margin: 0.75rem 0 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.command-platform-error {
+  color: var(--status-danger-text);
 }
 
 @media (max-width: 800px) {

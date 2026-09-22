@@ -2,10 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import type {
-  CommandExecResult,
-  WorkspaceFileInfo,
-} from '../../../src/sandbox/sandbox';
+import type { WorkspaceFileInfo } from '../../../src/sandbox/sandbox';
 import type { CandidateSessionView } from '../../../src/sessions/candidate-session-view';
 import { useCandidateSession } from '../../../src/candidate/use-candidate-session';
 import { CandidateAiPanel } from './candidate-ai-panel';
@@ -20,6 +17,16 @@ import {
   formatSaveFailureBeforeSubmit,
   formatSaveFailureBeforeSwitch,
 } from './candidate-workspace-actions';
+import {
+  beginCommand,
+  canBeginCommand,
+  commandPlatformError,
+  completeCommand,
+  failCommand,
+  generateCommandEntryId,
+  isCommandExecResult,
+  type CommandHistoryEntry,
+} from './candidate-command-state';
 
 type CandidateWorkspaceProps = Readonly<{
   initialSession: CandidateSessionView;
@@ -27,12 +34,7 @@ type CandidateWorkspaceProps = Readonly<{
 }>;
 
 type ApiError = Readonly<{
-  error?: { message?: string };
-}>;
-
-type ExecutedCommand = Readonly<{
-  command: string;
-  result: CommandExecResult;
+  error?: { code?: string; message?: string };
 }>;
 
 type WorkspacePanel = 'scenario' | 'files' | 'editor' | 'commands' | 'ai';
@@ -99,7 +101,9 @@ export const CandidateWorkspace = ({
   // Command console state
   const [commandInput, setCommandInput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
-  const [commandHistory, setCommandHistory] = useState<ExecutedCommand[]>([]);
+  const [commandHistory, setCommandHistory] = useState<
+    readonly CommandHistoryEntry[]
+  >([]);
 
   // Pre-start / Activation state
   const [isActivating, setIsActivating] = useState(false);
@@ -114,6 +118,7 @@ export const CandidateWorkspace = ({
   const contentRef = useRef(content);
   const selectedFileRef = useRef(selectedFile);
   const saveInFlightRef = useRef<Promise<boolean> | null>(null);
+  const commandInFlightRef = useRef(false);
 
   const replaceEditorContent = (nextContent: string) => {
     contentRef.current = nextContent;
@@ -520,10 +525,20 @@ export const CandidateWorkspace = ({
   const executeCommand = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const cmd = commandInput.trim();
-    if (!cmd || isExecuting || session.status !== 'ACTIVE') return;
+    if (
+      !canBeginCommand(
+        cmd,
+        commandInFlightRef.current,
+        projection.capabilities.canRunCommands,
+      )
+    ) {
+      return;
+    }
 
+    const entryId = generateCommandEntryId();
+    commandInFlightRef.current = true;
     setIsExecuting(true);
-    setNotice(null);
+    setCommandHistory((history) => beginCommand(history, entryId, cmd));
     try {
       const response = await fetch(
         `/api/candidate/sessions/${token}/terminal/exec`,
@@ -535,26 +550,54 @@ export const CandidateWorkspace = ({
       );
 
       if (!response.ok) {
-        const errorJson = (await response.json()) as ApiError;
-        throw new Error(
-          errorJson.error?.message ?? 'Command execution failed.',
+        const errorJson = (await response
+          .json()
+          .catch(() => null)) as ApiError | null;
+        setCommandHistory((history) =>
+          failCommand(
+            history,
+            entryId,
+            commandPlatformError(
+              response.status,
+              errorJson?.error?.code,
+              errorJson?.error?.message,
+            ),
+          ),
         );
+        return;
       }
 
-      const result = (await response.json()) as CommandExecResult;
-      setCommandHistory((prev) => [...prev, { command: cmd, result }]);
+      const result = (await response.json()) as unknown;
+      if (!isCommandExecResult(result)) {
+        setCommandHistory((history) =>
+          failCommand(
+            history,
+            entryId,
+            'Delimit returned an incomplete command result. Try again.',
+          ),
+        );
+        return;
+      }
+
+      setCommandHistory((history) => completeCommand(history, entryId, result));
       setCommandInput('');
-    } catch (error) {
-      setNotice(
-        error instanceof Error ? error.message : 'Command execution failed.',
+    } catch {
+      setCommandHistory((history) =>
+        failCommand(
+          history,
+          entryId,
+          commandPlatformError(null, undefined, undefined),
+        ),
       );
     } finally {
+      commandInFlightRef.current = false;
       setIsExecuting(false);
     }
   };
 
   const isActive =
     session.status === 'ACTIVE' && projection.capabilities.canEdit;
+  const canRunCommands = projection.capabilities.canRunCommands;
   const isSubmitted = session.status === 'SUBMITTED';
   const selectWorkspacePanel = (panel: WorkspacePanel) => {
     setActiveWorkspacePanel(panel);
@@ -777,34 +820,42 @@ export const CandidateWorkspace = ({
             tabIndex={-1}
           >
             <div className="terminal-header">
-              <h3 id="terminal-title">Sandbox command console</h3>
+              <div>
+                <h3 id="terminal-title">Commands</h3>
+                <p className="command-description">
+                  Run commands and tests inside the assessment environment.
+                </p>
+              </div>
               <span className="file-kicker">
-                {isActive
-                  ? 'Isolated sandbox active (--network none)'
-                  : isSubmitted
-                    ? 'Sandbox terminated'
-                    : 'Sandbox inactive'}
+                {canRunCommands
+                  ? 'Available'
+                  : projection.uxState === 'TIME_LIMIT_REACHED'
+                    ? 'Unavailable: time limit reached'
+                    : isSubmitted
+                      ? 'Unavailable: assessment submitted'
+                      : 'Unavailable: assessment inactive'}
               </span>
             </div>
 
             <form className="terminal-form" onSubmit={executeCommand}>
-              <span className="terminal-prompt">$</span>
               <input
-                aria-label="Sandbox shell command"
+                aria-label="Command"
                 className="terminal-input"
-                disabled={!isActive || isExecuting}
+                disabled={!canRunCommands || isExecuting}
                 onChange={(e) => setCommandInput(e.target.value)}
                 placeholder={
-                  isActive
-                    ? 'e.g. ls -la, pwd, cat src/format-greeting.ts'
-                    : 'Start session to execute commands'
+                  canRunCommands
+                    ? 'Example: npm test'
+                    : 'Commands are unavailable'
                 }
                 type="text"
                 value={commandInput}
               />
               <button
                 className="terminal-button"
-                disabled={!isActive || isExecuting || !commandInput.trim()}
+                disabled={
+                  !canRunCommands || isExecuting || !commandInput.trim()
+                }
                 type="submit"
               >
                 {isExecuting ? 'Running…' : 'Run'}
@@ -812,50 +863,76 @@ export const CandidateWorkspace = ({
             </form>
 
             {commandHistory.length > 0 ? (
-              <div className="terminal-log" role="log">
-                {commandHistory.map((item, idx) => (
-                  <div
-                    className="command-entry"
-                    key={item.result.commandId ?? idx}
-                  >
+              <ol className="terminal-log" aria-label="Command history">
+                {commandHistory.map((item) => (
+                  <li className="command-entry" key={item.id}>
                     <div className="command-meta">
-                      <span className="command-text">$ {item.command}</span>
-                      {item.result.timedOut ? (
-                        <span className="badge badge-timeout">Timed out</span>
-                      ) : item.result.exitCode === 0 ? (
-                        <span className="badge badge-success">Exit 0</span>
+                      <code className="command-text">{item.command}</code>
+                      {item.state === 'RUNNING' ? (
+                        <span className="badge badge-running" role="status">
+                          Command running
+                        </span>
+                      ) : item.state === 'TIMED_OUT' ? (
+                        <span className="badge badge-timeout">
+                          Command timed out
+                        </span>
+                      ) : item.state === 'COMPLETED_SUCCESS' ? (
+                        <span className="badge badge-success">
+                          Completed: exit 0
+                        </span>
+                      ) : item.state === 'COMPLETED_FAILURE' ? (
+                        <span className="badge badge-error">
+                          {item.result?.exitCode === null
+                            ? 'Completed without an exit code'
+                            : `Completed: non-zero exit ${item.result?.exitCode}`}
+                        </span>
                       ) : (
                         <span className="badge badge-error">
-                          Exit {item.result.exitCode}
+                          Delimit could not run command
                         </span>
                       )}
-                      <span>{item.result.durationMs}ms</span>
-                      {item.result.stdoutTruncated ? (
+                      {item.result ? (
+                        <span>{item.result.durationMs}ms</span>
+                      ) : null}
+                      {item.result?.stdoutTruncated ? (
                         <span className="badge badge-truncated">
-                          stdout truncated ({item.result.stdoutBytes} B)
+                          Standard output truncated ({item.result.stdoutBytes}{' '}
+                          B)
                         </span>
                       ) : null}
-                      {item.result.stderrTruncated ? (
+                      {item.result?.stderrTruncated ? (
                         <span className="badge badge-truncated">
-                          stderr truncated ({item.result.stderrBytes} B)
+                          Standard error truncated ({item.result.stderrBytes} B)
                         </span>
                       ) : null}
                     </div>
 
-                    {item.result.stdoutPreview ? (
-                      <pre className="command-output">
-                        {item.result.stdoutPreview}
-                      </pre>
+                    {item.platformError ? (
+                      <p className="command-platform-error" role="alert">
+                        {item.platformError}
+                      </p>
                     ) : null}
 
-                    {item.result.stderrPreview ? (
-                      <pre className="command-output stderr">
-                        {item.result.stderrPreview}
-                      </pre>
+                    {item.result?.stdoutPreview ? (
+                      <section aria-label="Standard output">
+                        <p className="command-output-label">Standard output</p>
+                        <pre className="command-output">
+                          {item.result.stdoutPreview}
+                        </pre>
+                      </section>
                     ) : null}
-                  </div>
+
+                    {item.result?.stderrPreview ? (
+                      <section aria-label="Standard error">
+                        <p className="command-output-label">Standard error</p>
+                        <pre className="command-output stderr">
+                          {item.result.stderrPreview}
+                        </pre>
+                      </section>
+                    ) : null}
+                  </li>
                 ))}
-              </div>
+              </ol>
             ) : null}
           </section>
 

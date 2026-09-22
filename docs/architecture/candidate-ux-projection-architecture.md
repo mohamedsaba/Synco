@@ -167,7 +167,31 @@ does not create another session lifecycle.
 
 The following areas are explicitly deferred to future slices:
 
-- **C5**: Terminal and Command console redesign.
 - **C6**: Integrated AI experience redesign.
 - **C8**: Submission review modal and completion screens.
 - **Practice Environment**: Interactive sandbox tutorial/playground.
+
+## 10. C5 Commands
+
+Commands uses the existing one-request execution endpoint. The browser creates
+one local history entry before each admitted request and updates that same entry
+on completion or failure. History is chronological by request start and remains
+mounted with the C3 workspace surface; results never replace an earlier entry.
+
+The server remains authoritative for command outcomes. A valid response carries
+the command ID, exit code (which may be null), timeout flag, duration, separate
+stdout/stderr previews and byte/truncation facts. The client presents timeout,
+non-zero completion, and failure to run as distinct outcomes. It validates the
+response shape; a malformed response is a platform error, not a command result.
+
+Only one browser command request is in flight at a time. The existing server
+session coordinator still serializes operations and independently enforces
+ACTIVE status, request-bound deadline admission, and remaining runtime. The
+client sends no cancellation request, has no PTY semantics, and does not alter
+editor persistence state.
+
+History and command text are local UI state. They survive workspace panel
+navigation but do not survive a browser refresh. C5 adds no browser storage or
+backend API changes. Output is labeled standard output or standard error and is
+not placed in a live output region; only the brief running status uses status
+semantics.

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type {
   BriefingAiSummary,
   ObservedStatement,
+  RecordedVerification,
 } from '../../../../src/evaluator/evaluator-briefing';
 import type { BriefingDepthProfile } from '../../../../src/evaluator/project-evaluator-briefing';
 import type { EvidenceCatalogEntry } from '../../../../src/reconstruction/evidence-reference-catalog';
@@ -14,6 +15,7 @@ import { EvidenceItemCard } from './evidence-item-card';
 
 type RecordedActivityProps = Readonly<{
   activities: readonly ObservedStatement[];
+  verification?: RecordedVerification;
   evidenceEntries: readonly EvidenceCatalogEntry[];
   showDetailedTechnical?: boolean;
   aiSummary?: BriefingAiSummary;
@@ -150,6 +152,7 @@ const buildPresentationUnits = (
 
 export const RecordedActivity = ({
   activities = [],
+  verification = { runs: [], scope: 'recognized_recorded_executions_only' },
   evidenceEntries = [],
   showDetailedTechnical = false,
   aiSummary,
@@ -165,6 +168,11 @@ export const RecordedActivity = ({
 
   const byReference = new Map(
     evidenceEntries.map((entry) => [entry.evidenceRef, entry]),
+  );
+  const verificationByReference = new Map(
+    verification.runs.flatMap((run) =>
+      run.evidenceRefs.map((reference) => [reference, run] as const),
+    ),
   );
 
   const toggleDisclosure = (id: string) => {
@@ -188,6 +196,9 @@ export const RecordedActivity = ({
     totalCount: number,
   ) => {
     const isExpanded = expandedId === activity.id;
+    const verificationRun = activity.evidenceRefs
+      .map((reference) => verificationByReference.get(reference))
+      .find((run) => run !== undefined);
     const matchingEntries = (activity.evidenceRefs ?? []).flatMap((ref) => {
       const entry = byReference.get(ref);
       return entry ? [entry] : [];
@@ -206,11 +217,9 @@ export const RecordedActivity = ({
       activity.kind === 'recorded_ai_failure';
 
     return (
-      <article
+      <li
         key={activity.id}
         className={`activity-item activity-item-${activity.kind}`}
-        aria-posinset={index + 1}
-        aria-setsize={totalCount}
       >
         <div className="activity-marker-container" aria-hidden="true">
           <span className="activity-marker" />
@@ -271,6 +280,15 @@ export const RecordedActivity = ({
             ) : null}
           </div>
 
+          {verificationRun ? (
+            <p className="activity-verification-result">
+              {verificationRun.result?.text ??
+                (verificationRun.timedOut
+                  ? 'The recorded test execution timed out.'
+                  : `The recorded test execution exited with status ${verificationRun.exitCode ?? 'not recorded'}.`)}
+            </p>
+          ) : null}
+
           {showDetailedTechnical &&
           activity.paths &&
           activity.paths.length > 0 ? (
@@ -319,7 +337,7 @@ export const RecordedActivity = ({
             </div>
           ) : null}
         </div>
-      </article>
+      </li>
     );
   };
 
@@ -327,6 +345,7 @@ export const RecordedActivity = ({
     <section
       className="review-section activity-section"
       aria-labelledby="recorded-activity-title"
+      id="reconstruction"
     >
       <header className="review-section-heading">
         <p className="section-kicker">Chronological progression</p>
@@ -348,9 +367,8 @@ export const RecordedActivity = ({
         />
       ) : null}
 
-      <div
+      <ol
         className="activity-timeline"
-        role="feed"
         aria-label="Chronological activity statements"
       >
         {units.map((unit, unitIndex) => {
@@ -369,7 +387,7 @@ export const RecordedActivity = ({
               : (unit.startElapsed ?? null);
 
           return (
-            <article
+            <li
               key={unit.id}
               className="activity-item activity-burst-group"
               aria-label="Grouped AI interactions"
@@ -412,20 +430,20 @@ export const RecordedActivity = ({
                 </div>
 
                 {isBurstExpanded ? (
-                  <div
+                  <ol
                     id={`burst-group-${unit.id}`}
                     className="activity-burst-items"
                   >
                     {unit.activities.map((act, actIndex) =>
                       renderActivityItem(act, actIndex, unit.activities.length),
                     )}
-                  </div>
+                  </ol>
                 ) : null}
               </div>
-            </article>
+            </li>
           );
         })}
-      </div>
+      </ol>
     </section>
   );
 };

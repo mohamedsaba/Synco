@@ -1818,6 +1818,23 @@ details[open] > summary > .disclosure-chevron {
   gap: clamp(2.5rem, 5vw, 4rem);
 }
 
+.evidence-hierarchy-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.82rem;
+}
+
+.evidence-hierarchy-nav a {
+  color: var(--muted);
+  text-underline-offset: 0.2em;
+}
+
+.evidence-hierarchy-nav a:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 /* Task Brief */
 .task-brief-content {
   display: flex;
@@ -1873,78 +1890,6 @@ details[open] > summary > .disclosure-chevron {
   gap: 0.5rem;
 }
 
-/* Verification Summary */
-.verification-runs-flow {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
-  gap: 1.25rem;
-}
-
-.verification-run-card {
-  padding: 1.5rem;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.invariant-check-card {
-  border-style: dashed;
-  background: var(--surface-note);
-}
-
-.run-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.run-card-position {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-}
-
-.count-chip {
-  padding: 0.2rem 0.55rem;
-  border: 1px solid var(--line);
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-
-.count-chip-neutral {
-  background: var(--surface-muted);
-  color: var(--ink);
-}
-
-.run-card-statement {
-  margin: 0;
-  font-family: var(--font-body);
-  font-size: 1.1rem;
-  line-height: 1.4;
-  color: var(--ink);
-}
-
-.run-card-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  padding-top: 0.6rem;
-  border-top: 1px solid var(--line);
-  font-size: 0.75rem;
-  color: var(--muted);
-  font-family: var(--font-mono);
-}
-
-.meta-notice {
-  color: var(--ink);
-}
-
 /* Activity Feed */
 .subheading-h3 {
   margin: 0 0 0.5rem;
@@ -1957,6 +1902,17 @@ details[open] > summary > .disclosure-chevron {
 .activity-timeline {
   display: flex;
   flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.activity-burst-items {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .activity-item {
@@ -2013,6 +1969,13 @@ details[open] > summary > .disclosure-chevron {
   font-size: 1.05rem;
   line-height: 1.5;
   color: var(--ink);
+}
+
+.activity-verification-result {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
 }
 
 .evidence-toggle-button {

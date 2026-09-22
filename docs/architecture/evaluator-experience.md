@@ -25,11 +25,10 @@ ranking, reviewer routing, notification, or evaluator verdict.
 ## Default hierarchy
 
 1. Factual session context: assessment, scenario, submitted status, duration, submission time, and session reference.
-2. **What this scenario examines:** immutable scenario context and neutral evidence areas.
-3. Platform notices, including incomplete activity capture where present.
-4. **What happened:** grounded summary milestones with direct supporting activity.
-5. **Submitted changes:** the authoritative final diff against the scenario baseline.
-6. **Technical record:** complete chronology and separate raw-record inspection.
+2. **Overview:** immutable scenario context and material platform notices, including incomplete activity capture where present.
+3. **Reconstruction:** the primary ordered evidence surface. It presents typed commands, edits, AI activity, capture gaps, submission, and recognized verification results in authoritative chronology order with source disclosure controls.
+4. **Final submitted state:** the authoritative final diff against the scenario baseline, after the recorded work sequence.
+5. **Source evidence:** the Engineer technical record retains complete chronology and raw-record inspection.
 
 Telemetry counters, provider metadata, attempt identifiers, tree hashes, raw event IDs, and domain enum names are not default evaluator content. No activity-balance, cadence, AI-use, file-count, or test-count KPI is produced.
 
@@ -84,12 +83,11 @@ Key architectural components:
 2. `RoleLensSwitcher`: Accessible server-rendered role-depth navigation (`<nav aria-label="Evaluator perspective">`) with native links and query-param preservation (`?depth=...`).
 3. `PlatformNotice`: Non-alarmist callouts for platform-owned limitations (such as `workspace_capture_gap`).
 4. `TaskBrief`: Immutable scenario brief, system invariants, and verification targets, with graceful fallback for legacy sessions lacking evaluation context.
-5. `VerificationSummary`: Factual progression of recorded test runs without scorecards or verdict badges.
-6. `RecordedActivity`: Factual activity timeline with inline evidence disclosures.
-7. `SubmittedWork`: Authoritative diff viewer with line modification statistics and anchor navigation.
-8. `ReviewGuidance`: Evaluation policy constraints that retain human evaluator
+5. `RecordedActivity`: The primary factual chronology, with inline typed verification results and evidence disclosures.
+6. `SubmittedWork`: Authoritative diff viewer with line modification statistics and anchor navigation.
+7. `ReviewGuidance`: Evaluation policy constraints that retain human evaluator
    ownership without offering a non-functional routing action.
-9. `ArtifactAvailabilityCard`: Clean integrity indicators for recruiters and EM; cryptographic SHA-256 and generator versions for engineers.
+8. `ArtifactAvailabilityCard`: Clean integrity indicators for recruiters and EM; cryptographic SHA-256 and generator versions for engineers.
 
 Scenario semantics enrich presentation only. They do not change evidence truth.
 Evaluator briefings are decision-support artifacts, not candidate-quality judgments.

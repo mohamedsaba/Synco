@@ -4,7 +4,6 @@ import { RoleLensSwitcher } from '../../apps/web/app/evaluator/sessions/[session
 import { EvaluatorHeader } from '../../apps/web/app/evaluator/sessions/[sessionId]/evaluator-header';
 import { PlatformNotice } from '../../apps/web/app/evaluator/sessions/[sessionId]/platform-notice';
 import { TaskBrief } from '../../apps/web/app/evaluator/sessions/[sessionId]/task-brief';
-import { VerificationSummary } from '../../apps/web/app/evaluator/sessions/[sessionId]/verification-summary';
 import { RecordedActivity } from '../../apps/web/app/evaluator/sessions/[sessionId]/recorded-activity';
 import { SubmittedWork } from '../../apps/web/app/evaluator/sessions/[sessionId]/submitted-work';
 import { ReviewGuidance } from '../../apps/web/app/evaluator/sessions/[sessionId]/review-guidance';
@@ -102,7 +101,7 @@ const mockBriefing: EvaluatorBriefing = {
         template: 'Test run: 0 passed, 3 failed.',
         variables: {},
       },
-      text: 'Test run: 0 passed, 3 failed.',
+      text: 'A test execution was recorded.',
       mapping: {
         status: 'bound',
         ruleId: 'pytest_run',
@@ -141,7 +140,7 @@ const mockBriefing: EvaluatorBriefing = {
         template: 'Test run: 0 passed, 3 failed.',
         variables: {},
       },
-      text: 'Test run: 0 passed, 3 failed.',
+      text: 'A test execution was recorded.',
       mapping: {
         status: 'bound',
         ruleId: 'pytest_run',
@@ -163,7 +162,7 @@ const mockBriefing: EvaluatorBriefing = {
           id: 'res-1',
           basis: 'chronology',
           evidenceRefs: ['session:session-c-12345678:cmd-1'],
-          text: '0 passed, 3 failed',
+          text: 'The first recorded test run reported 3 failures.',
           wording: {
             template: '0 passed, 3 failed',
             variables: {},
@@ -187,7 +186,7 @@ const mockBriefing: EvaluatorBriefing = {
           id: 'res-2',
           basis: 'chronology',
           evidenceRefs: ['session:session-c-12345678:cmd-2'],
-          text: '0 passed, 3 failed',
+          text: 'The final recorded test run reported 3 failures.',
           wording: {
             template: '0 passed, 3 failed',
             variables: {},
@@ -342,6 +341,7 @@ const mockReview: EvaluatorReviewPresentation = {
     status: 'Submitted',
     duration: '12m 34s',
     submittedAt: '2026-09-16T17:12:34.000Z',
+    closureReason: 'candidate_submission',
   },
   scenario: {
     context: {
@@ -527,6 +527,7 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
           scenarioTitle="Cache Staleness Investigation"
           sessionDuration={mockBriefing.sessionDuration}
           submittedAt="2026-09-16T17:12:34.000Z"
+          closureReason="candidate_submission"
           activeRole="GENERALIST_RECRUITER"
         />,
       );
@@ -537,10 +538,26 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       expect(html).toContain('12m 34s recorded');
       expect(html).toContain('Session session-…');
       expect(html).toContain('Submitted');
+      expect(html).toContain('Submitted by candidate');
       // Must NOT contain scorecard, score numbers, or grade
       expect(html).not.toContain('/ 100');
       expect(html).not.toContain('Score:');
       expect(html).not.toContain('Pass/Fail');
+    });
+
+    it('renders timeout closure as a factual submission condition', () => {
+      const html = renderToStaticMarkup(
+        <EvaluatorHeader
+          sessionId="session-c-12345678"
+          scenarioTitle="Cache Staleness Investigation"
+          submittedAt="2026-09-16T17:12:34.000Z"
+          closureReason="timeout"
+          activeRole="GENERALIST_RECRUITER"
+        />,
+      );
+
+      expect(html).toContain('Assessment time ended');
+      expect(html).not.toContain('Submitted by candidate');
     });
   });
 
@@ -584,30 +601,6 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
     });
   });
 
-  describe('VerificationSummary & Case C Truthfulness', () => {
-    it('renders factual Case C runs: 0 passed, 3 failed -> edit -> 0 passed, 3 failed without verdict label', () => {
-      const html = renderToStaticMarkup(
-        <VerificationSummary
-          verification={mockBriefing.recordedVerification}
-          showChronology={true}
-          isCaseD={false}
-        />,
-      );
-
-      expect(html).toContain('Verification progression');
-      expect(html).toContain('0 passed, 3 failed');
-      expect(html).toContain('First recorded test run');
-      expect(html).toContain('Final recorded test run');
-      expect(html).toContain('Later workspace changes recorded');
-      // Must NOT contain verdict labeling
-      expect(html).not.toContain('FAILED CANDIDATE');
-      expect(html).not.toContain('UNSATISFACTORY');
-      expect(html).not.toContain('GRADE: F');
-      // No synthetic invariant card
-      expect(html).not.toContain('Additional invariant checks passed');
-    });
-  });
-
   describe('PlatformNotice & Case F Coverage', () => {
     it('renders Case F platform-owned capture gap notice with authoritative copy and heading', () => {
       const limitations: EvaluatorBriefing['evidenceLimitations'] = [
@@ -642,6 +635,7 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       const html = renderToStaticMarkup(
         <RecordedActivity
           activities={mockBriefing.observedActivity}
+          verification={mockBriefing.recordedVerification}
           evidenceEntries={mockReview.evidenceEntries}
           showDetailedTechnical={true}
         />,
@@ -649,9 +643,21 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
 
       expect(html).toContain('Recorded activity');
       expect(html).toContain('What happened');
-      expect(html).toContain('role="feed"');
-      expect(html).toContain('Test run: 0 passed, 3 failed.');
+      expect(html).toContain('<ol');
+      expect(html).toContain(
+        'The first recorded test run reported 3 failures.',
+      );
       expect(html).toContain('Edited inventory/service.py.');
+      expect(html).toContain(
+        'The final recorded test run reported 3 failures.',
+      );
+      expect(
+        html.indexOf('The first recorded test run reported 3 failures.'),
+      ).toBeLessThan(html.indexOf('Edited inventory/service.py.'));
+      expect(html.indexOf('Edited inventory/service.py.')).toBeLessThan(
+        html.indexOf('The final recorded test run reported 3 failures.'),
+      );
+      expect(html).not.toContain('correct solution');
     });
   });
 
@@ -769,6 +775,7 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       sessionId: 'session-c-12345678',
       activatedAt: '2026-09-16T17:00:00.000Z',
       submittedAt: '2026-09-16T17:12:34.000Z',
+      closureReason: 'candidate_submission' as const,
       diff: mockReview.submittedDiff,
       scenario: {
         id: '001',
@@ -846,7 +853,7 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       expect(html).toContain('Evidence SHA-256');
     });
 
-    it('Technical Recruiter: technical footprint and verification progression', () => {
+    it('Technical Recruiter: technical footprint and integrated verification', () => {
       const html = renderToStaticMarkup(
         <EvaluatorExperience
           sessionId="session-c-12345678"
@@ -857,7 +864,10 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
         />,
       );
 
-      expect(html).toContain('Verification progression');
+      expect(html).toContain(
+        'The first recorded test run reported 3 failures.',
+      );
+      expect(html).not.toContain('Verification progression');
       expect(html).toContain('View evidence');
       expect(html).not.toContain('Open technical chronology');
       expect(html).not.toContain('role="tabpanel"');

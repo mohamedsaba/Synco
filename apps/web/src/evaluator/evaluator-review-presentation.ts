@@ -15,6 +15,7 @@ import {
   type TypedEvidenceFact,
 } from '../reconstruction/typed-evidence-fact';
 import type { ScenarioSnapshot } from '../scenarios/slice-one-scenario';
+import type { SessionClosureReason } from '../sessions/session';
 import {
   buildScenarioRelatedEvidence,
   type ScenarioRelatedEvidenceArea,
@@ -37,6 +38,7 @@ export type EvaluatorReviewEvidence = Readonly<{
   scenario: ScenarioSnapshot;
   activatedAt: string | null;
   submittedAt: string;
+  closureReason: SessionClosureReason;
   diff: string;
   events: readonly SessionEvent[];
   aiCapabilitySnapshot?:
@@ -77,6 +79,7 @@ export type EvaluatorReviewPresentation = Readonly<{
     status: 'Submitted';
     duration: string | null;
     submittedAt: string;
+    closureReason: SessionClosureReason;
   }>;
   scenario: Readonly<{
     context: ScenarioSnapshot['evaluationContext'];
@@ -343,6 +346,7 @@ export const buildEvaluatorReviewPresentation = (
       status: 'Submitted',
       duration: formatDuration(evidence.activatedAt, evidence.submittedAt),
       submittedAt: evidence.submittedAt,
+      closureReason: evidence.closureReason,
     },
     scenario: {
       context: evidence.scenario.evaluationContext,

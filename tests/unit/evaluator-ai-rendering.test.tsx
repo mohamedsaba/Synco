@@ -54,6 +54,7 @@ const mockReview: EvaluatorReviewPresentation = {
     status: 'Submitted',
     duration: '15m 00s',
     submittedAt: '2026-09-17T10:15:00.000Z',
+    closureReason: 'candidate_submission',
   },
   scenario: {
     context: {

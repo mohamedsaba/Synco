@@ -9,7 +9,6 @@ import type {
 import { EvaluatorHeader } from './evaluator-header';
 import { PlatformNotice } from './platform-notice';
 import { TaskBrief } from './task-brief';
-import { VerificationSummary } from './verification-summary';
 import { RecordedActivity } from './recorded-activity';
 import { SubmittedWork } from './submitted-work';
 import { ReviewGuidance } from './review-guidance';
@@ -43,32 +42,35 @@ export const EvaluatorExperience = ({
         scenarioTitle={evidence.scenario.title}
         sessionDuration={briefing.sessionDuration}
         submittedAt={evidence.submittedAt}
+        closureReason={evidence.closureReason}
         activeRole={activeRole}
         searchParams={searchParams}
       />
 
+      <nav className="evidence-hierarchy-nav" aria-label="Evidence hierarchy">
+        <a href="#review-overview">Overview</a>
+        <a href="#reconstruction">Reconstruction</a>
+        <a href="#submitted-changes">Final submitted state</a>
+        {defaultDepth.technicalRecord ? (
+          <a href="#technical-record">Source evidence</a>
+        ) : null}
+      </nav>
+
       <div className="evaluator-main-layout">
-        {/* Platform Limitation Notices */}
-        <PlatformNotice limitations={briefing.evidenceLimitations} />
+        <section id="review-overview" aria-label="Review overview">
+          <PlatformNotice limitations={briefing.evidenceLimitations} />
+          <TaskBrief
+            taskContext={briefing.taskContext}
+            showScenarioReference={defaultDepth.scenarioReference}
+            contextAvailable={
+              briefing.artifactAvailability.context === 'available'
+            }
+          />
+        </section>
 
-        {/* 1. Task Context */}
-        <TaskBrief
-          taskContext={briefing.taskContext}
-          showScenarioReference={defaultDepth.scenarioReference}
-          contextAvailable={
-            briefing.artifactAvailability.context === 'available'
-          }
-        />
-
-        {/* 2. Recorded Verification Progression */}
-        <VerificationSummary
-          verification={briefing.recordedVerification}
-          showChronology={defaultDepth.verificationChronology}
-        />
-
-        {/* 3. Observed Activity Feed */}
         <RecordedActivity
           activities={briefing.observedActivity}
+          verification={briefing.recordedVerification}
           evidenceEntries={review.evidenceEntries}
           showDetailedTechnical={defaultDepth.technicalFootprint}
           aiSummary={defaultDepth.aiSummary ? briefing.aiSummary : undefined}
@@ -78,19 +80,16 @@ export const EvaluatorExperience = ({
           activatedAt={evidence.activatedAt}
         />
 
-        {/* 4. Submitted Code Changes */}
         <SubmittedWork
           submittedState={briefing.submittedState}
           diff={review.submittedDiff}
           prominentDiff={!defaultDepth.conciseSubmissionScope}
         />
 
-        {/* 5. Evaluation Guidance / Policy */}
         {defaultDepth.reviewGuidance ? (
           <ReviewGuidance guidance={briefing.reviewGuidance} />
         ) : null}
 
-        {/* 6. Artifact Availability & System Provenance */}
         {defaultDepth.artifactAvailability ? (
           <ArtifactAvailabilityCard
             availability={briefing.artifactAvailability}
@@ -99,9 +98,11 @@ export const EvaluatorExperience = ({
           />
         ) : null}
 
-        {/* 7. Technical Record / Deep Chronology (mounted only when enabled in default depth) */}
         {defaultDepth.technicalRecord ? (
-          <div className="technical-record-wrapper technical-record-prominent">
+          <div
+            className="technical-record-wrapper technical-record-prominent"
+            id="technical-record"
+          >
             <TechnicalRecord
               review={review}
               activatedAt={evidence.activatedAt}

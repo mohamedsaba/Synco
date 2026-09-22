@@ -46,6 +46,7 @@ const review: EvaluatorReviewPresentation = {
     status: 'Submitted',
     duration: '2m',
     submittedAt: '2026-09-16T10:02:00.000Z',
+    closureReason: 'candidate_submission',
   },
   scenario: {
     context: {

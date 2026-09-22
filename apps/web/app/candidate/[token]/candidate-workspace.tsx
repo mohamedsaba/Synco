@@ -14,9 +14,9 @@ import {
 } from './editor-persistence';
 import {
   executeFileSwitch,
-  executeSubmitAssessment,
   formatSaveFailureBeforeSubmit,
   formatSaveFailureBeforeSwitch,
+  reconcileSubmissionResponse,
 } from './candidate-workspace-actions';
 import {
   beginCommand,
@@ -50,6 +50,8 @@ export const CandidateWorkspace = ({
     updateServerSession: setSession,
     uiMode,
     setUiMode,
+    finalizationState,
+    setFinalizationState,
   } = useCandidateSession({
     initialSession,
     token,
@@ -89,10 +91,13 @@ export const CandidateWorkspace = ({
     null,
   );
   const workspaceHeadingRef = useRef<HTMLHeadingElement>(null);
+  const reviewHeadingRef = useRef<HTMLHeadingElement>(null);
+  const terminalHeadingRef = useRef<HTMLHeadingElement>(null);
   const workspacePanelRefs = useRef<
     Partial<Record<WorkspacePanel, HTMLElement>>
   >({});
   const prevUxStateRef = useRef(projection.uxState);
+  const focusedTerminalStateRef = useRef<string | null>(null);
   const contentRef = useRef(content);
   const selectedFileRef = useRef(selectedFile);
   const saveInFlightRef = useRef<Promise<boolean> | null>(null);
@@ -132,6 +137,23 @@ export const CandidateWorkspace = ({
       workspaceHeadingRef.current?.focus();
     }
     prevUxStateRef.current = projection.uxState;
+  }, [projection.uxState]);
+
+  useEffect(() => {
+    if (projection.uxState === 'SUBMISSION_REVIEW') {
+      reviewHeadingRef.current?.focus();
+    }
+  }, [projection.uxState]);
+
+  useEffect(() => {
+    if (
+      (projection.uxState === 'FINALIZING' ||
+        projection.uxState === 'COMPLETED') &&
+      focusedTerminalStateRef.current !== projection.uxState
+    ) {
+      terminalHeadingRef.current?.focus();
+      focusedTerminalStateRef.current = projection.uxState;
+    }
   }, [projection.uxState]);
 
   const refreshFiles = async () => {
@@ -456,49 +478,59 @@ export const CandidateWorkspace = ({
       );
     });
 
-  const submit = () =>
-    runAction(async () => {
-      let saveFailedError: Error | null = null;
-      let saveIncomplete = false;
-      let submitFailedError: Error | null = null;
-      const success = await executeSubmitAssessment({
-        isDirty,
-        isBusy: false,
-        saveCurrentFile,
-        submitAssessment: async () => {
-          const nextSession = await request('/submit', { method: 'POST' });
-          setSession(nextSession);
-        },
-        onSaveFailure: (error) => {
-          saveFailedError = error;
-        },
-        onSubmitSuccess: () => {
-          setNotice(
-            'Submitted. Sandbox terminated and files are now immutable.',
-          );
-        },
-        onSubmitFailure: (error) => {
-          submitFailedError = error;
-        },
-        onSaveIncomplete: () => {
-          saveIncomplete = true;
-        },
-      });
+  const submit = async () => {
+    if (
+      isBusy ||
+      isSaving ||
+      isExecuting ||
+      finalizationState === 'in_flight' ||
+      !projection.capabilities.canSubmit
+    ) {
+      return;
+    }
 
-      if (!success) {
-        if (saveFailedError) {
-          throw new Error(formatSaveFailureBeforeSubmit());
-        }
-        if (saveIncomplete) {
-          throw new Error(
-            'Your newer edits are still unsaved. The assessment was not submitted.',
-          );
-        }
-        if (submitFailedError) {
-          throw submitFailedError;
+    setIsBusy(true);
+    setNotice(null);
+    try {
+      if (isDirty) {
+        try {
+          if ((await saveCurrentFile()) === false) {
+            setNotice(
+              'Your newer edits are still unsaved. The assessment was not submitted.',
+            );
+            return;
+          }
+        } catch {
+          setNotice(formatSaveFailureBeforeSubmit());
+          return;
         }
       }
-    });
+
+      setFinalizationState('in_flight');
+      try {
+        const nextSession = await request('/submit', { method: 'POST' });
+        setSession(nextSession);
+      } catch {
+        try {
+          const response = await fetch(`/api/candidate/sessions/${token}`);
+          if (!response.ok) throw new Error('Session refresh failed.');
+          const nextSession = (await response.json()) as CandidateSessionView;
+          setSession(nextSession);
+          if (reconcileSubmissionResponse(nextSession) === 'resume') {
+            setFinalizationState('idle');
+            setUiMode('workspace');
+            setNotice(
+              'Submission was not admitted. Check the current assessment status.',
+            );
+          }
+        } catch {
+          setNotice("We're checking your submission status.");
+        }
+      }
+    } finally {
+      setIsBusy(false);
+    }
+  };
 
   const executeCommand = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -603,6 +635,44 @@ export const CandidateWorkspace = ({
     );
   }
 
+  if (projection.uxState === 'FINALIZING') {
+    return (
+      <main className="workspace-shell terminal-candidate-state">
+        <section
+          className="prestart-card"
+          aria-labelledby="finalizing-title"
+          role="status"
+        >
+          <p className="eyebrow">Assessment</p>
+          <h1 id="finalizing-title" ref={terminalHeadingRef} tabIndex={-1}>
+            Finalizing your assessment…
+          </h1>
+          <p className="summary">
+            Submission has begun. No more changes can be accepted while
+            finalization is underway.
+          </p>
+        </section>
+      </main>
+    );
+  }
+
+  if (projection.uxState === 'COMPLETED') {
+    const isTimeout = projection.completionVariant === 'timeout';
+    return (
+      <main className="workspace-shell terminal-candidate-state">
+        <section className="prestart-card" aria-labelledby="completion-title">
+          <p className="eyebrow">Assessment complete</p>
+          <h1 id="completion-title" ref={terminalHeadingRef} tabIndex={-1}>
+            {isTimeout ? 'Assessment time ended' : 'Assessment submitted'}
+          </h1>
+          <p className="summary">
+            {projection.completionMessage} No more changes can be made.
+          </p>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main
       className={`workspace-shell ${projection.uxState === 'ACTIVE_WORKSPACE' ? 'workspace-shell-active' : 'workspace-shell-readonly'}`}
@@ -632,7 +702,7 @@ export const CandidateWorkspace = ({
             <button
               className="button button-primary"
               disabled={isBusy}
-              onClick={submit}
+              onClick={() => setUiMode('submission_review')}
               type="button"
             >
               Submit assessment
@@ -643,9 +713,7 @@ export const CandidateWorkspace = ({
           >
             {projection.uxState === 'TIME_LIMIT_REACHED'
               ? 'Time limit reached'
-              : projection.uxState === 'FINALIZING'
-                ? 'Finalizing'
-                : session.status}
+              : session.status}
           </span>
         </div>
       </header>
@@ -656,10 +724,56 @@ export const CandidateWorkspace = ({
         </p>
       ) : null}
 
-      {projection.uxState === 'FINALIZING' ? (
-        <p className="deadline-reached-notice" role="status" aria-live="polite">
-          Finalizing your assessment…
-        </p>
+      {projection.uxState === 'SUBMISSION_REVIEW' ? (
+        <section
+          className="submission-review"
+          aria-labelledby="submission-review-title"
+        >
+          <p className="eyebrow">Submission review</p>
+          <h1 id="submission-review-title" ref={reviewHeadingRef} tabIndex={-1}>
+            Review your submission
+          </h1>
+          <p>
+            Submitting is final. Further editing ends once submission is
+            admitted.
+          </p>
+          <p className="submission-review-persistence" role="status">
+            Editor status: {editorPersistenceMessage(persistenceState, isDirty)}
+            .
+            {persistenceState === 'SAVED'
+              ? ' Your current editor work is ready for final submission.'
+              : ' Current editor work must be saved before final submission.'}
+          </p>
+          <div className="button-row">
+            <button
+              className="button button-secondary"
+              disabled={isBusy || finalizationState === 'in_flight'}
+              onClick={() => setUiMode('workspace')}
+              type="button"
+            >
+              Back
+            </button>
+            <button
+              className="button button-primary"
+              disabled={
+                isBusy ||
+                isSaving ||
+                isExecuting ||
+                finalizationState === 'in_flight' ||
+                !projection.capabilities.canSubmit
+              }
+              onClick={() => void submit()}
+              type="button"
+            >
+              Submit Assessment
+            </button>
+          </div>
+          {notice ? (
+            <p className="editor-message" role="status">
+              {notice}
+            </p>
+          ) : null}
+        </section>
       ) : null}
 
       {isActive ? (

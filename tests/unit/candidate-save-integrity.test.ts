@@ -5,6 +5,7 @@ import {
   executeSubmitAssessment,
   formatSaveFailureBeforeSubmit,
   formatSaveFailureBeforeSwitch,
+  reconcileSubmissionResponse,
 } from '../../apps/web/app/candidate/[token]/candidate-workspace-actions';
 
 describe('Candidate Save Integrity — Client Workflow & Action Coordination', () => {
@@ -450,5 +451,26 @@ describe('Candidate Save Integrity — Client Workflow & Action Coordination', (
     expect(success).toBe(false);
     expect(loadTargetFile).not.toHaveBeenCalled();
     expect(onSaveIncomplete).toHaveBeenCalledOnce();
+  });
+
+  it('reconciles an ambiguous submission only from server truth', () => {
+    expect(
+      reconcileSubmissionResponse({ status: 'ACTIVE', closureReason: null }),
+    ).toBe('resume');
+    expect(
+      reconcileSubmissionResponse({
+        status: 'ACTIVE',
+        closureReason: 'candidate_submission',
+      }),
+    ).toBe('finalizing');
+    expect(
+      reconcileSubmissionResponse({
+        status: 'SUBMITTED',
+        closureReason: 'timeout',
+      }),
+    ).toBe('completed');
+    expect(
+      reconcileSubmissionResponse({ status: 'CREATED', closureReason: null }),
+    ).toBe('unknown');
   });
 });

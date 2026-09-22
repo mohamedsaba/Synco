@@ -175,11 +175,40 @@ Candidate context is exactly one current active-file path reference when a file 
 
 The panel renders prompts and responses as React text, never raw HTML. Only pending status and per-request errors use announcement semantics; the conversation has no live region. It uses neutral permitted-tool framing, does not expose model/provider controls or evaluator heuristics, and reports provider, network, malformed-result, deadline, and finality outcomes factually.
 
-## 10. Deferred Work
+## 10. C8 Submission Review, Finalization, and Completion
 
-The following areas are explicitly deferred to future slices:
+C8 uses the existing projection and finality pipeline. It adds no API, schema,
+or durable lifecycle state. Opening the in-page review sets only the ephemeral
+`submission_review` mode; it leaves the mounted editor buffer, persistence
+baseline, selected file, command history, AI conversation, and clock
+calibration intact. Refresh may discard this mode and return a still-mutable
+session to the ordinary workspace.
 
-- **C8**: Submission review modal and completion screens.
+The review states that submission is final and presents the C4 persistence
+state. Its explicit final action reuses C4's save-before-submit path: a dirty
+buffer is saved, failed saves block submission, and a save that races newer
+edits blocks submission. Back returns to the workspace only while the
+canonical projection remains mutable.
+
+After the request starts, the local UI projects `FINALIZING` but never invents
+`SUBMITTED`. If the transport result is ambiguous, the client fetches the
+authoritative candidate session. `ACTIVE + null` can resume according to the
+canonical projection; `ACTIVE + closureReason` remains `FINALIZING`; and
+`SUBMITTED` is terminal. If this fetch also fails, the UI stays fail-closed in
+its factual checking state rather than reopening mutation controls.
+
+`ACTIVE + closureReason != null` renders a finalizing surface with no mutation
+controls. `SUBMITTED` renders a terminal completion surface. Its wording is
+selected only from authoritative `closureReason`: manual submission and timeout
+are distinct. These terminal surfaces show no timer, save control, command
+input, AI composer, or submit control. Finalizing and completion headings are
+focused once per transition; review focus is set on entry. C9 remains the full
+accessibility/responsive audit and C10 remains visual polish.
+
+The following areas remain deferred:
+
+- **C9**: Full accessibility and responsive hardening.
+- **C10**: Final visual polish.
 - **Practice Environment**: Interactive sandbox tutorial/playground.
 
 ## 11. C7 Timer / Deadline Presentation

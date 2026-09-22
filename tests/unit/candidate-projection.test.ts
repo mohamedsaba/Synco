@@ -193,7 +193,9 @@ describe('C1 — Candidate Projection / State Foundation', () => {
     expect(proj.uxState).toBe('COMPLETED');
     expect(proj.serverStatus).toBe('SUBMITTED');
     expect(proj.completionVariant).toBe('candidate_submission');
-    expect(proj.completionMessage).toBe('Assessment submitted successfully');
+    expect(proj.completionMessage).toBe(
+      'Your assessment has been submitted. Your work is final.',
+    );
     expect(proj.capabilities.canEdit).toBe(false);
   });
 
@@ -214,7 +216,9 @@ describe('C1 — Candidate Projection / State Foundation', () => {
     expect(proj.uxState).toBe('COMPLETED');
     expect(proj.serverStatus).toBe('SUBMITTED');
     expect(proj.completionVariant).toBe('timeout');
-    expect(proj.completionMessage).toBe('Your assessment time has ended');
+    expect(proj.completionMessage).toBe(
+      'Your assessment time ended. Your work was finalized automatically.',
+    );
     expect(proj.capabilities.canEdit).toBe(false);
   });
 

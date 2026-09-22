@@ -106,3 +106,11 @@ export const formatSaveFailureBeforeSwitch = (fileName: string): string =>
 
 export const formatSaveFailureBeforeSubmit = (): string =>
   'We could not save your changes. Your edits are still here. The assessment was not submitted.';
+
+export const reconcileSubmissionResponse = (
+  session: Readonly<{ status: string; closureReason: string | null }>,
+): 'resume' | 'finalizing' | 'completed' | 'unknown' => {
+  if (session.status === 'SUBMITTED') return 'completed';
+  if (session.status !== 'ACTIVE') return 'unknown';
+  return session.closureReason === null ? 'resume' : 'finalizing';
+};

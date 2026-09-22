@@ -115,6 +115,28 @@
   font-size: 0.8rem;
 }
 
+.submission-review {
+  max-width: 42rem;
+  margin: 0 auto 1.5rem;
+  padding: clamp(1.3rem, 3vw, 2.5rem);
+  border: 1px solid var(--ink);
+  background: var(--surface);
+}
+
+.submission-review h1 {
+  margin: 1rem 0;
+}
+
+.submission-review-persistence {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.terminal-candidate-state {
+  display: grid;
+  place-items: center;
+}
+
 .workspace-navigation {
   margin: -0.5rem 0 1rem;
   overflow-x: auto;

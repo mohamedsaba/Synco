@@ -86,10 +86,15 @@ describe('C3 — Candidate workspace shell', () => {
       />,
     );
 
-    expect(html).toContain('data-workspace-state="COMPLETED"');
+    expect(html).toContain('Assessment submitted</h1>');
+    expect(html).toContain(
+      'Your assessment has been submitted. Your work is final.',
+    );
     expect(html).not.toContain('aria-label="Workspace navigation"');
     expect(html).not.toContain('Submit assessment</button>');
     expect(html).not.toContain('class="workspace-timer');
+    expect(html).not.toContain('aria-label="Command"');
+    expect(html).not.toContain('candidate-ai-prompt');
   });
 
   it('presents projected deadline expiry without fabricating submission or clearing work surfaces', () => {
@@ -115,7 +120,7 @@ describe('C3 — Candidate workspace shell', () => {
     expect(html).toContain('AI is unavailable.');
     expect(html).not.toContain('>Save</button>');
     expect(html).not.toContain('>Submit assessment</button>');
-    expect(html).not.toContain('Assessment submitted successfully');
+    expect(html).not.toContain('Your assessment has been submitted.');
     expect(html).not.toContain('aria-live="polite" class="workspace-timer');
   });
 
@@ -130,12 +135,37 @@ describe('C3 — Candidate workspace shell', () => {
       />,
     );
 
-    expect(html).toContain('data-workspace-state="FINALIZING"');
     expect(html).toContain('Finalizing your assessment…');
-    expect(html).toContain('>Finalizing</span>');
+    expect(html).toContain(
+      'Submission has begun. No more changes can be accepted',
+    );
     expect(html).not.toContain('aria-label="Workspace navigation"');
     expect(html).not.toContain('>Save</button>');
     expect(html).not.toContain('>Submit assessment</button>');
     expect(html).not.toContain('class="workspace-timer');
+    expect(html).not.toContain('aria-label="Command"');
+    expect(html).not.toContain('candidate-ai-prompt');
+  });
+
+  it('presents timeout completion without claiming candidate submission', () => {
+    const html = renderToStaticMarkup(
+      <CandidateWorkspace
+        initialSession={{
+          ...activeSession,
+          status: 'SUBMITTED',
+          submittedAt: '2026-09-22T10:30:00.000Z',
+          closureReason: 'timeout',
+        }}
+        token="c8-timeout-token"
+      />,
+    );
+
+    expect(html).toContain('Assessment time ended</h1>');
+    expect(html).toContain(
+      'Your assessment time ended. Your work was finalized automatically.',
+    );
+    expect(html).not.toContain('Assessment submitted</h1>');
+    expect(html).not.toContain('aria-label="Command"');
+    expect(html).not.toContain('candidate-ai-prompt');
   });
 });

@@ -214,8 +214,8 @@ export const projectCandidateExperience = (
   const isTimeout = serverSession.closureReason === 'timeout';
   const completionVariant = isTimeout ? 'timeout' : 'candidate_submission';
   const completionMessage = isTimeout
-    ? 'Your assessment time has ended'
-    : 'Assessment submitted successfully';
+    ? 'Your assessment time ended. Your work was finalized automatically.'
+    : 'Your assessment has been submitted. Your work is final.';
 
   return {
     uxState: 'COMPLETED',

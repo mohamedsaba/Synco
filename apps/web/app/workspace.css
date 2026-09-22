@@ -96,6 +96,25 @@
   letter-spacing: 0;
 }
 
+.workspace-timer-status {
+  color: var(--ink);
+  font-size: 0.6rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.workspace-timer-attention strong,
+.workspace-timer-urgent strong {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.deadline-reached-notice {
+  margin: -0.5rem 0 1rem;
+  color: var(--ink);
+  font-size: 0.8rem;
+}
+
 .workspace-navigation {
   margin: -0.5rem 0 1rem;
   overflow-x: auto;

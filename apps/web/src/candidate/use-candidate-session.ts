@@ -28,7 +28,7 @@ export const useCandidateSession = <
 >({
   initialSession,
   token,
-  tickIntervalMs = 500,
+  tickIntervalMs = 1_000,
 }: UseCandidateSessionProps<TSession>) => {
   // 1. Server-authoritative truth received from server responses
   const [serverSession, setServerSession] = useState<TSession>(initialSession);
@@ -49,17 +49,6 @@ export const useCandidateSession = <
 
   // 4. Local clock ticker to drive derived countdown presentation
   const [localNowMs, setLocalNowMs] = useState<number>(() => Date.now());
-
-  useEffect(() => {
-    // Timer only needs to tick while session is active or pre-active
-    const timer = setInterval(() => {
-      setLocalNowMs(Date.now());
-    }, tickIntervalMs);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, [tickIntervalMs]);
 
   // Calibration helper when new server responses arrive
   const updateServerSession = useCallback(
@@ -125,6 +114,29 @@ export const useCandidateSession = <
       // Ignore background timing sync failure
     }
   }, [token]);
+
+  useEffect(() => {
+    if (serverSession.status !== 'ACTIVE' || !serverSession.deadline) return;
+
+    const tick = () => setLocalNowMs(Date.now());
+    const timer = setInterval(tick, tickIntervalMs);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        tick();
+        void syncTiming();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [
+    serverSession.deadline,
+    serverSession.status,
+    syncTiming,
+    tickIntervalMs,
+  ]);
 
   // Derived calibrated current time
   const calibratedNowMs = useMemo(

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { WorkspaceFileInfo } from '../../../src/sandbox/sandbox';
 import type { CandidateSessionView } from '../../../src/sessions/candidate-session-view';
 import { useCandidateSession } from '../../../src/candidate/use-candidate-session';
+import { presentCandidateTimer } from '../../../src/candidate/candidate-timer';
 import { CandidateAiPanel } from './candidate-ai-panel';
 import { CandidatePrestart } from './candidate-prestart';
 import {
@@ -38,19 +39,6 @@ type ApiError = Readonly<{
 }>;
 
 type WorkspacePanel = 'scenario' | 'files' | 'editor' | 'commands' | 'ai';
-
-const formatRemainingTime = (remainingMs: number | null): string => {
-  if (remainingMs === null) return 'Untimed';
-
-  const remainingSeconds = Math.floor(remainingMs / 1_000);
-  const hours = Math.floor(remainingSeconds / 3_600);
-  const minutes = Math.floor((remainingSeconds % 3_600) / 60);
-  const seconds = remainingSeconds % 60;
-
-  return [hours, minutes, seconds]
-    .map((value) => String(value).padStart(2, '0'))
-    .join(':');
-};
 
 export const CandidateWorkspace = ({
   initialSession,
@@ -589,6 +577,10 @@ export const CandidateWorkspace = ({
     session.status === 'ACTIVE' && projection.capabilities.canEdit;
   const canRunCommands = projection.capabilities.canRunCommands;
   const isSubmitted = session.status === 'SUBMITTED';
+  const timer =
+    session.status === 'ACTIVE'
+      ? presentCandidateTimer(projection.remainingMs, session.durationSeconds)
+      : null;
   const selectWorkspacePanel = (panel: WorkspacePanel) => {
     setActiveWorkspacePanel(panel);
     requestAnimationFrame(() => {
@@ -622,10 +614,20 @@ export const CandidateWorkspace = ({
           <p className="session-reference">Session {session.id}</p>
         </div>
         <div className="workspace-session-actions">
-          <p className="workspace-timer">
-            <span>Time remaining</span>
-            <strong>{formatRemainingTime(projection.remainingMs)}</strong>
-          </p>
+          {timer ? (
+            <p
+              className={`workspace-timer workspace-timer-${timer.state.toLowerCase()}`}
+              aria-label={`Time remaining: ${timer.display}`}
+            >
+              <span>Time remaining</span>
+              <strong>{timer.display}</strong>
+              {timer.statusText && timer.state !== 'NORMAL' ? (
+                <span className="workspace-timer-status">
+                  {timer.statusText}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
           {isActive ? (
             <button
               className="button button-primary"
@@ -645,6 +647,12 @@ export const CandidateWorkspace = ({
           </span>
         </div>
       </header>
+
+      {projection.uxState === 'TIME_LIMIT_REACHED' ? (
+        <p className="deadline-reached-notice" role="status" aria-live="polite">
+          Time limit reached. New work is no longer accepted.
+        </p>
+      ) : null}
 
       {isActive ? (
         <nav className="workspace-navigation" aria-label="Workspace navigation">

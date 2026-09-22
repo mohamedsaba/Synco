@@ -89,5 +89,33 @@ describe('C3 — Candidate workspace shell', () => {
     expect(html).toContain('data-workspace-state="COMPLETED"');
     expect(html).not.toContain('aria-label="Workspace navigation"');
     expect(html).not.toContain('Submit assessment</button>');
+    expect(html).not.toContain('class="workspace-timer');
+  });
+
+  it('presents projected deadline expiry without fabricating submission or clearing work surfaces', () => {
+    const html = renderToStaticMarkup(
+      <CandidateWorkspace
+        initialSession={{
+          ...activeSession,
+          deadline: '2026-09-22T10:01:00.000Z',
+          serverTime: '2026-09-22T10:01:00.000Z',
+        }}
+        token="c7-token"
+      />,
+    );
+
+    expect(html).toContain('data-workspace-state="TIME_LIMIT_REACHED"');
+    expect(html).toContain(
+      'Time limit reached. New work is no longer accepted.',
+    );
+    expect(html).toContain('Time limit reached</span>');
+    expect(html).toContain('Commands');
+    expect(html).toContain('Engineering assistant');
+    expect(html).toContain('placeholder="Commands are unavailable"');
+    expect(html).toContain('AI is unavailable.');
+    expect(html).not.toContain('>Save</button>');
+    expect(html).not.toContain('>Submit assessment</button>');
+    expect(html).not.toContain('Assessment submitted successfully');
+    expect(html).not.toContain('aria-live="polite" class="workspace-timer');
   });
 });

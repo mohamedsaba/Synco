@@ -180,6 +180,14 @@ The following areas are explicitly deferred to future slices:
 - **C8**: Submission review modal and completion screens.
 - **Practice Environment**: Interactive sandbox tutorial/playground.
 
+## 11. C7 Timer / Deadline Presentation
+
+C7 presents only the existing C1 `remainingMs` projection in the persistent workspace bar. The browser schedules one 1-second re-render tick while an `ACTIVE` timed session is mounted; it never decrements a counter. On a foreground `visibilitychange`, it immediately recalculates from the existing calibrated clock and refreshes timing truth. Background throttling, sleep, refresh, and reconnect therefore cannot preserve or invent a separate clock.
+
+The timer uses ceiling rounding, so any positive authoritative `remainingMs` displays at least one second; `00:00` appears only at or after the deadline. Sessions configured for an hour or more retain `H:MM:SS`; shorter sessions use `MM:SS`. C7 presents `ATTENTION` at 5 minutes or less and `URGENT` at 1 minute or less with visible text, rather than color alone. The ticking value has no live region. The deadline transition has one polite status announcement: “Time limit reached. New work is no longer accepted.”
+
+At zero, C7 presents `TIME_LIMIT_REACHED` and uses C1 capabilities to disable new edits, saves, commands, AI requests, and submission entry. It does not mutate server status, claim submission, clear the editor buffer, command history, or AI conversation, or add completion/finalization UX. C8-C10 remain deferred.
+
 ## 10. C5 Commands
 
 Commands uses the existing one-request execution endpoint. The browser creates

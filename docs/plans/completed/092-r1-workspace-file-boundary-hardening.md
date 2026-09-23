@@ -46,3 +46,13 @@ The focused test and the Docker-backed candidate regressions could not start:
 this environment is denied `/var/run/docker.sock` access. `npm run format`,
 `npm run lint`, and `npm run typecheck` passed. No candidate UI, lifecycle,
 finality, command, evidence, or evaluator behavior changed.
+
+## Verification history
+
+The original Codex R1 execution could not access Docker. Independent R1
+security acceptance had working Docker and validated the containment behavior.
+An independent R1A review found one formatting-only discrepancy in
+`tests/integration/frozen-workspace-finality.test.ts`; R1A corrected it without
+changing security behavior, production code, or test semantics. Independent
+R1A verification then completed the full repository check successfully: 628
+passed, 6 skipped, 0 failures, production build passed, exit code 0.

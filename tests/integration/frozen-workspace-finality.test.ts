@@ -359,11 +359,7 @@ describe('T1A.3A — Pause Containment (Docker)', () => {
     const container = adapter.getContainerName(sessionId);
     try {
       await adapter.createAndVerify(sessionId, { scenarioType: 'multi_file' });
-      await adapter.writeFile(
-        sessionId,
-        'freeze-marker.txt',
-        'PRE_FREEZE\n',
-      );
+      await adapter.writeFile(sessionId, 'freeze-marker.txt', 'PRE_FREEZE\n');
 
       // Start a delayed writer inside the primary sandbox before freeze.
       // After pause, the sleep/write must not complete against /workspace.

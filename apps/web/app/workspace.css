@@ -1111,7 +1111,7 @@ textarea:disabled {
   margin: 0 0 3rem;
   padding: 1rem 1.2rem;
   border-left: 0.25rem solid var(--notice-border);
-  background: var(--notice-background);
+  background: var(--notice-bg);
 }
 
 .capture-limitation-notice h2 {
@@ -1358,7 +1358,7 @@ details[open] > summary > .disclosure-chevron {
   margin: 0;
   padding: 0.65rem 0.8rem;
   border-top: 1px solid var(--line);
-  background: var(--notice-background);
+  background: var(--notice-bg);
   color: var(--muted);
   font-size: 0.7rem;
 }
@@ -1777,7 +1777,7 @@ details[open] > summary > .disclosure-chevron {
 
 .platform-notice-gap {
   border-left: 4px solid var(--notice-border);
-  background: var(--notice-background);
+  background: var(--notice-bg);
 }
 
 .platform-notice-info {
@@ -2292,7 +2292,7 @@ details[open] > summary > .disclosure-chevron {
 }
 
 .status-badge-inline.status-available {
-  background: var(--status-success-background);
+  background: var(--status-success-bg);
   color: var(--status-success-text);
 }
 
@@ -2302,7 +2302,7 @@ details[open] > summary > .disclosure-chevron {
 }
 
 .status-badge-inline.status-unsupported {
-  background: var(--status-warning-background);
+  background: var(--status-warning-bg);
   color: var(--status-warning-text);
 }
 
@@ -2915,7 +2915,7 @@ details[open] > summary > .disclosure-chevron {
 .error-box {
   background: var(--status-danger-bg);
   border: 1px solid var(--status-danger-border);
-  border-left: 3px solid var(--danger);
+  border-left: 3px solid var(--status-danger-text);
   color: var(--status-danger-text);
 }
 
@@ -3104,7 +3104,7 @@ details[open] > summary > .disclosure-chevron {
   padding: 1.1rem 1.25rem;
   border-color: var(--notice-border);
   border-left-width: 3px;
-  background: var(--notice-background);
+  background: var(--notice-bg);
 }
 
 .evaluator-v2-container .platform-notice-info {
@@ -3195,7 +3195,7 @@ details[open] > summary > .disclosure-chevron {
 .evaluator-v2-container .activity-status-tag.status-timeout,
 .evaluator-v2-container .activity-excerpt.error-excerpt {
   border-color: var(--notice-border);
-  background: var(--notice-background);
+  background: var(--notice-bg);
   color: var(--notice-text);
 }
 

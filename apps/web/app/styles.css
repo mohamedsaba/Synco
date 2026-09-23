@@ -16,7 +16,6 @@
   --ink: #171714;
   --ink-secondary: #383733;
   --muted: #5c5a53;
-  --muted-light: #7c7970;
 
   --paper: #f4f2ea;
   --paper-subtle: #eeece3;
@@ -51,17 +50,10 @@
   --status-danger-bg: #fef2f2;
   --status-danger-text: #991b1b;
   --status-danger-border: #fecaca;
-  --danger: #991b1b;
 
   --notice-bg: #f8fafc;
   --notice-text: #334155;
   --notice-border: #cbd5e1;
-
-  /* Semantic Aliases */
-  --status-success-background: var(--status-success-bg);
-  --status-warning-background: var(--status-warning-bg);
-  --status-danger-background: var(--status-danger-bg);
-  --notice-background: var(--notice-bg);
 
   /* Code, Terminal & Diff Surfaces */
   --code-background: #faf9f6;
@@ -84,8 +76,6 @@
   --radius-md: 6px;
 
   --shadow-sm: 0 1px 2px rgba(23, 23, 20, 0.04);
-  --shadow-md:
-    0 4px 12px rgba(23, 23, 20, 0.05), 0 1px 2px rgba(23, 23, 20, 0.03);
   --shadow-card:
     0 4px 16px rgba(23, 23, 20, 0.06), 0 1px 3px rgba(23, 23, 20, 0.04);
 
@@ -232,7 +222,7 @@ h2 {
 
 .form-error {
   margin: 0;
-  color: var(--danger);
+  color: var(--status-danger-text);
   font-size: 0.75rem;
   line-height: 1.5;
 }

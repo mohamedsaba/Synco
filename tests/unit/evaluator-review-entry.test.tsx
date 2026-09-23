@@ -33,6 +33,9 @@ describe('evaluator review entry', () => {
     expect(html).toContain('<ul');
     expect(html).toContain('Inventory cache incident');
     expect(html).toContain('href="/evaluator/sessions/session-entry-1"');
+    expect(html).toContain(
+      'aria-label="Review Inventory cache incident, session session-entry-1"',
+    );
     expect(html).toContain('1h 0m assessment');
     expect(html).toContain('Submitted by candidate');
   });

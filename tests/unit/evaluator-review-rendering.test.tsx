@@ -384,5 +384,14 @@ describe('evaluator review rendering', () => {
       /details\[open\]\s*>\s*summary\s*>\s*\.disclosure-chevron/,
     );
     expect(globalStyles).toMatch(/:focus-visible\s*\{[^}]*outline:/);
+    expect(styles).toMatch(
+      /@media \(min-width: 70rem\)[\s\S]*max-height: calc\(100dvh - 2rem\);[\s\S]*overflow-y: auto;/,
+    );
+    expect(styles).toMatch(
+      /\.engineer-evidence-workspace[\s\S]*grid-template-columns: minmax\(0, 1.25fr\) minmax\(20rem, 0.75fr\)/,
+    );
+    expect(styles).toMatch(
+      /\.evidence-toggle-button\s*\{[^}]*min-height: 2.5rem;/,
+    );
   });
 });

@@ -85,6 +85,7 @@ export const EngineerEvidenceWorkspace = ({
 
         <div
           className="engineer-inspection-actions"
+          role="group"
           aria-label="Inspection views"
         >
           <button

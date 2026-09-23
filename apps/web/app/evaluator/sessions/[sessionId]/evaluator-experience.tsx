@@ -50,22 +50,18 @@ export const EvaluatorExperience = ({
       <nav className="evidence-hierarchy-nav" aria-label="Evidence hierarchy">
         <a href="#review-overview">Overview</a>
         <a href="#reconstruction">Reconstruction</a>
-        <a
-          href={
-            defaultDepth.technicalRecord
-              ? '#engineer-inspection'
-              : '#submitted-changes'
-          }
-        >
-          Final submitted state
-        </a>
         {defaultDepth.technicalRecord ? (
-          <a href="#engineer-inspection">Source evidence</a>
-        ) : null}
+          <a href="#engineer-inspection">Technical inspection</a>
+        ) : (
+          <a href="#submitted-changes">Final submitted state</a>
+        )}
       </nav>
 
       <div className="evaluator-main-layout">
-        <section id="review-overview" aria-label="Review overview">
+        <section id="review-overview" aria-labelledby="review-overview-title">
+          <h2 className="section-kicker" id="review-overview-title">
+            Overview
+          </h2>
           <PlatformNotice
             limitations={
               defaultDepth.evidenceLimitations

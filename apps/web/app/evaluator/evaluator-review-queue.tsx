@@ -69,6 +69,7 @@ export const EvaluatorReviewQueueContent = ({
             className="evaluator-review-link"
             href={`/evaluator/sessions/${encodeURIComponent(session.sessionId)}`}
             prefetch={false}
+            aria-label={`Review ${session.scenarioTitle}, session ${session.sessionId}`}
           >
             <span className="evaluator-review-title">
               {session.scenarioTitle}

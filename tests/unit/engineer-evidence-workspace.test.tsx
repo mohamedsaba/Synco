@@ -223,6 +223,36 @@ describe('E4 Engineer evidence workspace', () => {
     expect(review.submittedDiff).toBe(evidence.diff);
   });
 
+  it('switches a focused Technical record control without leaving the submitted panel active', async () => {
+    await renderWorkspace();
+
+    const technicalRecordButton = Array.from(
+      container!.querySelectorAll<HTMLButtonElement>('button'),
+    ).find((button) => button.textContent === 'Technical record')!;
+    technicalRecordButton.focus();
+    expect(document.activeElement).toBe(technicalRecordButton);
+
+    await act(async () => technicalRecordButton.click());
+
+    expect(technicalRecordButton.getAttribute('aria-pressed')).toBe('true');
+    expect(container?.querySelector('.technical-review')).not.toBeNull();
+    expect(container?.querySelector('#submitted-changes')).toBeNull();
+  });
+
+  it('keeps focus on the chronology evidence control after selection', async () => {
+    const command = review.evidenceEntries.find(
+      (entry) => entry.kind === 'command_execution',
+    )!;
+    await renderWorkspace();
+
+    const button = findSourceButton(command.evidenceRef)!;
+    button.focus();
+    await act(async () => button.click());
+
+    expect(document.activeElement).toBe(button);
+    expect(container?.querySelector('#selected-evidence-title')).not.toBeNull();
+  });
+
   it.each([
     'GENERALIST_RECRUITER',
     'TECHNICAL_RECRUITER',

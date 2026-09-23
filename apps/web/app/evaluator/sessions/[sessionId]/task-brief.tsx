@@ -27,7 +27,7 @@ export const TaskBrief = ({
     >
       <header className="review-section-heading">
         <p className="section-kicker">Scenario context</p>
-        <h2 id="scenario-context-title">What this scenario examines</h2>
+        <h3 id="scenario-context-title">What this scenario examines</h3>
         <p>
           This context helps organize the review. It is not evidence and does
           not indicate that the candidate demonstrated any particular

@@ -1721,6 +1721,7 @@ details[open] > summary > .disclosure-chevron {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 2.5rem;
   padding: 0.55rem 1.1rem;
   border: 1px solid transparent;
   background: transparent;
@@ -1818,6 +1819,14 @@ details[open] > summary > .disclosure-chevron {
   gap: clamp(2.5rem, 5vw, 4rem);
 }
 
+.evaluator-v2-container,
+.evaluator-main-layout,
+.engineer-evidence-workspace,
+.engineer-chronology-context,
+.engineer-inspection-panel {
+  min-width: 0;
+}
+
 .engineer-evidence-workspace {
   display: grid;
   gap: 2rem;
@@ -1867,6 +1876,9 @@ details[open] > summary > .disclosure-chevron {
   .engineer-inspection-panel {
     position: sticky;
     top: 1rem;
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    scroll-padding-block: 0.75rem;
   }
 }
 
@@ -1878,6 +1890,9 @@ details[open] > summary > .disclosure-chevron {
 }
 
 .evidence-hierarchy-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
   color: var(--muted);
   text-underline-offset: 0.2em;
 }
@@ -2033,8 +2048,9 @@ details[open] > summary > .disclosure-chevron {
 .evidence-toggle-button {
   display: inline-flex;
   align-items: center;
+  min-height: 2.5rem;
   gap: 0.35rem;
-  padding: 0.2rem 0.5rem;
+  padding: 0.45rem 0.65rem;
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--muted);

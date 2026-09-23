@@ -145,6 +145,28 @@ describe('E3 evaluator role-depth contract', () => {
     },
   );
 
+  it('uses truthful hierarchy destinations and ordered headings for Engineer review', () => {
+    const html = renderToStaticMarkup(
+      <EvaluatorExperience
+        sessionId={evidence.sessionId}
+        activeRole="ENGINEER"
+        projection={projectBriefing(briefing, 'ENGINEER')}
+        review={review}
+        evidence={evidence}
+      />,
+    );
+
+    expect(html).toContain('href="#engineer-inspection">Technical inspection');
+    expect(html).not.toContain('href="#engineer-inspection">Source evidence');
+    expect(html).toContain('aria-labelledby="review-overview-title"');
+    expect(html).toContain(
+      '<h2 class="section-kicker" id="review-overview-title">Overview</h2>',
+    );
+    expect(html).toContain(
+      '<h3 id="scenario-context-title">What this scenario examines</h3>',
+    );
+  });
+
   it.each(briefingDepthProfiles)(
     '%s renders only its configured depth surfaces without a candidate verdict',
     (profile) => {

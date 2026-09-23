@@ -48,9 +48,9 @@ While reconstruction is pending, the page says â€œPreparing the session summaryâ
 
 ## Accessibility and responsive behavior
 
-The evaluator route targets WCAG 2.2 AA. Its structure uses landmarks and ordered headings; controls are native links, buttons, and `details`/`summary` disclosures; live preparation state uses `role=status`; unavailable state uses `role=alert`; focus is visibly tokenized; and native disclosures expose their expanded state and support Enter/Space without custom keyboard code.
+The evaluator route targets WCAG 2.2 AA. Its structure uses landmarks and ordered headings; controls are native links, buttons, and `details`/`summary` disclosures; live preparation state uses `role=status`; unavailable state uses `role=alert`; focus is visibly tokenized; and native disclosures expose their expanded state and support Enter/Space without custom keyboard code. The overview has its own heading, with scenario context and platform notices nested beneath it. The Engineer inspection controls remain native buttons in a named group; a selected chronology source remains the current view without moving keyboard focus.
 
-Diff meaning is available through text, literal `+`/`-` prefixes, and screen-reader labels, not color alone. Code and diff surfaces scroll horizontally instead of forcing page overflow. Layouts collapse from multi-column to a single reading column at narrow widths. Motion is enabled only when the user has not requested reduced motion.
+Diff meaning is available through text, literal `+`/`-` prefixes, and screen-reader labels, not color alone. Code and diff surfaces scroll horizontally instead of forcing page overflow; paths, references, and ordinary metadata wrap. Layouts collapse from the Engineer two-column layout to a single reading column below `70rem`. At or above that breakpoint, the sticky inspection panel is bounded to the viewport and scrolls locally so expanded technical records remain reachable without obscuring focus. Motion is enabled only when the user has not requested reduced motion. E6 visual polish remains separate work.
 
 ## Validation status
 
@@ -89,21 +89,21 @@ Depth is a default presentation preference, never authorization. The existing
 evaluator cookie authorizes the same submitted evidence independently of
 `depth` or `role`; a switch neither mutates a session nor persists role state.
 
-| Flag                     | Presentation meaning                                                                                 | Consumer                                |
-| ------------------------ | ---------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `structuredEvidence`     | Render typed command, file, and AI source records after a source disclosure opens.                   | `RecordedActivity` / `EvidenceItemCard` |
-| `directEvidenceLinks`    | Render per-statement source-disclosure affordances. When absent, factual chronology remains visible. | `RecordedActivity`                      |
-| `technicalRecord`        | Render complete chronology and raw-record inspection.                                                | `TechnicalRecord`                       |
-| `scenarioReference`      | Render authored invariants, verification areas, and warnings.                                        | `TaskBrief`                             |
-| `technicalFootprint`     | Render relevant recorded paths and technical AI/activity metadata.                                   | `RecordedActivity`                      |
-| `verificationChronology` | Render typed later-edit and later-capture-gap context beside its recorded verification run.          | `RecordedActivity`                      |
-| `conciseSubmissionScope` | Keep the authoritative submitted diff behind a native disclosure.                                    | `SubmittedWork`                         |
-| `evidenceLimitations`    | Render material platform notices in overview; capture gaps always remain in chronology.              | `PlatformNotice`                        |
-| `artifactAvailability`   | Render artifact-status presentation.                                                                 | `ArtifactAvailabilityCard`              |
-| `reviewGuidance`         | Render authored, non-verdict review policy.                                                          | `ReviewGuidance`                        |
-| `aiSummary`              | Render typed AI capability/activity summary.                                                         | `CompactAiSummary`                      |
-| `aiConfiguredModel`      | Render configured/reported AI model identifiers.                                                     | AI presentation components              |
-| `aiTokenTelemetry`       | Render recorded AI token telemetry.                                                                  | `EvidenceItemCard`                      |
+| Flag                     | Presentation meaning                                                                                 | Consumer                                               |
+| ------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `structuredEvidence`     | Render typed command, file, and AI source records after a source disclosure opens.                   | `RecordedActivity` / `EvidenceItemCard`                |
+| `directEvidenceLinks`    | Render per-statement source-disclosure affordances. When absent, factual chronology remains visible. | `RecordedActivity`                                     |
+| `technicalRecord`        | Render complete chronology and raw-record inspection.                                                | `EngineerEvidenceWorkspace` (reuses `TechnicalRecord`) |
+| `scenarioReference`      | Render authored invariants, verification areas, and warnings.                                        | `TaskBrief`                                            |
+| `technicalFootprint`     | Render relevant recorded paths and technical AI/activity metadata.                                   | `RecordedActivity`                                     |
+| `verificationChronology` | Render typed later-edit and later-capture-gap context beside its recorded verification run.          | `RecordedActivity`                                     |
+| `conciseSubmissionScope` | Keep the authoritative submitted diff behind a native disclosure.                                    | `SubmittedWork`                                        |
+| `evidenceLimitations`    | Render material platform notices in overview; capture gaps always remain in chronology.              | `PlatformNotice`                                       |
+| `artifactAvailability`   | Render artifact-status presentation.                                                                 | `ArtifactAvailabilityCard`                             |
+| `reviewGuidance`         | Render authored, non-verdict review policy.                                                          | `ReviewGuidance`                                       |
+| `aiSummary`              | Render typed AI capability/activity summary.                                                         | `CompactAiSummary`                                     |
+| `aiConfiguredModel`      | Render configured/reported AI model identifiers.                                                     | AI presentation components                             |
+| `aiTokenTelemetry`       | Render recorded AI token telemetry.                                                                  | `EvidenceItemCard`                                     |
 
 `GENERALIST_RECRUITER` uses concise submission scope and limitation notices but
 no direct source controls or structured source records. `TECHNICAL_RECRUITER`

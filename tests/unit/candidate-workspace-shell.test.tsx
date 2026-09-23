@@ -75,6 +75,31 @@ describe('C3 — Candidate workspace shell', () => {
     expect(html).toContain('Saved');
   });
 
+  it('fails safely without inventing a file path when no multi-file workspace file is selected', () => {
+    const scenarioWithoutFilePath = {
+      ...activeSession.scenario,
+      filePath: undefined,
+    };
+    const html = renderToStaticMarkup(
+      <CandidateWorkspace
+        initialSession={{
+          ...activeSession,
+          scenario: {
+            ...scenarioWithoutFilePath,
+            type: 'multi_file',
+          },
+          scenarioType: 'multi_file',
+        }}
+        token="c3-no-file-token"
+      />,
+    );
+
+    expect(html).toContain('No workspace file available');
+    expect(html).toContain('aria-label="Edit No workspace file available"');
+    expect(html).toContain('disabled=""');
+    expect(html).not.toContain('inventory/service.py');
+  });
+
   it('does not expose active workspace navigation after authoritative submission', () => {
     const html = renderToStaticMarkup(
       <CandidateWorkspace

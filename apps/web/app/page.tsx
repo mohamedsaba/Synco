@@ -6,7 +6,9 @@ const HomePage = () => (
   <main className="home-shell">
     <section className="home-intro" aria-labelledby="page-title">
       <div>
-        <p className="eyebrow">Synco / Delimit · Vertical Slice 3</p>
+        <p className="eyebrow">
+          Synco / Delimit · Candidate + Evaluator Experience
+        </p>
         <h1 id="page-title">Realistic incident. Authoritative evidence.</h1>
         <p className="summary">
           Host realistic multi-file engineering incidents in isolated containers

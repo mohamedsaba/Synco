@@ -41,6 +41,20 @@ type ApiError = Readonly<{
 
 type WorkspacePanel = 'scenario' | 'files' | 'editor' | 'commands' | 'ai';
 
+export const selectInitialWorkspaceFile = (
+  files: readonly WorkspaceFileInfo[],
+  scenarioFilePath?: string,
+) => {
+  const filePaths = files
+    .filter((file) => !file.isDirectory)
+    .map((file) => file.path)
+    .sort((left, right) => left.localeCompare(right));
+
+  return scenarioFilePath && filePaths.includes(scenarioFilePath)
+    ? scenarioFilePath
+    : filePaths[0];
+};
+
 export const CandidateWorkspace = ({
   initialSession,
   token,
@@ -65,7 +79,7 @@ export const CandidateWorkspace = ({
     readonly WorkspaceFileInfo[]
   >([]);
   const [selectedFile, setSelectedFile] = useState<string>(
-    session.scenario.filePath || 'inventory/service.py',
+    session.scenario.filePath ?? '',
   );
 
   const [content, setContent] = useState(initialSession.workingContent);
@@ -207,7 +221,6 @@ export const CandidateWorkspace = ({
   useEffect(() => {
     let active = true;
     const initialContent = contentRef.current;
-    const initialFile = selectedFileRef.current;
     if (session.status === 'ACTIVE' && isMultiFile) {
       void (async () => {
         try {
@@ -220,22 +233,29 @@ export const CandidateWorkspace = ({
             };
             const nonDirs = treeData.files.filter((f) => !f.isDirectory);
             setWorkspaceFiles(nonDirs);
-          }
+            const initialPath = selectInitialWorkspaceFile(
+              treeData.files,
+              session.scenario.filePath,
+            );
+            updateSelectedFile(initialPath ?? '');
 
-          const fileRes = await fetch(
-            `/api/candidate/sessions/${token}/workspace/file?path=${encodeURIComponent(initialFile)}`,
-          );
-          if (
-            fileRes.ok &&
-            active &&
-            selectedFileRef.current === initialFile &&
-            contentRef.current === initialContent
-          ) {
-            const fileData = (await fileRes.json()) as {
-              path: string;
-              content: string;
-            };
-            replaceEditorContent(fileData.content);
+            if (!initialPath) return;
+
+            const fileRes = await fetch(
+              `/api/candidate/sessions/${token}/workspace/file?path=${encodeURIComponent(initialPath)}`,
+            );
+            if (
+              fileRes.ok &&
+              active &&
+              selectedFileRef.current === initialPath &&
+              contentRef.current === initialContent
+            ) {
+              const fileData = (await fileRes.json()) as {
+                path: string;
+                content: string;
+              };
+              replaceEditorContent(fileData.content);
+            }
           }
         } catch {
           // Ignore background fetch error
@@ -245,7 +265,7 @@ export const CandidateWorkspace = ({
     return () => {
       active = false;
     };
-  }, [session.status, isMultiFile, token]);
+  }, [session.status, session.scenario.filePath, isMultiFile, token]);
 
   const request = async (path: string, init: RequestInit = {}) => {
     const response = await fetch(
@@ -403,11 +423,12 @@ export const CandidateWorkspace = ({
           };
           const nonDirs = treeData.files.filter((f) => !f.isDirectory);
           setWorkspaceFiles(nonDirs);
-          const initialPath =
-            nextSession.scenario.filePath ||
-            nonDirs[0]?.path ||
-            'inventory/service.py';
-          await loadFile(initialPath);
+          const initialPath = selectInitialWorkspaceFile(
+            treeData.files,
+            nextSession.scenario.filePath,
+          );
+          updateSelectedFile(initialPath ?? '');
+          if (initialPath) await loadFile(initialPath);
         }
       }
     } catch (activateError) {
@@ -439,11 +460,12 @@ export const CandidateWorkspace = ({
                 };
                 const nonDirs = treeData.files.filter((f) => !f.isDirectory);
                 setWorkspaceFiles(nonDirs);
-                const initialPath =
-                  freshSession.scenario.filePath ||
-                  nonDirs[0]?.path ||
-                  'inventory/service.py';
-                await loadFile(initialPath);
+                const initialPath = selectInitialWorkspaceFile(
+                  treeData.files,
+                  freshSession.scenario.filePath,
+                );
+                updateSelectedFile(initialPath ?? '');
+                if (initialPath) await loadFile(initialPath);
               }
             }
             return;
@@ -612,6 +634,8 @@ export const CandidateWorkspace = ({
     session.status === 'ACTIVE' && projection.capabilities.canEdit;
   const canRunCommands = projection.capabilities.canRunCommands;
   const isSubmitted = session.status === 'SUBMITTED';
+  const activeFilePath = isMultiFile ? selectedFile : session.scenario.filePath;
+  const hasSelectedFile = Boolean(activeFilePath);
   const timer =
     session.status === 'ACTIVE' && session.closureReason === null
       ? presentCandidateTimer(projection.remainingMs, session.durationSeconds)
@@ -872,7 +896,7 @@ export const CandidateWorkspace = ({
                   {isMultiFile ? 'Workspace file' : 'Permitted file'}
                 </span>
                 <h2 id="file-name">
-                  {isMultiFile ? selectedFile : session.scenario.filePath}
+                  {activeFilePath || 'No workspace file available'}
                 </h2>
               </div>
               <span
@@ -910,8 +934,8 @@ export const CandidateWorkspace = ({
             ) : null}
 
             <textarea
-              aria-label={`Edit ${isMultiFile ? selectedFile : session.scenario.filePath}`}
-              disabled={!isActive || (isBusy && !isSaving)}
+              aria-label={`Edit ${activeFilePath || 'No workspace file available'}`}
+              disabled={!isActive || !hasSelectedFile || (isBusy && !isSaving)}
               onChange={(event) => {
                 updateEditorContent(event.target.value);
                 setNotice(null);
@@ -938,7 +962,7 @@ export const CandidateWorkspace = ({
                 </p>
               )}
               <div className="button-row">
-                {isActive ? (
+                {isActive && hasSelectedFile ? (
                   <>
                     <button
                       className="button button-secondary"
@@ -1096,7 +1120,7 @@ export const CandidateWorkspace = ({
                 token={token}
                 sessionStatus={session.status}
                 aiCapability={session.aiCapability}
-                activeFilePath={selectedFile}
+                activeFilePath={activeFilePath ?? ''}
                 canUseAi={projection.capabilities.canUseAi}
                 unavailableMessage={
                   projection.uxState === 'TIME_LIMIT_REACHED'

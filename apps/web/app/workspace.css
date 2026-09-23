@@ -523,6 +523,9 @@ textarea:disabled {
 
 .evaluator-entry-card {
   width: min(62rem, 100%);
+  border-color: var(--line);
+  background: var(--surface-subtle);
+  box-shadow: var(--shadow-sm);
 }
 
 .evaluator-entry-card h2 {
@@ -539,20 +542,31 @@ textarea:disabled {
 
 .evaluator-review-link {
   display: grid;
-  gap: 0.35rem;
-  padding: 1rem;
+  gap: 0.45rem;
+  padding: 1.1rem 1.2rem;
   border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
   color: var(--ink);
+  font-size: 0.84rem;
+  line-height: 1.45;
   overflow-wrap: anywhere;
   text-decoration: none;
+  transition:
+    background 120ms ease-out,
+    border-color 120ms ease-out;
 }
 
 .evaluator-review-link:hover {
-  border-color: var(--ink);
+  border-color: var(--accent-dark);
+  background: var(--surface-note);
 }
 
 .evaluator-review-title {
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
 }
 
 .evaluator-review-reference {
@@ -928,10 +942,10 @@ textarea:disabled {
 
 /* Slice 5.1 evaluator review */
 .evaluator-review-shell {
-  width: min(82rem, 100%);
+  width: min(86rem, 100%);
   min-height: 100vh;
   margin: 0 auto;
-  padding: clamp(1.25rem, 4vw, 4rem);
+  padding: clamp(1.25rem, 3.5vw, 3.5rem);
 }
 
 .section-kicker,
@@ -1133,6 +1147,10 @@ details[open] > summary > .disclosure-chevron {
   white-space: pre-wrap;
 }
 
+.activity-output pre {
+  scrollbar-color: var(--line-strong) var(--code-background);
+}
+
 .activity-file-list {
   display: grid;
   gap: 0.65rem;
@@ -1209,6 +1227,7 @@ details[open] > summary > .disclosure-chevron {
   border: 1px solid var(--line);
   background: var(--code-background);
   color: var(--code-text);
+  scrollbar-color: var(--line-strong) var(--code-background);
 }
 
 .diff-line {
@@ -1292,10 +1311,6 @@ details[open] > summary > .disclosure-chevron {
 }
 
 @media (max-width: 620px) {
-  .evaluator-review-shell {
-    padding: 1rem;
-  }
-
   .activity-card-header,
   .activity-boundary-card {
     flex-direction: column;
@@ -1337,15 +1352,15 @@ details[open] > summary > .disclosure-chevron {
 .evaluator-v2-container {
   display: flex;
   flex-direction: column;
-  gap: clamp(2rem, 4vw, 3.5rem);
+  gap: clamp(2.5rem, 5vw, 4.5rem);
 }
 
 .evaluator-v2-header {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--ink);
+  gap: 1.35rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line-strong);
 }
 
 .evaluator-brand-bar {
@@ -1359,9 +1374,10 @@ details[open] > summary > .disclosure-chevron {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.85rem;
+  color: var(--accent-dark);
+  font-size: 0.74rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -1393,13 +1409,16 @@ details[open] > summary > .disclosure-chevron {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: 0.45rem;
   font-size: 0.75rem;
 }
 
 .status-indicator {
   padding: 0.25rem 0.6rem;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
+  background: var(--accent-dark);
+  color: var(--surface);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1409,6 +1428,7 @@ details[open] > summary > .disclosure-chevron {
 .duration-indicator {
   padding: 0.25rem 0.6rem;
   border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
   background: var(--surface);
   color: var(--ink);
   font-family: var(--font-mono);
@@ -1423,8 +1443,9 @@ details[open] > summary > .disclosure-chevron {
 
 .evaluator-scenario-title {
   margin: 0;
+  max-width: 18ch;
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  font-size: clamp(2.35rem, 4.5vw, 4rem);
   font-weight: 400;
   line-height: 1.1;
   color: var(--ink);
@@ -1443,26 +1464,28 @@ details[open] > summary > .disclosure-chevron {
 .role-lens-nav {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.65rem;
   padding-top: 0.5rem;
 }
 
 .role-lens-switcher {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  padding: 0.35rem;
-  background: var(--surface-muted);
+  gap: 0;
+  padding: 0;
   border: 1px solid var(--line);
+  border-inline: 0;
+  background: transparent;
 }
 
 .lens-tab {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.5rem;
-  padding: 0.55rem 1.1rem;
-  border: 1px solid transparent;
+  min-height: 2.65rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--line);
+  border-left: 0;
   background: transparent;
   color: var(--muted);
   text-decoration: none;
@@ -1485,10 +1508,14 @@ details[open] > summary > .disclosure-chevron {
 
 .lens-tab-active,
 .lens-tab[aria-current='page'] {
-  background: var(--surface);
+  background: var(--accent-light);
   color: var(--ink);
-  border-color: var(--ink);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border-color: var(--accent-dark);
+  box-shadow: none;
+}
+
+.lens-tab:first-child {
+  border-left: 1px solid var(--line);
 }
 
 .lens-description {
@@ -1506,22 +1533,23 @@ details[open] > summary > .disclosure-chevron {
 }
 
 .platform-notice-card {
-  padding: 1.25rem 1.5rem;
-  border: 1px solid var(--line);
-  background: var(--surface);
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--notice-border);
+  border-left-width: 3px;
+  background: var(--notice-bg);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
 .platform-notice-gap {
-  border-left: 4px solid var(--notice-border);
+  border-left: 3px solid var(--notice-border);
   background: var(--notice-bg);
 }
 
 .platform-notice-info {
-  border-left: 4px solid var(--line);
-  background: var(--surface);
+  border-left-color: var(--line-strong);
+  background: var(--surface-subtle);
 }
 
 .platform-notice-badge {
@@ -1555,7 +1583,7 @@ details[open] > summary > .disclosure-chevron {
 .evaluator-main-layout {
   display: flex;
   flex-direction: column;
-  gap: clamp(2.5rem, 5vw, 4rem);
+  gap: clamp(3rem, 6vw, 5rem);
 }
 
 .evaluator-v2-container,
@@ -1568,14 +1596,15 @@ details[open] > summary > .disclosure-chevron {
 
 .engineer-evidence-workspace {
   display: grid;
-  gap: 2rem;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
 }
 
 .engineer-inspection-panel {
   align-self: start;
-  padding: 1.25rem;
-  border: 1px solid var(--ink);
-  background: var(--surface);
+  padding: 1.35rem;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-subtle);
+  box-shadow: var(--shadow-sm);
 }
 
 .engineer-inspection-actions {
@@ -1589,6 +1618,8 @@ details[open] > summary > .disclosure-chevron {
   display: grid;
   gap: 0.5rem;
   margin: 0 0 1rem;
+  padding-block: 0.85rem;
+  border-block: 1px solid var(--line);
   font-family: var(--font-mono);
   font-size: 0.75rem;
 }
@@ -1624,7 +1655,8 @@ details[open] > summary > .disclosure-chevron {
 .evidence-hierarchy-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1rem;
+  gap: 0;
+  border-block: 1px solid var(--line);
   font-size: 0.82rem;
 }
 
@@ -1632,13 +1664,20 @@ details[open] > summary > .disclosure-chevron {
   display: inline-flex;
   align-items: center;
   min-height: 2.5rem;
+  padding: 0.15rem 1rem 0.15rem 0;
   color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 600;
   text-underline-offset: 0.2em;
 }
 
 .evidence-hierarchy-nav a:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
+}
+
+.evidence-hierarchy-nav a:hover {
+  color: var(--accent-dark);
 }
 
 /* Task Brief */
@@ -1661,7 +1700,7 @@ details[open] > summary > .disclosure-chevron {
   grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
   gap: 1.5rem;
   padding: 1.5rem;
-  background: var(--surface);
+  background: var(--surface-subtle);
   border: 1px solid var(--line);
 }
 
@@ -1736,10 +1775,10 @@ details[open] > summary > .disclosure-chevron {
 }
 
 .activity-marker {
-  width: 0.65rem;
-  height: 0.65rem;
+  width: 0.55rem;
+  height: 0.55rem;
   border-radius: 50%;
-  border: 2px solid var(--ink);
+  border: 2px solid var(--accent-dark);
   background: var(--paper);
 }
 
@@ -1755,10 +1794,10 @@ details[open] > summary > .disclosure-chevron {
 }
 
 .activity-content {
-  padding-bottom: 1.5rem;
+  padding-bottom: 1.9rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.65rem;
 }
 
 .activity-main-line {
@@ -1772,13 +1811,16 @@ details[open] > summary > .disclosure-chevron {
 .activity-text {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 1.05rem;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: 1.6;
   color: var(--ink);
 }
 
 .activity-verification-result {
   margin: 0;
+  max-width: 62rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--accent);
   color: var(--muted);
   font-size: 0.86rem;
   line-height: 1.5;
@@ -1791,8 +1833,8 @@ details[open] > summary > .disclosure-chevron {
   gap: 0.35rem;
   padding: 0.45rem 0.65rem;
   border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--muted);
+  background: var(--surface-subtle);
+  color: var(--ink-secondary);
   font-size: 0.75rem;
   font-family: var(--font-mono);
   cursor: pointer;
@@ -1800,8 +1842,9 @@ details[open] > summary > .disclosure-chevron {
 }
 
 .evidence-toggle-button:hover {
-  color: var(--ink);
-  border-color: var(--ink);
+  color: var(--accent-dark);
+  border-color: var(--accent-dark);
+  background: var(--accent-light);
 }
 
 .excerpt-toggle-button {
@@ -1831,7 +1874,7 @@ details[open] > summary > .disclosure-chevron {
 .activity-evidence-drawer {
   margin-top: 0.75rem;
   padding: 1rem;
-  background: var(--surface);
+  background: var(--surface-subtle);
   border: 1px solid var(--line);
 }
 
@@ -1879,6 +1922,7 @@ details[open] > summary > .disclosure-chevron {
   padding: 1.5rem;
   background: var(--surface);
   border: 1px solid var(--line);
+  border-top: 2px solid var(--accent-dark);
   margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -1949,7 +1993,7 @@ details[open] > summary > .disclosure-chevron {
 }
 
 .submitted-diff-container {
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line-strong);
 }
 
 .submitted-diff-disclosure {
@@ -1963,13 +2007,15 @@ details[open] > summary > .disclosure-chevron {
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  color: var(--ink);
-  background: var(--surface);
+  color: var(--ink-secondary);
+  background: var(--surface-subtle);
   user-select: none;
 }
 
 .submitted-diff-toggle:hover {
-  background: var(--surface-subtle);
+  border-color: var(--accent-dark);
+  background: var(--accent-light);
+  color: var(--accent-dark);
 }
 
 .submitted-diff-disclosure[open] > .submitted-diff-toggle {
@@ -1979,7 +2025,7 @@ details[open] > summary > .disclosure-chevron {
 /* Review Guidance */
 .guidance-card {
   padding: 1.75rem;
-  background: var(--surface);
+  background: var(--surface-subtle);
   border: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -2048,7 +2094,7 @@ details[open] > summary > .disclosure-chevron {
 .artifact-provenance-details {
   margin-top: 1.5rem;
   padding: 1.25rem;
-  background: var(--surface);
+  background: var(--surface-subtle);
   border: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -2084,10 +2130,6 @@ details[open] > summary > .disclosure-chevron {
 
 /* Media Queries for Responsive & Accessibility */
 @media (max-width: 60rem) {
-  .evaluator-v2-header {
-    gap: 1.25rem;
-  }
-
   .role-lens-switcher {
     width: 100%;
   }
@@ -2100,6 +2142,17 @@ details[open] > summary > .disclosure-chevron {
   .activity-item {
     grid-template-columns: 1.5rem 1fr;
     gap: 0.75rem;
+  }
+}
+
+@media (max-width: 34rem) {
+  .evaluator-v2-container .lens-tab {
+    flex-basis: 50%;
+    border-left: 1px solid var(--line);
+  }
+
+  .evaluator-v2-container .evidence-hierarchy-nav a {
+    padding-right: 0.75rem;
   }
 }
 
@@ -2217,16 +2270,16 @@ details[open] > summary > .disclosure-chevron {
 }
 
 .activity-status-tag.status-cancelled {
-  background: #fef2f2;
-  color: #991b1b;
-  border-color: #fca5a5;
+  background: var(--notice-bg);
+  color: var(--notice-text);
+  border-color: var(--notice-border);
 }
 
 .activity-status-tag.status-failed,
 .activity-status-tag.status-timeout {
-  background: #fffbeb;
-  color: #92400e;
-  border-color: #fcd34d;
+  background: var(--notice-bg);
+  color: var(--notice-text);
+  border-color: var(--notice-border);
 }
 
 .activity-elapsed-label {
@@ -2295,10 +2348,20 @@ details[open] > summary > .disclosure-chevron {
   word-break: break-word;
 }
 
+.evaluator-v2-container .activity-excerpt {
+  scrollbar-color: var(--line-strong) var(--code-background);
+}
+
 .activity-excerpt.error-excerpt {
   border-color: #fca5a5;
   background: #fff5f5;
   color: #991b1b;
+}
+
+.evaluator-v2-container .activity-excerpt.error-excerpt {
+  border-color: var(--notice-border);
+  background: var(--notice-bg);
+  color: var(--notice-text);
 }
 
 .activity-token-telemetry {
@@ -2714,237 +2777,5 @@ details[open] > summary > .disclosure-chevron {
   .prestart-card,
   .button {
     transition: none !important;
-  }
-}
-
-/* E6 — evaluator visual polish: presentation only. */
-.evaluator-review-shell {
-  width: min(86rem, 100%);
-  padding: clamp(1.25rem, 3.5vw, 3.5rem);
-}
-
-.evaluator-entry-card {
-  border-color: var(--line);
-  background: var(--surface-subtle);
-  box-shadow: var(--shadow-sm);
-}
-
-.evaluator-entry-card .evaluator-review-link {
-  gap: 0.45rem;
-  padding: 1.1rem 1.2rem;
-  border-left: 3px solid var(--accent);
-  background: var(--surface);
-  font-size: 0.84rem;
-  line-height: 1.45;
-  transition:
-    background 120ms ease-out,
-    border-color 120ms ease-out;
-}
-
-.evaluator-entry-card .evaluator-review-link:hover {
-  border-color: var(--accent-dark);
-  background: var(--surface-note);
-}
-
-.evaluator-entry-card .evaluator-review-title {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 500;
-  letter-spacing: -0.015em;
-}
-
-.evaluator-v2-container {
-  gap: clamp(2.5rem, 5vw, 4.5rem);
-}
-
-.evaluator-v2-container .evaluator-v2-header {
-  gap: 1.35rem;
-  padding-bottom: 1.5rem;
-  border-bottom-color: var(--line-strong);
-}
-
-.evaluator-v2-container .evaluator-brand {
-  color: var(--accent-dark);
-  font-size: 0.74rem;
-  letter-spacing: 0.1em;
-}
-
-.evaluator-v2-container .title-metadata-pill {
-  gap: 0.45rem;
-}
-
-.evaluator-v2-container .status-indicator,
-.evaluator-v2-container .duration-indicator {
-  border-color: var(--line);
-  border-radius: var(--radius-xs);
-}
-
-.evaluator-v2-container .status-indicator {
-  background: var(--accent-dark);
-  color: var(--surface);
-}
-
-.evaluator-v2-container .evaluator-scenario-title {
-  max-width: 18ch;
-  font-size: clamp(2.35rem, 4.5vw, 4rem);
-}
-
-.evaluator-v2-container .role-lens-nav {
-  gap: 0.65rem;
-}
-
-.evaluator-v2-container .role-lens-switcher {
-  gap: 0;
-  padding: 0;
-  border-inline: 0;
-  background: transparent;
-}
-
-.evaluator-v2-container .lens-tab {
-  min-height: 2.65rem;
-  padding-inline: 0.9rem;
-  border-color: var(--line);
-  border-left: 0;
-  font-size: 0.78rem;
-}
-
-.evaluator-v2-container .lens-tab:first-child {
-  border-left: 1px solid var(--line);
-}
-
-.evaluator-v2-container .lens-tab-active,
-.evaluator-v2-container .lens-tab[aria-current='page'] {
-  border-color: var(--accent-dark);
-  background: var(--accent-light);
-  box-shadow: none;
-}
-
-.evaluator-v2-container .evidence-hierarchy-nav {
-  gap: 0;
-  border-block: 1px solid var(--line);
-}
-
-.evaluator-v2-container .evidence-hierarchy-nav a {
-  padding: 0.15rem 1rem 0.15rem 0;
-  color: var(--muted);
-  font-size: 0.76rem;
-  font-weight: 600;
-}
-
-.evaluator-v2-container .evidence-hierarchy-nav a:hover {
-  color: var(--accent-dark);
-}
-
-.evaluator-v2-container .evaluator-main-layout {
-  gap: clamp(3rem, 6vw, 5rem);
-}
-
-.evaluator-v2-container .platform-notice-card {
-  padding: 1.1rem 1.25rem;
-  border-color: var(--notice-border);
-  border-left-width: 3px;
-  background: var(--notice-bg);
-}
-
-.evaluator-v2-container .platform-notice-info {
-  border-left-color: var(--line-strong);
-  background: var(--surface-subtle);
-}
-
-.evaluator-v2-container .scenario-reference-grid,
-.evaluator-v2-container .guidance-card {
-  background: var(--surface-subtle);
-  border-color: var(--line);
-}
-
-.evaluator-v2-container .activity-content {
-  gap: 0.65rem;
-  padding-bottom: 1.9rem;
-}
-
-.evaluator-v2-container .activity-marker {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-color: var(--accent-dark);
-}
-
-.evaluator-v2-container .activity-text {
-  font-size: 1rem;
-  line-height: 1.6;
-}
-
-.evaluator-v2-container .activity-verification-result {
-  max-width: 62rem;
-  padding-left: 0.75rem;
-  border-left: 2px solid var(--accent);
-}
-
-.evaluator-v2-container .evidence-toggle-button,
-.evaluator-v2-container .submitted-diff-toggle {
-  border-color: var(--line);
-  background: var(--surface-subtle);
-  color: var(--ink-secondary);
-}
-
-.evaluator-v2-container .evidence-toggle-button:hover,
-.evaluator-v2-container .submitted-diff-toggle:hover {
-  border-color: var(--accent-dark);
-  background: var(--accent-light);
-  color: var(--accent-dark);
-}
-
-.evaluator-v2-container .engineer-evidence-workspace {
-  gap: clamp(1.5rem, 3vw, 2.5rem);
-}
-
-.evaluator-v2-container .engineer-inspection-panel {
-  padding: 1.35rem;
-  border-color: var(--line-strong);
-  background: var(--surface-subtle);
-  box-shadow: var(--shadow-sm);
-}
-
-.evaluator-v2-container .engineer-evidence-provenance {
-  padding-block: 0.85rem;
-  border-block: 1px solid var(--line);
-}
-
-.evaluator-v2-container .activity-evidence-drawer,
-.evaluator-v2-container .artifact-provenance-details {
-  background: var(--surface-subtle);
-}
-
-.evaluator-v2-container .submitted-summary-card {
-  border-top: 2px solid var(--accent-dark);
-  background: var(--surface);
-}
-
-.evaluator-v2-container .submitted-diff-container {
-  border-color: var(--line-strong);
-}
-
-.evaluator-v2-container .submitted-diff,
-.evaluator-v2-container .activity-excerpt,
-.evaluator-v2-container .activity-output pre {
-  scrollbar-color: var(--line-strong) var(--code-background);
-}
-
-.evaluator-v2-container .activity-status-tag.status-cancelled,
-.evaluator-v2-container .activity-status-tag.status-failed,
-.evaluator-v2-container .activity-status-tag.status-timeout,
-.evaluator-v2-container .activity-excerpt.error-excerpt {
-  border-color: var(--notice-border);
-  background: var(--notice-bg);
-  color: var(--notice-text);
-}
-
-@media (max-width: 34rem) {
-  .evaluator-v2-container .lens-tab {
-    flex-basis: 50%;
-    border-left: 1px solid var(--line);
-  }
-
-  .evaluator-v2-container .evidence-hierarchy-nav a {
-    padding-right: 0.75rem;
   }
 }

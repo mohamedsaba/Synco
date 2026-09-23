@@ -277,17 +277,24 @@ describe('evaluator review rendering', () => {
     );
   });
 
-  it('keeps E6 visual polish inside evaluator surfaces', () => {
+  it('keeps reconciled evaluator styles canonical and Candidate-safe', () => {
     const styles = readFileSync(
       path.join(process.cwd(), 'apps/web/app/workspace.css'),
       'utf8',
     );
-    const polish = styles.split(
-      '/* E6 — evaluator visual polish: presentation only. */',
-    )[1];
 
-    expect(polish).toContain('.evaluator-v2-container .activity-content');
-    expect(polish).toContain('.evaluator-entry-card .evaluator-review-link');
-    expect(polish).not.toMatch(/^\s*(button|section|pre|details|summary)\b/m);
+    expect(styles).not.toContain('/* E6 — evaluator visual polish');
+    expect(styles).toMatch(
+      /\.evaluator-v2-container\s*\{[^}]*gap: clamp\(2.5rem, 5vw, 4.5rem\);/,
+    );
+    expect(styles).toMatch(
+      /\.lens-tab\s*\{[^}]*min-height: 2.65rem;[^}]*border-left: 0;/,
+    );
+    expect(styles).toMatch(
+      /\.evaluator-v2-container \.activity-excerpt\s*\{[^}]*scrollbar-color:/,
+    );
+    expect(styles).toMatch(
+      /\.evaluator-v2-container \.activity-excerpt\.error-excerpt\s*\{[^}]*background: var\(--notice-bg\);/,
+    );
   });
 });

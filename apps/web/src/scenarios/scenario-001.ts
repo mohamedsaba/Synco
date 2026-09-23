@@ -1,5 +1,13 @@
+import {
+  defaultAiCapabilitySnapshot,
+  type AiCapabilitySnapshot,
+} from '../ai/ai-interaction';
 import { scenario001SemanticSnapshot } from './scenario-semantic-snapshot';
 import type { ScenarioSnapshot } from './slice-one-scenario';
+
+export const scenario001AiCapability: AiCapabilitySnapshot = {
+  ...defaultAiCapabilitySnapshot,
+};
 
 export const scenario001: ScenarioSnapshot = {
   id: 'scenario-001-cache-staleness',

@@ -1,4 +1,5 @@
 import {
+  cloneAiCapabilitySnapshot,
   type AiCapabilitySnapshot,
   disabledAiCapabilitySnapshot,
 } from '../ai/ai-interaction';
@@ -237,8 +238,8 @@ export class SessionService {
       submittedDiff: null,
       aiCapabilitySnapshot:
         options?.aiCapability !== undefined
-          ? options.aiCapability
-          : disabledAiCapabilitySnapshot,
+          ? cloneAiCapabilitySnapshot(options.aiCapability)
+          : cloneAiCapabilitySnapshot(disabledAiCapabilitySnapshot),
     };
 
     this.store.create(session);

@@ -54,8 +54,8 @@ export const POST = async (request: Request) => {
     );
   }
 
-  const scenario = getIssuableScenario(scenarioId);
-  if (!scenario) {
+  const issuance = getIssuableScenario(scenarioId);
+  if (!issuance) {
     return Response.json(
       {
         error: {
@@ -68,7 +68,8 @@ export const POST = async (request: Request) => {
   }
 
   const { candidateToken, session } = getSessionService().createSession({
-    scenario,
+    scenario: issuance.scenario,
+    aiCapability: issuance.aiCapability,
   });
 
   return Response.json(

@@ -38,6 +38,10 @@ export const disabledAiCapabilitySnapshot: AiCapabilitySnapshot = {
   configurationVersion: '1.0.0',
 };
 
+export const cloneAiCapabilitySnapshot = (
+  snapshot: AiCapabilitySnapshot | null,
+): AiCapabilitySnapshot | null => (snapshot ? { ...snapshot } : null);
+
 export const MAXIMUM_PROMPT_LENGTH = 32_768; // 32 KiB
 export const MAXIMUM_RESPONSE_LENGTH = 65_536; // 64 KiB
 export const MAXIMUM_EXCERPT_LENGTH = 500;

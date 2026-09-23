@@ -2977,3 +2977,235 @@ details[open] > summary > .disclosure-chevron {
     transition: none !important;
   }
 }
+
+/* E6 — evaluator visual polish: presentation only. */
+.evaluator-review-shell {
+  width: min(86rem, 100%);
+  padding: clamp(1.25rem, 3.5vw, 3.5rem);
+}
+
+.evaluator-entry-card {
+  border-color: var(--line);
+  background: var(--surface-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+.evaluator-entry-card .evaluator-review-link {
+  gap: 0.45rem;
+  padding: 1.1rem 1.2rem;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  transition:
+    background 120ms ease-out,
+    border-color 120ms ease-out;
+}
+
+.evaluator-entry-card .evaluator-review-link:hover {
+  border-color: var(--accent-dark);
+  background: var(--surface-note);
+}
+
+.evaluator-entry-card .evaluator-review-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+.evaluator-v2-container {
+  gap: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.evaluator-v2-container .evaluator-v2-header {
+  gap: 1.35rem;
+  padding-bottom: 1.5rem;
+  border-bottom-color: var(--line-strong);
+}
+
+.evaluator-v2-container .evaluator-brand {
+  color: var(--accent-dark);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+}
+
+.evaluator-v2-container .title-metadata-pill {
+  gap: 0.45rem;
+}
+
+.evaluator-v2-container .status-indicator,
+.evaluator-v2-container .duration-indicator {
+  border-color: var(--line);
+  border-radius: var(--radius-xs);
+}
+
+.evaluator-v2-container .status-indicator {
+  background: var(--accent-dark);
+  color: var(--surface);
+}
+
+.evaluator-v2-container .evaluator-scenario-title {
+  max-width: 18ch;
+  font-size: clamp(2.35rem, 4.5vw, 4rem);
+}
+
+.evaluator-v2-container .role-lens-nav {
+  gap: 0.65rem;
+}
+
+.evaluator-v2-container .role-lens-switcher {
+  gap: 0;
+  padding: 0;
+  border-inline: 0;
+  background: transparent;
+}
+
+.evaluator-v2-container .lens-tab {
+  min-height: 2.65rem;
+  padding-inline: 0.9rem;
+  border-color: var(--line);
+  border-left: 0;
+  font-size: 0.78rem;
+}
+
+.evaluator-v2-container .lens-tab:first-child {
+  border-left: 1px solid var(--line);
+}
+
+.evaluator-v2-container .lens-tab-active,
+.evaluator-v2-container .lens-tab[aria-current='page'] {
+  border-color: var(--accent-dark);
+  background: var(--accent-light);
+  box-shadow: none;
+}
+
+.evaluator-v2-container .evidence-hierarchy-nav {
+  gap: 0;
+  border-block: 1px solid var(--line);
+}
+
+.evaluator-v2-container .evidence-hierarchy-nav a {
+  padding: 0.15rem 1rem 0.15rem 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.evaluator-v2-container .evidence-hierarchy-nav a:hover {
+  color: var(--accent-dark);
+}
+
+.evaluator-v2-container .evaluator-main-layout {
+  gap: clamp(3rem, 6vw, 5rem);
+}
+
+.evaluator-v2-container .platform-notice-card {
+  padding: 1.1rem 1.25rem;
+  border-color: var(--notice-border);
+  border-left-width: 3px;
+  background: var(--notice-background);
+}
+
+.evaluator-v2-container .platform-notice-info {
+  border-left-color: var(--line-strong);
+  background: var(--surface-subtle);
+}
+
+.evaluator-v2-container .scenario-reference-grid,
+.evaluator-v2-container .guidance-card {
+  background: var(--surface-subtle);
+  border-color: var(--line);
+}
+
+.evaluator-v2-container .activity-content {
+  gap: 0.65rem;
+  padding-bottom: 1.9rem;
+}
+
+.evaluator-v2-container .activity-marker {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-color: var(--accent-dark);
+}
+
+.evaluator-v2-container .activity-text {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.evaluator-v2-container .activity-verification-result {
+  max-width: 62rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--accent);
+}
+
+.evaluator-v2-container .evidence-toggle-button,
+.evaluator-v2-container .submitted-diff-toggle {
+  border-color: var(--line);
+  background: var(--surface-subtle);
+  color: var(--ink-secondary);
+}
+
+.evaluator-v2-container .evidence-toggle-button:hover,
+.evaluator-v2-container .submitted-diff-toggle:hover {
+  border-color: var(--accent-dark);
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
+
+.evaluator-v2-container .engineer-evidence-workspace {
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.evaluator-v2-container .engineer-inspection-panel {
+  padding: 1.35rem;
+  border-color: var(--line-strong);
+  background: var(--surface-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+.evaluator-v2-container .engineer-evidence-provenance {
+  padding-block: 0.85rem;
+  border-block: 1px solid var(--line);
+}
+
+.evaluator-v2-container .activity-evidence-drawer,
+.evaluator-v2-container .artifact-provenance-details {
+  background: var(--surface-subtle);
+}
+
+.evaluator-v2-container .submitted-summary-card {
+  border-top: 2px solid var(--accent-dark);
+  background: var(--surface);
+}
+
+.evaluator-v2-container .submitted-diff-container {
+  border-color: var(--line-strong);
+}
+
+.evaluator-v2-container .submitted-diff,
+.evaluator-v2-container .activity-excerpt,
+.evaluator-v2-container .activity-output pre {
+  scrollbar-color: var(--line-strong) var(--code-background);
+}
+
+.evaluator-v2-container .activity-status-tag.status-cancelled,
+.evaluator-v2-container .activity-status-tag.status-failed,
+.evaluator-v2-container .activity-status-tag.status-timeout,
+.evaluator-v2-container .activity-excerpt.error-excerpt {
+  border-color: var(--notice-border);
+  background: var(--notice-background);
+  color: var(--notice-text);
+}
+
+@media (max-width: 34rem) {
+  .evaluator-v2-container .lens-tab {
+    flex-basis: 50%;
+    border-left: 1px solid var(--line);
+  }
+
+  .evaluator-v2-container .evidence-hierarchy-nav a {
+    padding-right: 0.75rem;
+  }
+}

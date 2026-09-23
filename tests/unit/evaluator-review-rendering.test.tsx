@@ -394,4 +394,18 @@ describe('evaluator review rendering', () => {
       /\.evidence-toggle-button\s*\{[^}]*min-height: 2.5rem;/,
     );
   });
+
+  it('keeps E6 visual polish inside evaluator surfaces', () => {
+    const styles = readFileSync(
+      path.join(process.cwd(), 'apps/web/app/workspace.css'),
+      'utf8',
+    );
+    const polish = styles.split(
+      '/* E6 — evaluator visual polish: presentation only. */',
+    )[1];
+
+    expect(polish).toContain('.evaluator-v2-container .activity-content');
+    expect(polish).toContain('.evaluator-entry-card .evaluator-review-link');
+    expect(polish).not.toMatch(/^\s*(button|section|pre|details|summary)\b/m);
+  });
 });

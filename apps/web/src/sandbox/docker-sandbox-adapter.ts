@@ -30,6 +30,55 @@ const isMissingDockerVolumeError = (error: unknown): boolean => {
   return /No such volume/i.test(parts);
 };
 
+const workspacePathRejectedMarker = 'DELIMIT_WORKSPACE_PATH_REJECTED';
+
+const readWorkspaceFileScript = [
+  'set -eu',
+  `reject() { echo ${workspacePathRejectedMarker} >&2; exit 64; }`,
+  'root="$(realpath /workspace)" || reject',
+  'exec 3< "$1" || reject',
+  'resolved="$(readlink -f /proc/self/fd/3)" || reject',
+  'case "$resolved" in "$root"/*) ;; *) reject ;; esac',
+  '[ -f /proc/self/fd/3 ] || reject',
+  'cat <&3',
+].join('; ');
+
+const writeWorkspaceFileScript = [
+  'set -eu',
+  `reject() { echo ${workspacePathRejectedMarker} >&2; exit 64; }`,
+  'root="$(realpath /workspace)" || reject',
+  'relative="$1"',
+  'temporaryName="$2"',
+  'exec 3< "$root" || reject',
+  'remaining="$relative"',
+  'while [ "$remaining" != "${remaining#*/}" ]; do',
+  '  component="${remaining%%/*}"',
+  '  remaining="${remaining#*/}"',
+  '  next="/proc/self/fd/3/$component"',
+  '  if [ ! -e "$next" ]; then mkdir "$next" || reject; fi',
+  '  exec 4<&3',
+  '  exec 3< "/proc/self/fd/4/$component" || reject',
+  '  exec 4<&-',
+  '  resolved="$(readlink -f /proc/self/fd/3)" || reject',
+  '  case "$resolved" in "$root"|"$root"/*) ;; *) reject ;; esac',
+  '  [ -d /proc/self/fd/3 ] || reject',
+  'done',
+  'entry="/proc/self/fd/3/$remaining"',
+  '[ -L "$entry" ] && reject',
+  '[ -d "$entry" ] && reject',
+  'temporary="/proc/self/fd/3/.delimit-write-$temporaryName"',
+  'set -C',
+  'exec 4> "$temporary" || reject',
+  'set +C',
+  'trap \'rm -f "$temporary"\' EXIT HUP INT TERM',
+  'cat >&4',
+  'exec 4>&-',
+  'rm -f "$entry" || reject',
+  'ln "$temporary" "$entry" || reject',
+  'rm -f "$temporary" || reject',
+  'trap - EXIT',
+].join('\n');
+
 export class DockerSandboxAdapter implements SandboxAdapter {
   private readonly imageName: string;
   private readonly defaultTimeoutMs: number;
@@ -693,38 +742,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
     content: string,
   ): Promise<void> {
     const containerName = this.getContainerName(sessionId);
-    const normalized = filePath
-      .replace(/^\/+/, '')
-      .replace(/^workspace\/?/, '');
-    if (normalized.includes('..') || normalized.startsWith('/')) {
-      throw new SandboxError(
-        'SANDBOX_EXECUTION_FAILED',
-        `Invalid file path: ${filePath}`,
-      );
-    }
-    const dir = normalized.includes('/')
-      ? normalized.slice(0, normalized.lastIndexOf('/'))
-      : '';
-
-    if (dir) {
-      await this.runProcess(
-        'docker',
-        [
-          'exec',
-          containerName,
-          'sh',
-          '-c',
-          'mkdir -p "$1"',
-          '_',
-          `/workspace/${dir}`,
-        ],
-        {
-          timeoutMs: 10_000,
-          maxStdoutBytes: 4 * 1024,
-          maxStderrBytes: 64 * 1024,
-        },
-      ).catch(() => {});
-    }
+    const normalized = this.workspaceRelativePath(filePath);
 
     try {
       await this.runProcessWithInput(
@@ -735,9 +753,10 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           containerName,
           'sh',
           '-c',
-          'cat > "$1"',
+          writeWorkspaceFileScript,
           '_',
-          `/workspace/${normalized}`,
+          normalized,
+          randomUUID(),
         ],
         content,
         {
@@ -747,6 +766,9 @@ export class DockerSandboxAdapter implements SandboxAdapter {
         },
       );
     } catch (error) {
+      if (this.isWorkspacePathRejected(error)) {
+        throw this.workspacePathError(filePath, error);
+      }
       if (error instanceof SandboxError) throw error;
       throw new SandboxError(
         'SANDBOX_EXECUTION_FAILED',
@@ -758,20 +780,20 @@ export class DockerSandboxAdapter implements SandboxAdapter {
 
   async readFile(sessionId: string, filePath: string): Promise<string> {
     const containerName = this.getContainerName(sessionId);
-    const normalized = filePath
-      .replace(/^\/+/, '')
-      .replace(/^workspace\/?/, '');
-    if (normalized.includes('..') || normalized.startsWith('/')) {
-      throw new SandboxError(
-        'SANDBOX_EXECUTION_FAILED',
-        `Invalid file path: ${filePath}`,
-      );
-    }
+    const normalized = this.workspaceRelativePath(filePath);
 
     try {
       const res = await this.runProcess(
         'docker',
-        ['exec', containerName, 'cat', `/workspace/${normalized}`],
+        [
+          'exec',
+          containerName,
+          'sh',
+          '-c',
+          readWorkspaceFileScript,
+          '_',
+          `/workspace/${normalized}`,
+        ],
         {
           timeoutMs: 15_000,
           maxStdoutBytes: MAX_WORKSPACE_FILE_READ_BYTES,
@@ -780,6 +802,9 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       );
       return res.stdout;
     } catch (error) {
+      if (this.isWorkspacePathRejected(error)) {
+        throw this.workspacePathError(filePath, error);
+      }
       if (error instanceof SandboxError) {
         if (error.message.includes('stdout exceeded limit')) {
           throw new SandboxError(
@@ -796,6 +821,37 @@ export class DockerSandboxAdapter implements SandboxAdapter {
         error,
       );
     }
+  }
+
+  private workspaceRelativePath(filePath: string): string {
+    if (
+      !filePath ||
+      filePath.startsWith('/') ||
+      filePath.includes('\\') ||
+      filePath.includes('..')
+    ) {
+      throw new SandboxError(
+        'SANDBOX_EXECUTION_FAILED',
+        `Invalid workspace-relative file path: ${filePath}`,
+      );
+    }
+    return filePath;
+  }
+
+  private isWorkspacePathRejected(error: unknown): boolean {
+    return (
+      error instanceof SandboxError &&
+      error.cause instanceof Error &&
+      error.cause.message.includes(workspacePathRejectedMarker)
+    );
+  }
+
+  private workspacePathError(filePath: string, cause: unknown): SandboxError {
+    return new SandboxError(
+      'SANDBOX_EXECUTION_FAILED',
+      `Workspace file path resolves outside /workspace or is not a regular file: ${filePath}`,
+      cause,
+    );
   }
 
   async listFiles(sessionId: string): Promise<readonly WorkspaceFileInfo[]> {

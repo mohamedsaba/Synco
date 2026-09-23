@@ -241,7 +241,7 @@ describe('T1A.3A — Frozen Evidence Capture', () => {
       const baseline = await adapter.getBaselineTree(sessionId);
       await adapter.writeFile(
         sessionId,
-        '/workspace/inventory/service.py',
+        'inventory/service.py',
         '# CANDIDATE_MUTATION\n',
       );
       await adapter.freeze(sessionId);
@@ -290,7 +290,7 @@ describe('T1A.3A — Frozen Evidence Capture', () => {
       await adapter.createAndVerify(sessionId, { scenarioType: 'multi_file' });
       await adapter.writeFile(
         sessionId,
-        '/workspace/inventory/service.py',
+        'inventory/service.py',
         '# BEFORE_HELPER\n',
       );
       await adapter.freeze(sessionId);
@@ -361,7 +361,7 @@ describe('T1A.3A — Pause Containment (Docker)', () => {
       await adapter.createAndVerify(sessionId, { scenarioType: 'multi_file' });
       await adapter.writeFile(
         sessionId,
-        '/workspace/freeze-marker.txt',
+        'freeze-marker.txt',
         'PRE_FREEZE\n',
       );
 

@@ -164,7 +164,7 @@ describe('E3 evaluator role-depth contract', () => {
       expect(html.includes('View submitted changes')).toBe(
         depth.conciseSubmissionScope,
       );
-      expect(html.includes('Open technical chronology')).toBe(
+      expect(html.includes('engineer-evidence-workspace')).toBe(
         depth.technicalRecord,
       );
       expect(html.includes('Artifact availability')).toBe(

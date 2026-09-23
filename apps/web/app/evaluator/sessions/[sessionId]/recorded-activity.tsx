@@ -24,6 +24,8 @@ type RecordedActivityProps = Readonly<{
   showConfiguredModel?: boolean;
   showTokenTelemetry?: boolean;
   activatedAt?: string | null;
+  selectedEvidenceRef?: string | null;
+  onSelectEvidence?: (evidenceRef: string) => void;
 }>;
 
 type PresentationUnit =
@@ -163,6 +165,8 @@ export const RecordedActivity = ({
   showConfiguredModel = false,
   showTokenTelemetry = false,
   activatedAt,
+  selectedEvidenceRef,
+  onSelectEvidence,
 }: RecordedActivityProps) => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [expandedBurstIds, setExpandedBurstIds] = useState<Set<string>>(
@@ -208,6 +212,7 @@ export const RecordedActivity = ({
     });
 
     const firstEntry = matchingEntries[0];
+    const isSelected = firstEntry?.evidenceRef === selectedEvidenceRef;
     const aiMetadata = getAiMetadata(firstEntry?.item);
     const elapsedLabel = formatElapsed(
       activatedAt ?? null,
@@ -259,7 +264,20 @@ export const RecordedActivity = ({
               ) : null}
             </div>
 
-            {showDirectEvidenceLinks && matchingEntries.length > 0 ? (
+            {showDirectEvidenceLinks && firstEntry && onSelectEvidence ? (
+              <button
+                type="button"
+                className="evidence-toggle-button"
+                aria-pressed={isSelected}
+                aria-label={`View source evidence ${firstEntry.evidenceRef}`}
+                onClick={() => onSelectEvidence(firstEntry.evidenceRef)}
+              >
+                <span>View evidence</span>
+                <span className="disclosure-chevron" aria-hidden="true">
+                  ›
+                </span>
+              </button>
+            ) : showDirectEvidenceLinks && matchingEntries.length > 0 ? (
               <button
                 type="button"
                 className="evidence-toggle-button"
@@ -324,6 +342,7 @@ export const RecordedActivity = ({
           ) : null}
 
           {showDirectEvidenceLinks &&
+          !onSelectEvidence &&
           isExpanded &&
           matchingEntries.length > 0 ? (
             <div

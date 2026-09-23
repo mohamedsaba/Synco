@@ -145,10 +145,10 @@ describe('evaluator gate fixture consistency', () => {
           }),
         );
         expect(engineerHtml).toContain('What happened');
-        expect(engineerHtml).toContain('Submitted changes');
+        expect(engineerHtml).toContain('Final submitted state');
         expect(engineerHtml).toContain('Recorded activity');
         expect(engineerHtml).toContain('What this scenario examines');
-        expect(engineerHtml).toContain('Open technical chronology');
+        expect(engineerHtml).toContain('engineer-evidence-workspace');
         expect(review.submittedDiff).toBe(evidence.diff);
         if (caseId === 'G') {
           expect(evidence.scenario.evaluationContext).toBeUndefined();
@@ -177,7 +177,14 @@ describe('evaluator gate fixture consistency', () => {
           expect(evidence.diff).not.toContain(
             'diff --git a/inventory/cache.py',
           );
-          expect(engineerHtml).toContain('Additional invariant checks passed');
+          expect(
+            review.evidenceEntries.some(
+              (entry) =>
+                entry.item?.kind === 'COMMAND_EXECUTION' &&
+                entry.item.stdoutPreview ===
+                  'Additional invariant checks passed\n',
+            ),
+          ).toBe(true);
           expect(defaultHtml).not.toContain(
             'Additional invariant checks passed',
           );

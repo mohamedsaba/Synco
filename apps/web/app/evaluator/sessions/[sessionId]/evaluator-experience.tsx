@@ -13,7 +13,7 @@ import { RecordedActivity } from './recorded-activity';
 import { SubmittedWork } from './submitted-work';
 import { ReviewGuidance } from './review-guidance';
 import { ArtifactAvailabilityCard } from './artifact-availability-card';
-import { TechnicalRecord } from './technical-record';
+import { EngineerEvidenceWorkspace } from './engineer-evidence-workspace';
 import type { RoleLensSearchParams } from './role-lens-switcher';
 
 type EvaluatorExperienceProps = Readonly<{
@@ -50,9 +50,17 @@ export const EvaluatorExperience = ({
       <nav className="evidence-hierarchy-nav" aria-label="Evidence hierarchy">
         <a href="#review-overview">Overview</a>
         <a href="#reconstruction">Reconstruction</a>
-        <a href="#submitted-changes">Final submitted state</a>
+        <a
+          href={
+            defaultDepth.technicalRecord
+              ? '#engineer-inspection'
+              : '#submitted-changes'
+          }
+        >
+          Final submitted state
+        </a>
         {defaultDepth.technicalRecord ? (
-          <a href="#technical-record">Source evidence</a>
+          <a href="#engineer-inspection">Source evidence</a>
         ) : null}
       </nav>
 
@@ -74,25 +82,41 @@ export const EvaluatorExperience = ({
           />
         </section>
 
-        <RecordedActivity
-          activities={briefing.observedActivity}
-          verification={briefing.recordedVerification}
-          evidenceEntries={review.evidenceEntries}
-          showDetailedTechnical={defaultDepth.technicalFootprint}
-          showStructuredEvidence={defaultDepth.structuredEvidence}
-          showDirectEvidenceLinks={defaultDepth.directEvidenceLinks}
-          showVerificationChronology={defaultDepth.verificationChronology}
-          aiSummary={defaultDepth.aiSummary ? briefing.aiSummary : undefined}
-          showConfiguredModel={defaultDepth.aiConfiguredModel}
-          showTokenTelemetry={defaultDepth.aiTokenTelemetry}
-          activatedAt={evidence.activatedAt}
-        />
+        {defaultDepth.technicalRecord ? (
+          <EngineerEvidenceWorkspace
+            activities={briefing.observedActivity}
+            verification={briefing.recordedVerification}
+            evidenceEntries={review.evidenceEntries}
+            review={review}
+            submittedState={briefing.submittedState}
+            activatedAt={evidence.activatedAt}
+            aiSummary={briefing.aiSummary}
+          />
+        ) : (
+          <>
+            <RecordedActivity
+              activities={briefing.observedActivity}
+              verification={briefing.recordedVerification}
+              evidenceEntries={review.evidenceEntries}
+              showDetailedTechnical={defaultDepth.technicalFootprint}
+              showStructuredEvidence={defaultDepth.structuredEvidence}
+              showDirectEvidenceLinks={defaultDepth.directEvidenceLinks}
+              showVerificationChronology={defaultDepth.verificationChronology}
+              aiSummary={
+                defaultDepth.aiSummary ? briefing.aiSummary : undefined
+              }
+              showConfiguredModel={defaultDepth.aiConfiguredModel}
+              showTokenTelemetry={defaultDepth.aiTokenTelemetry}
+              activatedAt={evidence.activatedAt}
+            />
 
-        <SubmittedWork
-          submittedState={briefing.submittedState}
-          diff={review.submittedDiff}
-          prominentDiff={!defaultDepth.conciseSubmissionScope}
-        />
+            <SubmittedWork
+              submittedState={briefing.submittedState}
+              diff={review.submittedDiff}
+              prominentDiff={!defaultDepth.conciseSubmissionScope}
+            />
+          </>
+        )}
 
         {defaultDepth.reviewGuidance ? (
           <ReviewGuidance guidance={briefing.reviewGuidance} />
@@ -104,18 +128,6 @@ export const EvaluatorExperience = ({
             provenance={briefing.provenance}
             showTechnicalDetails={defaultDepth.technicalRecord}
           />
-        ) : null}
-
-        {defaultDepth.technicalRecord ? (
-          <div
-            className="technical-record-wrapper technical-record-prominent"
-            id="technical-record"
-          >
-            <TechnicalRecord
-              review={review}
-              activatedAt={evidence.activatedAt}
-            />
-          </div>
         ) : null}
       </div>
     </div>

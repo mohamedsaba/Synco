@@ -827,7 +827,7 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       expect(html).not.toContain('Additional invariant checks passed');
     });
 
-    it('Engineer: prominent technical record, direct diff view, and navigation semantics', () => {
+    it('Engineer: evidence workspace keeps chronology primary and exposes inspection actions', () => {
       const html = renderToStaticMarkup(
         <EvaluatorExperience
           sessionId="session-c-12345678"
@@ -844,12 +844,12 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       expect(html).not.toContain('role="tab"');
       expect(html).not.toContain('lens-panel');
       expect(html).not.toContain('aria-controls="lens-panel');
-      // Prominent diff directly visible
+      // Workspace owns Engineer-only inspection.
       expect(html).not.toContain('View submitted changes');
-      expect(html).toContain('Submitted changes');
-      // Technical record mounted prominently
-      expect(html).toContain('technical-record-prominent');
-      expect(html).toContain('Open technical chronology');
+      expect(html).toContain('engineer-evidence-workspace');
+      expect(html).toContain('Final submitted state');
+      expect(html).toContain('Technical record');
+      expect(html).toContain('Recorded activity');
       expect(html).toContain('Evidence SHA-256');
     });
 

@@ -114,6 +114,24 @@ retains concise scope, limitation and artifact context, and direct source
 references without structured raw records. All views retain the same factual
 ordering, submitted state, source references, and human decision boundary.
 
+### Engineer evidence workspace
+
+When `technicalRecord` is enabled, `EngineerEvidenceWorkspace` presents the
+existing `RecordedActivity` chronology as the primary context with a desktop
+inspection region. Selecting an existing `EvidenceCatalogEntry` reference is
+ephemeral client state only (`selectedEvidenceRef` and inspection view); it
+does not alter chronology, evidence, role projection, or authorization. The
+inspection region reuses `EvidenceItemCard` for typed command, workspace, and
+AI records, and visibly retains evidence reference, record kind, and role.
+
+The initial inspection view reuses `SubmittedWork` and its authoritative
+literal diff. A source selection replaces that view with one selected typed
+record; the Technical record action reuses `TechnicalRecord`. No browser fetch,
+API route, duplicate evidence model, semantic string interpretation, score, or
+verdict is introduced. At narrow widths this structure remains a single column;
+E5 owns further accessibility and responsive hardening, while E6 owns visual
+polish.
+
 Key architectural components:
 
 1. `EvaluatorHeader`: Delimit branding, session reference, scenario title, submitted status badge, deterministic elapsed duration, and `RoleLensSwitcher`.
@@ -125,6 +143,8 @@ Key architectural components:
 7. `ReviewGuidance`: Evaluation policy constraints that retain human evaluator
    ownership without offering a non-functional routing action.
 8. `ArtifactAvailabilityCard`: Clean integrity indicators for recruiters and EM; cryptographic SHA-256 and generator versions for engineers.
+9. `EngineerEvidenceWorkspace`: Engineer-only client presentation boundary for
+   ephemeral evidence selection and reuse of existing factual renderers.
 
 Scenario semantics enrich presentation only. They do not change evidence truth.
 Evaluator briefings are decision-support artifacts, not candidate-quality judgments.

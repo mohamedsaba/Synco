@@ -1818,6 +1818,58 @@ details[open] > summary > .disclosure-chevron {
   gap: clamp(2.5rem, 5vw, 4rem);
 }
 
+.engineer-evidence-workspace {
+  display: grid;
+  gap: 2rem;
+}
+
+.engineer-inspection-panel {
+  align-self: start;
+  padding: 1.25rem;
+  border: 1px solid var(--ink);
+  background: var(--surface);
+}
+
+.engineer-inspection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.engineer-evidence-provenance {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.engineer-evidence-provenance div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.engineer-evidence-provenance dt {
+  color: var(--muted);
+}
+
+.engineer-evidence-provenance dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 70rem) {
+  .engineer-evidence-workspace {
+    grid-template-columns: minmax(0, 1.25fr) minmax(20rem, 0.75fr);
+  }
+
+  .engineer-inspection-panel {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
 .evidence-hierarchy-nav {
   display: flex;
   flex-wrap: wrap;
@@ -2273,17 +2325,6 @@ details[open] > summary > .disclosure-chevron {
   margin: 0;
   font-family: var(--font-mono);
   word-break: break-all;
-}
-
-/* Technical Record Wrapper for Role Prominence */
-.technical-record-deferred {
-  opacity: 0.95;
-}
-
-.technical-record-prominent {
-  border: 1px solid var(--ink);
-  padding: 1.5rem;
-  background: var(--surface);
 }
 
 /* Media Queries for Responsive & Accessibility */

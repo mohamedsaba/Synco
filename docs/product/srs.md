@@ -346,7 +346,7 @@ The prototype should remain a single deployable application or modular monolith 
 
 > Priority: MUST \| Verification: Inspection/Test
 
-**FR-033 — Submission event.** The platform shall emit an immutable submission or timeout event marking the boundary of candidate work.
+**FR-033 — Submission boundary.** The platform shall persist a submission or timeout finalization boundary marking the end of candidate work.
 
 > Priority: MUST \| Verification: Inspection/Test
 
@@ -388,7 +388,7 @@ The prototype should remain a single deployable application or modular monolith 
 
 > Priority: MUST \| Verification: Inspection/Test
 
-**FR-043 — Regeneration.** The system may regenerate a reconstruction from the immutable event stream without changing raw events.
+**FR-043 — Regeneration.** The system may regenerate a reconstruction from the application-recorded append-only event stream without changing raw events through the repository API.
 
 > Priority: MUST \| Verification: Inspection/Test
 
@@ -457,7 +457,6 @@ The candidate workspace should feel like a working environment, not a questionna
 | AI_RESPONSE_RECEIVED  | (Legacy conceptual) message_id, parent prompt id, response text/ref                         |
 | AI_CONTENT_INSERTED   | (Deferred) message_id, target path/location, inserted content/ref                           |
 | SESSION_SUBMITTED     | submitted_at                                                                                |
-| SESSION_EXPIRED       | expired_at                                                                                  |
 
 ## 8.2 Permitted Derived Signals
 
@@ -702,7 +701,7 @@ The platform executes untrusted candidate code. Sandbox isolation is therefore a
 
 > Priority: MUST \| Verification: Security Test/Inspection
 
-**SEC-007 — Termination.** Expired, submitted, or failed sandboxes shall be terminated and cleaned up according to retention policy.
+**SEC-007 — Termination.** Timed-out, submitted, or failed sandboxes shall be terminated and cleaned up according to retention policy.
 
 > Priority: MUST \| Verification: Security Test/Inspection
 
@@ -860,7 +859,7 @@ Illustrative fields; exact database design remains an implementation decision.
 
 # Appendix B. Event Taxonomy
 
-- Session: SESSION_CREATED, SESSION_STARTED, SESSION_SUBMITTED, SESSION_EXPIRED, SESSION_FAILED
+- Session: SESSION_CREATED, SESSION_STARTED, SESSION_SUBMITTED
 
 - File: FILE_OPENED, FILE_CHANGED, FILE_SAVED (if save is meaningful in the editor model)
 

@@ -2,7 +2,7 @@
 
 The evaluator's primary object is one chronological reconstruction of the work. Commands, file activity, evidence gaps, and submitted-state context are levels of detail within that history, not separate analytics dashboards.
 
-Raw immutable events and the server-derived final diff are authoritative. Candidate Work is a derived navigation layer and never replaces them.
+Raw application-recorded append-only events and the server-derived final diff are authoritative. Candidate Work is a derived navigation layer and never replaces them.
 
 ## Deterministic Candidate Work
 

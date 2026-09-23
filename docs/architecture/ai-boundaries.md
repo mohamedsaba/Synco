@@ -8,7 +8,7 @@ AI acts as an ordinary engineering tool available to the candidate during assess
 
 ### Operational State vs. Append-Only Event Evidence (Slice 6B)
 
-Delimit strictly separates mutable operational lifecycle state from immutable event evidence:
+Delimit strictly separates mutable operational lifecycle state from application-level append-only event evidence:
 
 1. **Operational Interaction Store (`ai_interactions`)**:
    - Manages mutable execution state (`ADMITTED → DISPATCH_STARTED → COMPLETED | CANCELLED | FAILED`).
@@ -17,9 +17,9 @@ Delimit strictly separates mutable operational lifecycle state from immutable ev
    - Updates are executed atomically alongside event publication via `SqliteTransactionRunner`.
 
 2. **Append-Only Event Store (`assessment_events`)**:
-   - Records immutable milestone events (`AI_REQUEST_STARTED`, `AI_RESPONSE_COMPLETED`, `AI_REQUEST_CANCELLED`, `AI_REQUEST_FAILED`).
+   - Records append-only milestone events (`AI_REQUEST_STARTED`, `AI_RESPONSE_COMPLETED`, `AI_REQUEST_CANCELLED`, `AI_REQUEST_FAILED`) through the application repository API.
    - Every event receives a strictly monotonic server-assigned `sequence` number.
-   - Events are replayable and cannot be mutated or purged once committed.
+   - Events are replayable in sequence order. The repository API provides no mutation or purge operation; direct SQLite modification is outside this guarantee.
    - Event payloads contain bounded excerpts and metadata; full operational payloads reside in `ai_interactions`.
 
 ### Immutable Per-Session Capability Snapshot

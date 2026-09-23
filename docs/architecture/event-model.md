@@ -1,6 +1,6 @@
 # Event model
 
-Events are the primary record of observable session activity. Reconstruction and generated annotations are derived views. Events should be append-only after acceptance; corrections require explicit follow-up records rather than silent mutation.
+Events are the primary record of observable session activity. Reconstruction and generated annotations are derived views. The application repository exposes events as append-only after acceptance; corrections require explicit follow-up records rather than silent mutation.
 
 Evaluator Candidate Work reconstruction is stored separately as a versioned derived artifact with generator/version and source-packet provenance. Records are unique by session and prompt/generator version, so current deterministic v3 presentation can coexist with immutable earlier experiment and deterministic versions. It is not appended to the candidate event stream and does not alter session state, event ordering, or authoritative evidence. The authoritative runtime artifact is constructed deterministically from typed facts; presentation labels do not become raw events. Provider/model fields remain compatible provenance columns for earlier and experimental artifacts. Evaluator APIs expose legacy provenance metadata without returning legacy prose as current Candidate Work.
 
@@ -23,7 +23,6 @@ AI_REQUEST_CANCELLED
 AI_REQUEST_FAILED
 
 SESSION_SUBMITTED
-SESSION_EXPIRED
 
 WORKSPACE_CHANGED
 WORKSPACE_CAPTURE_FAILED
@@ -32,9 +31,11 @@ SANDBOX_CLEANUP_FAILED
 
 The taxonomy grows only when a current scenario or slice needs a distinct observable fact. Event names describe observations, not interpretations.
 
+`SESSION_EXPIRED` is not part of the durable lifecycle or current event union. Candidate timer presentation may be expired, but timeout finalization produces `SUBMITTED` with `closureReason = timeout`.
+
 ## AI Event Types and Payloads (Slice 6B)
 
-Candidate AI interactions emit immutable events capturing the boundaries and outcomes of candidate assistance requests:
+Candidate AI interactions emit application-level append-only events capturing the boundaries and outcomes of candidate assistance requests:
 
 1. **`AI_REQUEST_STARTED`**: Emitted atomically upon admission of a candidate AI request.
    - `interactionId`: Server-assigned unique identifier (`uuid`).
@@ -92,7 +93,7 @@ payload
 
 ## Ordering and integrity
 
-Sequence is the deterministic source of chronology. Client clocks and arrival timestamps may be retained as payload metadata but cannot decide order. Event acceptance should be idempotent where producers can retry. Large command output may eventually use referenced immutable storage, but the event must preserve its identity and integrity.
+Sequence is the deterministic source of chronology. Client clocks and arrival timestamps may be retained as payload metadata but cannot decide order. Event acceptance should be idempotent where producers can retry. SQLite enforces the unique per-session sequence and the repository API has no event update or delete operation; direct SQLite modification is outside that application-level guarantee. The current log does not claim cryptographic tamper detection, signatures, or external integrity anchors. Large command output may eventually use referenced storage with independently stated guarantees.
 
 Sensitive values and secrets must be excluded or redacted at capture boundaries. Redaction itself must not create evaluative claims.
 

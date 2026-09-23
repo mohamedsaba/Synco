@@ -17,7 +17,7 @@ The detailed foundation implementation request bounds this slice. Final visual d
 ## Boundary
 
 ```text
-immutable evidence → chronology → catalog → typed facts → unchanged v3 reconstruction
+application-recorded append-only evidence → chronology → catalog → typed facts → unchanged v3 reconstruction
                                     |                         |
 optional immutable semantic snapshot → constrained mapper    |
                                     |                         |

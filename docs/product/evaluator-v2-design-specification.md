@@ -85,7 +85,7 @@ Evaluator v2 decouples high-fidelity technical evidence from presentation comple
 │ LAYER 3: TECHNICAL RECORD (Unabridged Proof)                                  │
 │  ├── Submitted Diff Viewer (Authoritative baseline diff)                      │
 │  ├── Process I/O Streams (Stdout/stderr with truncation limits)               │
-│  └── Raw Event Store (Immutable JSON event records)                           │
+│  └── Raw Event Store (application-recorded append-only JSON event records)   │
 └───────────────────────────────────────────────────────────────────────────────┘
 ```
 

@@ -1490,7 +1490,7 @@ details[open] > summary > .disclosure-chevron {
   color: var(--muted);
   text-decoration: none;
   font-family: var(--font-body);
-  font-size: 0.88rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 120ms ease-out;

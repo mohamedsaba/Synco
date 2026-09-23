@@ -1,57 +1,43 @@
 # System overview
 
-The intended prototype is a modular monolith with an explicit security boundary around candidate execution.
+Delimit is a Next.js modular monolith with SQLite persistence and a Docker isolation boundary for candidate execution.
 
 ```text
 Browser
-│
-├── Candidate workspace
-│   ├── task brief
-│   ├── editor
-│   ├── terminal
-│   ├── AI chat
-│   └── event instrumentation
-│
-├── Evaluator reconstruction
-│
-└── API
-    │
-    ├── sessions
-    ├── scenarios
-    ├── events
-    ├── AI
-    └── reconstruction
-         │
-         ├── database
-         └── sandbox manager
-                  │
-                  └── isolated candidate environment
+├── Candidate workspace: server truth + calibrated time + ephemeral UI state
+├── Evaluator: read-only evidence reconstruction and presentation
+└── HTTP API
+    ├── sessions, scenarios, timing, finalization, commands, and AI
+    ├── append-only events and reconstruction
+    ├── SQLite
+    └── Docker candidate environment
 ```
 
-The web application may contain these modules without turning them into independent services. The API owns authorization and lifecycle rules; the browser cannot authoritatively assign event order or sandbox state. Ordinary HTTP is preferred, with WebSockets only for interactions that genuinely need streaming, such as terminal I/O or AI output.
+The API owns lifecycle, authorization, event order, timing, and sandbox state. Browser state is never authoritative for those concerns. The application may retain these modules without becoming separate services.
 
-## Implemented Slice 1 boundary
+## Candidate lifecycle and workspace
 
-Slice 1 uses a file-backed SQLite database because one local transactional store satisfies reload/restart persistence and shared candidate/evaluator authority without a separately operated database. It is an implementation choice for the prototype slice, not a permanent production database decision.
+The only durable lifecycle is `CREATED → ACTIVE → SUBMITTED`. Candidate UX phases are projections, not additional lifecycle states. Server-calibrated timing and persisted `closureReason` protect finality: null on `ACTIVE` is mutable, a non-null value admits irreversible finalization and closes mutations, commands, and new AI admission, and submitted sessions are terminal. Recovery preserves admitted finality; existing AI request replay remains idempotent where supported.
 
-Sessions snapshot the fixed fixture version, brief, acceptance criteria, permitted path, and original content. The only lifecycle states are `CREATED`, `ACTIVE`, and `SUBMITTED`. A random candidate token is stored only as a hash and resolves exactly one session. Evaluator pages and evidence APIs require a separate HTTP-only credential cookie derived from `DELIMIT_EVALUATOR_KEY`.
+Candidate AI is implemented and integrated as permitted tooling. Its requests and outcomes are observable evidence, not a judgment of candidate quality. The active workspace is server-authoritative; local UI state is limited to presentation concerns such as editor buffers, selection, command/AI history, focus, and timing display. In a multi-file workspace, the scenario path is selected only if it is an existing file; otherwise selection is deterministic among existing files, with no fabricated path for an empty workspace.
 
-Candidate edits are normalized from CRLF or bare CR to LF before persistence. Submission atomically freezes the current working content. The evaluator's unified diff is generated server-side from immutable original and submitted content; no client-produced diff is accepted as evidence.
+## Evaluator reconstruction
+
+Evaluator review is a distinct, read-only surface. Submitted evidence is authorized by the evaluator HTTP-only cookie, then flows through chronological reconstruction, the evidence catalog and typed facts, `buildEvaluatorBriefing`, deterministic grounding, `projectBriefing`, and the evaluator page/UI. The queue exposes submitted review entries, and direct review exposes submitted evidence within that same current evaluator scope; the prototype has no tenant, organization, assignment, evaluator identity, or granular-RBAC model.
+
+The four presentation depths are `GENERALIST_RECRUITER`, `TECHNICAL_RECRUITER`, `ENGINEER`, and `ENGINEERING_MANAGER`. `?depth=` selects a valid role and legacy `?role=` remains accepted; missing or invalid input resolves to the generalist profile. Roles change only presentation and never authorization, evidence truth, or backend evidence access.
+
+Evidence is distinct from interpretation. The system renders factual chronology, provenance, capture limitations, and recorded outcomes; it does not infer intent, competence, quality, score, rank, pass/fail, recommendation, or hiring verdict. Human evaluators decide what evidence means.
 
 ## Delivery state
 
-Completed vertical slices:
+The accepted implementation baseline is `0d876863cff64c8006ef0b872496f7945c5d7b69` (`fix(candidate): remove scenario-specific fallback`). It includes T1A/T1B timing and finality, Candidate Experience C1–C10, Evaluator Experience E1–E6, and consolidation G1–G4A.
 
-- **Slice 1 — Final-state evidence:** session lifecycle, browser editing, immutable submission, evaluator access, and deterministic final diff.
-- **Slice 2 — Command evidence:** readiness-gated sandbox execution and authoritative command lifecycle events.
-- **Slice 3 — Realistic Scenario 001:** a multi-file Flask, PostgreSQL, Redis, and pytest incident environment.
-- **Slice 4 — Deterministic workspace/evidence reconstruction:** trusted workspace tree transitions, explicit evidence gaps, out-of-band drift reconciliation, and one chronological evaluator history.
-- **Slice 5 — Deterministic evaluator reconstruction:** typed evidence facts, phase-bounded workspace aggregation with exact multi-reference membership, conservative pytest-summary parsing, material-boundary coverage, versioned immutable reconstruction persistence, evaluator-only ensure/retry API, and evaluator-readable Candidate Work milestones with inline forensic drill-down. Deterministic v3 is the accepted authoritative presentation contract. The runtime requires no AI provider or API key; NVIDIA and OpenRouter adapters remain explicit experimental tooling only, and earlier artifacts remain auditable.
+- G1 normalized shared design tokens without visual behavior change.
+- G2 removed dead legacy evaluator code and CSS.
+- G3/G3A reconciled live evaluator cascade/specificity debt while preserving accepted E6 behavior.
+- G4A removed the Scenario 001-specific candidate fallback and stale homepage slice copy.
 
-Not yet implemented:
+These are corrections and consolidation, not a shared-UI or service architecture redesign. Candidate and evaluator views should remain separate; safe sharing is limited to global tokens, generic primitives, accessibility/reduced-motion behavior, and truly generic test fixtures.
 
-- candidate AI and explicit insertion evidence;
-- a full interactive PTY;
-- other later MVP capabilities that have not earned a focused vertical slice.
-
-Future work must continue vertically and must not pre-build later infrastructure. No production-scale orchestration, distributed event bus, analytics warehouse, or service split is justified at this stage.
+The next activity after documentation convergence is an independent repository-wide adversarial architecture, security, and code-quality review—not another candidate or evaluator feature slice.

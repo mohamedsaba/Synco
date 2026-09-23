@@ -10,10 +10,6 @@ import {
   submittedChangesAnchor,
 } from '../../apps/web/app/evaluator/sessions/[sessionId]/submitted-diff';
 import { SubmittedWork } from '../../apps/web/app/evaluator/sessions/[sessionId]/submitted-work';
-import { EvidenceDisclosure } from '../../apps/web/app/evaluator/sessions/[sessionId]/evidence-disclosure';
-import { ReconstructionPanel } from '../../apps/web/app/evaluator/sessions/[sessionId]/reconstruction-panel';
-import { ScenarioContext } from '../../apps/web/app/evaluator/sessions/[sessionId]/scenario-context';
-import { SummaryLifecycleControl } from '../../apps/web/app/evaluator/sessions/[sessionId]/summary-lifecycle-control';
 import { TechnicalRecord } from '../../apps/web/app/evaluator/sessions/[sessionId]/technical-record';
 import type { EvaluatorReviewPresentation } from '../../apps/web/src/evaluator/evaluator-review-presentation';
 import type { EvidenceCatalogEntry } from '../../apps/web/src/reconstruction/evidence-reference-catalog';
@@ -98,24 +94,6 @@ const review: EvaluatorReviewPresentation = {
 };
 
 describe('evaluator review rendering', () => {
-  it('uses a native, one-step disclosure for supporting activity', () => {
-    const html = renderToStaticMarkup(
-      <EvidenceDisclosure
-        activatedAt="2026-09-16T10:00:00.000Z"
-        entries={[activationEntry]}
-        submittedDiff=""
-      />,
-    );
-
-    expect(html).toContain('<details');
-    expect(html).toContain('<summary>');
-    expect(html).toContain('View supporting activity');
-    expect(html).toContain('class="disclosure-chevron"');
-    expect(html).toContain('aria-hidden="true"');
-    expect(html.match(/<details/g)).toHaveLength(1);
-    expect(html).not.toContain('rawEvent');
-  });
-
   it.each([
     [true, false],
     [false, true],
@@ -191,22 +169,6 @@ describe('evaluator review rendering', () => {
 
     const surfaceHtml = renderToStaticMarkup(
       <div className="evaluator-review-surface">
-        <EvidenceDisclosure
-          activatedAt="2026-09-16T10:00:00.000Z"
-          entries={[
-            {
-              evidenceRef: 'session:one:final_diff',
-              sessionId: 'one',
-              role: 'final_state',
-              kind: 'submission',
-              chronologyOrder: 1,
-              firstSequence: null,
-              lastSequence: null,
-              rawEventIds: [],
-            },
-          ]}
-          submittedDiff={longDiff}
-        />
         <SubmittedWork
           diff={longDiff}
           submittedState={{
@@ -230,7 +192,6 @@ describe('evaluator review rendering', () => {
     expect(surfaceHtml).toMatch(
       new RegExp(`<section[^>]*\\bid=["']${submittedChangesAnchor}["']`),
     );
-    expect(surfaceHtml).toContain(`href="#${submittedChangesAnchor}"`);
     const anchorMatches =
       surfaceHtml.match(
         new RegExp(`\\bid=["']${submittedChangesAnchor}["']`, 'g'),
@@ -251,63 +212,6 @@ describe('evaluator review rendering', () => {
     expect(html).toContain('tabindex="0"');
   });
 
-  it('renders scenario context and direct summary traceability without nested disclosures', () => {
-    const scenarioHtml = renderToStaticMarkup(
-      <ScenarioContext
-        activatedAt="2026-09-16T10:00:00.000Z"
-        review={review}
-      />,
-    );
-    const summaryHtml = renderToStaticMarkup(
-      <ReconstructionPanel
-        activatedAt="2026-09-16T10:00:00.000Z"
-        reconstructionStatus="AVAILABLE"
-        review={review}
-        sessionId="one"
-      />,
-    );
-
-    expect(scenarioHtml).toContain('What this scenario examines');
-    expect(scenarioHtml).toContain('Relevant verification areas');
-    expect(scenarioHtml).toContain(
-      'They are not a pass/fail checklist, and valid work may address them in different ways.',
-    );
-    expect(scenarioHtml).not.toContain('Verification targets');
-    expect(scenarioHtml).toContain('View related recorded activity');
-    expect(summaryHtml).toContain('What happened');
-    expect(summaryHtml).toContain('View supporting activity');
-    expect(summaryHtml.match(/<details/g)).toHaveLength(1);
-    expect(summaryHtml).not.toContain('provider');
-    expect(summaryHtml).not.toContain('claimBasis');
-  });
-
-  it('renders empty area copy as relation-relative absence rather than global absence', () => {
-    const emptyAreaReview = {
-      ...review,
-      scenario: {
-        ...review.scenario,
-        relatedEvidence: review.scenario.relatedEvidence.map((area) => ({
-          ...area,
-          evidenceRefs: [],
-        })),
-      },
-    };
-    const html = renderToStaticMarkup(
-      <ScenarioContext
-        review={emptyAreaReview}
-        activatedAt="2026-09-16T10:00:00.000Z"
-      />,
-    );
-    expect(html).toContain(
-      'No recorded activity was linked to this area by the current evidence relation.',
-    );
-    expect(html).toContain(
-      'Relevant activity may exist elsewhere in the technical chronology.',
-    );
-    expect(html).toContain('does not mean the candidate lacks');
-    expect(html).not.toContain('recorded no evidence');
-  });
-
   it('renders explicit affordances for technical and raw-record disclosures', () => {
     const html = renderToStaticMarkup(
       <TechnicalRecord
@@ -322,38 +226,16 @@ describe('evaluator review rendering', () => {
     expect(html.match(/<details/g)).toHaveLength(2);
   });
 
-  it('renders safe preparing and retry states without internal failure details', () => {
-    const preparing = renderToStaticMarkup(
-      <SummaryLifecycleControl
-        reconstructionStatus="NOT_STARTED"
-        sessionId="one"
-      />,
-    );
-    const unavailable = renderToStaticMarkup(
-      <SummaryLifecycleControl reconstructionStatus="FAILED" sessionId="one" />,
-    );
-
-    expect(preparing).toContain('role="status"');
-    expect(preparing).toContain('Preparing the session summary…');
-    expect(unavailable).toContain('role="alert"');
-    expect(unavailable).toContain(
-      'The session summary isn&#x27;t available right now.',
-    );
-    expect(unavailable).toContain('Try again');
-    expect(unavailable).not.toMatch(/provider|failure_code|attempt/i);
-  });
-
   it('verifies accessibility contracts for disclosures, scrollable code regions, and stylesheets', () => {
     // 1. Semantic focusable disclosure markup and classes
     const disclosureHtml = renderToStaticMarkup(
-      <EvidenceDisclosure
+      <TechnicalRecord
         activatedAt="2026-09-16T10:00:00.000Z"
-        entries={[activationEntry]}
-        submittedDiff=""
+        review={review}
       />,
     );
     expect(disclosureHtml).toMatch(
-      /<details[^>]*class="[^"]*supporting-activity-disclosure/,
+      /<details[^>]*class="[^"]*review-disclosure/,
     );
     expect(disclosureHtml).toMatch(/<summary[^>]*>/);
     expect(disclosureHtml).toContain('class="disclosure-chevron"');

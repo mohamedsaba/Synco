@@ -1614,9 +1614,15 @@
   font-weight: 400;
   line-height: 0.85;
   letter-spacing: -0.045em;
-  color: transparent;
-  -webkit-text-stroke: 1.75px var(--brand-ink);
+  color: var(--brand-muted);
   align-self: flex-end;
+}
+
+@supports (-webkit-text-stroke: 1px var(--brand-ink)) {
+  .campaign__impressions {
+    color: transparent;
+    -webkit-text-stroke: 1.75px var(--brand-ink);
+  }
 }
 
 .campaign__colophon {
@@ -1763,6 +1769,20 @@
   .impressions {
     min-height: auto;
     padding: 5.5rem 0 4.5rem;
+  }
+
+  .evidence-story {
+    min-height: auto;
+    padding: 7rem 0;
+  }
+
+  .clarity {
+    padding: 7.5rem 0 6.5rem;
+  }
+
+  .family,
+  .software {
+    padding: 8rem 0;
   }
 
   .impressions__content {
@@ -2009,26 +2029,6 @@
     border-bottom: 1px solid var(--brand-line);
   }
 
-  .brand-hero__frame .evidence-fragment--attempt {
-    animation: hero-fragment-mobile-1 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s
-      both;
-  }
-
-  .brand-hero__frame .evidence-fragment--check {
-    animation: hero-fragment-mobile-2 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.45s
-      both;
-  }
-
-  .brand-hero__frame .evidence-fragment--revision {
-    animation: hero-fragment-mobile-3 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s
-      both;
-  }
-
-  .brand-hero__frame .evidence-fragment--context {
-    animation: hero-fragment-mobile-context 0.8s cubic-bezier(0.16, 1, 0.3, 1)
-      0.75s both;
-  }
-
   .brand-hero__frame .evidence-fragment:last-child {
     border-bottom: none;
   }
@@ -2050,11 +2050,11 @@
   .clarity,
   .family,
   .software {
-    padding: 7rem 0;
+    padding: 5rem 0;
   }
 
   .evidence-story {
-    padding-bottom: 4.5rem;
+    padding-bottom: 4rem;
   }
 
   .impressions {
@@ -2092,7 +2092,7 @@
   }
 
   .brand-section-heading {
-    margin-bottom: 4rem;
+    margin-bottom: 3rem;
   }
 
   .brand-section-heading--split {
@@ -2363,15 +2363,17 @@
 
   .final-cta {
     min-height: auto;
+    padding: 5rem 0 1.5rem;
   }
 
   .final-cta__rule {
-    margin-bottom: 6rem;
+    margin-bottom: 4rem;
   }
 
   .final-cta footer {
     align-items: flex-start;
     flex-direction: column;
+    margin-top: 6rem;
   }
 }
 
@@ -2987,11 +2989,9 @@
 @keyframes enter-environment {
   0% {
     border-color: var(--brand-line);
-    box-shadow: 0 0 0 rgba(28, 27, 23, 0);
   }
   100% {
     border-color: var(--brand-ink);
-    box-shadow: 0 6px 24px rgba(28, 27, 23, 0.06);
   }
 }
 
@@ -3124,6 +3124,28 @@
   }
 }
 
+@keyframes strengthen-evidence-mobile {
+  from {
+    opacity: 0.7;
+    color: var(--brand-muted);
+  }
+  to {
+    opacity: 1;
+    color: var(--brand-ink);
+  }
+}
+
+@keyframes soften-impressions-mobile {
+  from {
+    opacity: 0.95;
+    -webkit-text-stroke-color: var(--brand-ink);
+  }
+  to {
+    opacity: 0.65;
+    -webkit-text-stroke-color: var(--brand-muted);
+  }
+}
+
 @keyframes campaign-colophon-settle {
   0% {
     transform: translateY(10px);
@@ -3156,9 +3178,33 @@
 }
 
 @media (max-width: 44rem) and (prefers-reduced-motion: no-preference) {
+  .brand-hero .evidence-fragment--attempt {
+    animation-name: hero-fragment-mobile-1;
+  }
+
+  .brand-hero .evidence-fragment--check {
+    animation-name: hero-fragment-mobile-2;
+  }
+
+  .brand-hero .evidence-fragment--revision {
+    animation-name: hero-fragment-mobile-3;
+  }
+
+  .brand-hero .evidence-fragment--context {
+    animation-name: hero-fragment-mobile-context;
+  }
+
   @supports (animation-timeline: view()) {
     .family__body {
       animation: none;
+    }
+
+    .campaign__evidence {
+      animation-name: strengthen-evidence-mobile;
+    }
+
+    .campaign__impressions {
+      animation-name: soften-impressions-mobile;
     }
   }
 }

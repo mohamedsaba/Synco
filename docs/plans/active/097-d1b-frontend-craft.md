@@ -185,3 +185,20 @@ and the absence of candidate ranking/scoring claims.
 - Remove unexplained lime/chartreuse highlight (`#d9c94e`); Hirearchy Software inherits masterbrand palette with structural and evidentiary density.
 - Standardize Context Aperture and Datum visual primitives across header, product family root, and software environment substrate.
 - Provide comprehensive identity authority in `docs/plans/active/098-d1b-hirearchy-identity-system.md`.
+
+## D1B.9 — Identity integration and whole-page rhythm
+
+- Keep the eight-section order and three signature peaks while treating spacing,
+  transition lines, and density shifts as one page-level rhythm.
+- Correct the mobile hero cascade so its compact vertical resolution replaces,
+  rather than competes with, desktop fragment motion.
+- Reduce cumulative tablet and mobile section padding without removing content or
+  flattening Hero, Product Family to Software, or Campaign.
+- Keep campaign outline typography readable when text-stroke is unsupported by
+  falling back to the locked muted masterbrand ink.
+- Preserve Campaign's material shift on mobile without desktop-scale translations
+  that collide inside the narrower typographic lockup.
+- Remove the animated Software environment shadow; boundary resolution already
+  communicates entry without continuous paint work.
+- Protect section order, heading hierarchy, identity, product truth, human decision
+  authority, motion semantics, and reduced-motion behavior in the focused test.

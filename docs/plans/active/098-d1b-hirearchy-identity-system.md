@@ -261,6 +261,22 @@ Attention requires contrast. Every section is tuned to an intentional energy cur
   - Every signature moment immediately presents its 100% complete, fully resolved static state.
   - Zero semantic information, visual contrast, or layout completeness depends on motion.
 
+### Whole-Page Integration Contract
+
+- Desktop, tablet, and mobile use the same eight-section narrative and semantic
+  reading order; smaller viewports reduce cumulative whitespace instead of merely
+  stacking desktop-height sections.
+- Mobile Hero uses the dedicated vertical Context Resolution sequence. Desktop
+  fragment offsets must not win through cascade order.
+- Signature peaks remain Hero, Product Family to Software, and Campaign. Supporting
+  sections stay quieter and use distinct dominant motion.
+- Software entry resolves through structure and chamber movement, not an animated
+  shadow or filter.
+- Campaign outline type falls back to solid `--brand-muted` text when text-stroke is
+  unavailable, so the position never depends on a browser-specific effect.
+- Campaign keeps its material and opacity transition on mobile but removes the
+  desktop translation offsets so all three lines remain legible while entering.
+
 ---
 
 ## 9. Correct vs. Incorrect Usage

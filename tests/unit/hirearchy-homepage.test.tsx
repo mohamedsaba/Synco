@@ -107,6 +107,29 @@ describe('D1 — Hirearchy homepage', () => {
 
     expect(html.match(/<section/g)).toHaveLength(8);
     expect(html.match(/aria-labelledby=/g)).toHaveLength(8);
+    expect(html.match(/<h1/g)).toHaveLength(1);
+    expect(html.match(/<h2/g)).toHaveLength(7);
+    expect(html.indexOf('id="hero-title"')).toBeLessThan(
+      html.indexOf('id="impressions-title"'),
+    );
+    expect(html.indexOf('id="impressions-title"')).toBeLessThan(
+      html.indexOf('id="evidence-title"'),
+    );
+    expect(html.indexOf('id="evidence-title"')).toBeLessThan(
+      html.indexOf('id="clarity-title"'),
+    );
+    expect(html.indexOf('id="clarity-title"')).toBeLessThan(
+      html.indexOf('id="family-title"'),
+    );
+    expect(html.indexOf('id="family-title"')).toBeLessThan(
+      html.indexOf('id="software-title"'),
+    );
+    expect(html.indexOf('id="software-title"')).toBeLessThan(
+      html.indexOf('id="campaign-title"'),
+    );
+    expect(html.indexOf('id="campaign-title"')).toBeLessThan(
+      html.indexOf('id="final-title"'),
+    );
     expect(html).toContain('href="/evaluator"');
     expect(html).toContain('Start a software assessment');
   });
@@ -137,6 +160,10 @@ describe('D1 — Hirearchy homepage', () => {
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
     expect(css).toContain('animation-duration: 0.001ms !important');
     expect(css).toContain('transition-duration: 0.001ms !important');
+    expect(css).toContain('animation-name: hero-fragment-mobile-1;');
+    expect(css).toContain(
+      '@supports (-webkit-text-stroke: 1px var(--brand-ink))',
+    );
   });
 
   it('locks the Hirearchy brand identity system and removes legacy names and arbitrary highlights', () => {

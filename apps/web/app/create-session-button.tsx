@@ -42,7 +42,7 @@ export const CreateSessionButton = () => {
         onClick={createSession}
         type="button"
       >
-        {isCreating ? 'Creating session…' : 'Start Scenario 001 incident'}
+        {isCreating ? 'Creating session…' : 'Start a software assessment'}
       </button>
       {error ? <p className="form-error">{error}</p> : null}
     </div>

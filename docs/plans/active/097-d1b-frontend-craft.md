@@ -130,3 +130,18 @@ and the absence of candidate ranking/scoring claims.
   order with the focused homepage unit test.
 - Validate at 1440, 1280, 820, and 390 pixels plus reduced motion. Run only the
   focused unit test, changed-file formatting check, typecheck, and diff check.
+
+## D1B.5 — Evidence to Clarity craft pass
+
+- Keep the semantic definition list and accepted copy while making the four
+  information states explicit: observed, changed, verified, and unresolved.
+- Replace equal-weight rows with one editorial reading system: a dominant
+  observed record, paired supporting context, and a visible evidence boundary.
+- Move focus through the stable hierarchy with restrained line and color
+  changes. Keep the complete final hierarchy static when motion is
+  unavailable or reduced.
+- Preserve section order and both adjacent section implementations. Protect the
+  clarity semantics, uncertainty, human interpretation boundary, and motion
+  order in the focused homepage unit test.
+- Validate at 1440, 1280, 820, and 390 pixels plus reduced motion. Run only the
+  focused unit test, changed-file formatting check, typecheck, and diff check.

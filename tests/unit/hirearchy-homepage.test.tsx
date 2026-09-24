@@ -8,6 +8,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 import HomePage from '../../apps/web/app/page';
+import { ClaritySection } from '../../apps/web/app/home/clarity-section';
 import { EvidenceNarrativeSection } from '../../apps/web/app/home/evidence-narrative-section';
 
 describe('D1 — Hirearchy homepage', () => {
@@ -64,6 +65,21 @@ describe('D1 — Hirearchy homepage', () => {
     expect(html).toContain('A limit becomes visible.');
     expect(html).toContain('without deciding what they mean about a person');
     expect(html).not.toMatch(/competence|score|ranking|hire|reject/i);
+  });
+
+  it('structures clarity as evidence states without making a judgment', () => {
+    const html = renderToStaticMarkup(<ClaritySection />);
+
+    expect(html).toContain('<dl class="clarity__layers">');
+    expect(html).toContain('Observed');
+    expect(html).toContain('Changed');
+    expect(html).toContain('Verified');
+    expect(html).toContain('Unresolved');
+    expect(html).toContain('What remains uncertain');
+    expect(html).toContain('More context. Less guessing.');
+    expect(html).not.toMatch(
+      /\b(score|ranking|pass|fail|recommendation|probability)\b/i,
+    );
   });
 
   it('provides semantic section names and real product destinations', () => {

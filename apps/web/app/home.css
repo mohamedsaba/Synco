@@ -1512,10 +1512,13 @@
 }
 
 .campaign__aperture {
+  position: absolute;
+  top: -1px;
+  left: 0;
   width: 3.5rem;
   height: 3px;
   background: var(--brand-accent);
-  margin-bottom: clamp(2rem, 4vw, 3rem);
+  z-index: 2;
 }
 
 .campaign__masthead {
@@ -1714,10 +1717,31 @@
 @media (hover: hover) {
   .brand-header nav a:hover,
   .hero-scroll:hover,
+  .family__handoff-link:hover,
   .software__links a:hover,
   .final-cta__actions > a:hover {
     color: var(--brand-accent);
   }
+}
+
+/* Disciplined, high-contrast focus aesthetics */
+.brand-home :focus-visible {
+  outline: 2px solid var(--brand-accent);
+  outline-offset: 3px;
+}
+
+/* Responsive touch and active feedback */
+.final-cta__actions .button:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.brand-header nav a:active,
+.hero-scroll:active,
+.family__handoff-link:active,
+.software__links a:active,
+.final-cta__actions > a:active {
+  color: var(--brand-accent);
+  transform: translateY(1px);
 }
 
 @media (max-width: 64rem) {
@@ -1729,19 +1753,19 @@
   }
 
   .brand-hero__copy {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 2rem;
+    display: flex;
+    flex-direction: column;
+    max-width: 44rem;
   }
 
-  .brand-hero__copy .brand-kicker,
-  .brand-hero__copy h1 {
-    grid-column: 1 / -1;
+  .brand-hero__line {
+    max-width: 18ch;
+    margin: 1.5rem 0 1rem;
   }
 
-  .brand-hero__line,
   .brand-hero__support {
-    align-self: end;
+    max-width: 32rem;
+    margin-bottom: 0;
   }
 
   .brand-hero__frame {
@@ -2332,8 +2356,7 @@
 
   .campaign__aperture {
     width: 2.5rem;
-    height: 2.5px;
-    margin-bottom: 1.5rem;
+    height: 2px;
   }
 
   .campaign__evidence,

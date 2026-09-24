@@ -145,3 +145,19 @@ and the absence of candidate ranking/scoring claims.
   order in the focused homepage unit test.
 - Validate at 1440, 1280, 820, and 390 pixels plus reduced motion. Run only the
   focused unit test, changed-file formatting check, typecheck, and diff check.
+
+## D1B.7 — Hirearchy Software bridge craft pass
+
+- Bridge the masterbrand family directly into Hirearchy Software, the active
+  inhabited product environment, with dominant semantic action ENTER THE ENVIRONMENT.
+- Frame candidate work, central evidentiary conduit, and evaluator reconstruction
+  in authentic product architecture with an environment substrate bar.
+- Explicitly preserve human decision authority ("The evidence supports review. The
+  final hiring decision remains human.") and factual AI tooling framing ("AI is
+  permitted tooling inside the environment.").
+- Avoid fake dashboards, score widgets, or generic SaaS tropes; preserve zero
+  automated scoring or ranking claims.
+- Support 1440, 1280, 820, and 390 viewports with logical DOM and reading order,
+  re-authoring gracefully to vertical flow on mobile.
+- Support reduced motion with complete, stable static hierarchy and full contrast.
+- Validate with focused homepage unit test, typecheck, diff check, and formatting.

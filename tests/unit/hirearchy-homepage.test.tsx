@@ -10,6 +10,7 @@ vi.mock('next/navigation', () => ({
 import HomePage from '../../apps/web/app/page';
 import { ClaritySection } from '../../apps/web/app/home/clarity-section';
 import { EvidenceNarrativeSection } from '../../apps/web/app/home/evidence-narrative-section';
+import { HirearchySoftwareSection } from '../../apps/web/app/home/hirearchy-software-section';
 
 describe('D1 — Hirearchy homepage', () => {
   it('renders the masterbrand narrative and keeps hiring judgment human', () => {
@@ -79,6 +80,24 @@ describe('D1 — Hirearchy homepage', () => {
     expect(html).toContain('More context. Less guessing.');
     expect(html).not.toMatch(
       /\b(score|ranking|pass|fail|recommendation|probability)\b/i,
+    );
+  });
+
+  it('bridges the masterbrand to Hirearchy Software via candidate work, evidence conduit, and evaluator review', () => {
+    const html = renderToStaticMarkup(<HirearchySoftwareSection />);
+
+    expect(html).toContain('Hirearchy Software');
+    expect(html).toContain('Candidate environment');
+    expect(html).toContain('Controlled engineering scenario');
+    expect(html).toContain('Observable evidence pipeline');
+    expect(html).toContain('Evaluator review');
+    expect(html).toContain('Evidence-led reconstruction');
+    expect(html).toContain('AI is permitted tooling inside the environment.');
+    expect(html).toContain('The final hiring decision remains human.');
+    expect(html).toContain('href="/evaluator"');
+    expect(html).toContain('href="#get-started"');
+    expect(html).not.toMatch(
+      /\b(score|grade|pass\/fail|ranking|cheating|automatic)\b/i,
     );
   });
 

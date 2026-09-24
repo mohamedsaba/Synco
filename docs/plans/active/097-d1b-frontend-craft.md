@@ -115,3 +115,18 @@ and the absence of candidate ranking/scoring claims.
   semantic motion.
 - Evolve Evidence, Clarity, Product Family, and Software compositions within
   their section modules and the shared truth constraints above.
+
+## D1B.4 — Evidence Narrative craft pass
+
+- Keep the canonical Attempt, Verification, Failure, Investigation, Revision,
+  Outcome order in one semantic ordered narrative.
+- Replace the independent-step presentation with one cumulative composition:
+  a shared path, connected event copy, and progressive context carried by CSS.
+- Re-author the small-screen layout as a continuous vertical record while
+  preserving DOM order, readable labels, and static comprehension.
+- Keep `unfold` distinct from Impressions `reframe` and Clarity `prioritize`;
+  reduced motion must expose the complete final composition.
+- Protect sequence, non-judgmental semantics, ordered-list structure, and motion
+  order with the focused homepage unit test.
+- Validate at 1440, 1280, 820, and 390 pixels plus reduced motion. Run only the
+  focused unit test, changed-file formatting check, typecheck, and diff check.

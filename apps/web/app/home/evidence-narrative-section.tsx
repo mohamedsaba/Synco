@@ -25,17 +25,22 @@ export const EvidenceNarrativeSection = () => (
     </header>
 
     <figure className="evidence-sequence">
-      <ol>
+      <ol aria-label="Observed work sequence">
         {steps.map(([label, description], index) => (
           <li key={label}>
-            <span>{String(index + 1).padStart(2, '0')}</span>
-            <strong>{label}</strong>
-            <small>{description}</small>
+            <span className="evidence-sequence__index" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <div className="evidence-sequence__event">
+              <strong>{label}</strong>
+              <p>{description}</p>
+            </div>
           </li>
         ))}
       </ol>
       <figcaption>
-        Event, context, verification, revision, and outcome stay connected.
+        <span>Each event carries forward the context of what came before.</span>
+        <em>An observable work record.</em>
       </figcaption>
     </figure>
   </section>

@@ -8,6 +8,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 import HomePage from '../../apps/web/app/page';
+import { EvidenceNarrativeSection } from '../../apps/web/app/home/evidence-narrative-section';
 
 describe('D1 — Hirearchy homepage', () => {
   it('renders the masterbrand narrative and keeps hiring judgment human', () => {
@@ -41,6 +42,28 @@ describe('D1 — Hirearchy homepage', () => {
       'settle',
     ]);
     expect(new Set(motions).size).toBe(motions.length);
+  });
+
+  it('keeps evidence as one ordered, non-judgmental work record', () => {
+    const html = renderToStaticMarkup(<EvidenceNarrativeSection />);
+    const events = Array.from(
+      html.matchAll(/<strong>([^<]+)<\/strong>/g),
+      ([, event]) => event,
+    );
+
+    expect(events).toEqual([
+      'Attempt',
+      'Verification',
+      'Failure',
+      'Investigation',
+      'Revision',
+      'Outcome',
+    ]);
+    expect(html).toContain('<ol aria-label="Observed work sequence">');
+    expect(html.match(/<li>/g)).toHaveLength(6);
+    expect(html).toContain('A limit becomes visible.');
+    expect(html).toContain('without deciding what they mean about a person');
+    expect(html).not.toMatch(/competence|score|ranking|hire|reject/i);
   });
 
   it('provides semantic section names and real product destinations', () => {

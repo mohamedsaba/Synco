@@ -19,6 +19,7 @@ export const HirearchyHero = () => (
       className="brand-hero__frame"
       label="Evidence fragments becoming a clearer body of work"
     >
+      <span className="frame-aperture" aria-hidden="true" />
       <span className="frame-axis frame-axis--vertical" aria-hidden="true" />
       <span className="frame-axis frame-axis--horizontal" aria-hidden="true" />
       <div className="evidence-fragment evidence-fragment--attempt">
@@ -42,8 +43,11 @@ export const HirearchyHero = () => (
       </div>
     </AdaptiveFrame>
 
-    <a className="hero-scroll" href="#approach">
-      Follow the work <span aria-hidden="true">↓</span>
-    </a>
+    <div className="brand-hero__transition">
+      <a className="hero-scroll" href="#approach">
+        Follow the work <span aria-hidden="true">↓</span>
+      </a>
+      <span className="hero-transition__axis" aria-hidden="true" />
+    </div>
   </section>
 );

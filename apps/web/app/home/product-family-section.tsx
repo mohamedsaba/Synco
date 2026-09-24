@@ -37,6 +37,7 @@ export const ProductFamilySection = () => (
 
           <div
             className="family__inhabited"
+            role="group"
             aria-label="Software environment layers"
           >
             <div className="family__layer">

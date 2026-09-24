@@ -2,7 +2,12 @@
 
 ## Status
 
-Authoritative identity system locked for D1B and all subsequent frontend craft slices.
+Completed and frozen for D1B and all subsequent frontend craft slices.
+
+Foundation: `33850c872c19128bc7493a0b58bc236ecfe10684`. Identity and craft
+implementation series: `7ad868f0e5b56bd310118b26779a12b811b44778` through
+`a7765c79ccf79c1bc246f71b33eefb79b5d9ff70`. Final engineering acceptance and
+documentation freeze: this commit (`docs(brand): freeze Hirearchy frontend craft`).
 
 ---
 
@@ -289,3 +294,27 @@ Attention requires contrast. Every section is tuned to an intentional energy cur
 | **Logo**              | Deliberate wordmark + Context Aperture structural mark.                       | Generic "H" icon, geometric hexagon, AI sparkle icon.                                 |
 | **Framing**           | Open apertures with incomplete corners and datum alignment guides.            | Closed rectangular cards with heavy drop shadows.                                     |
 | **Typography**        | Robust display serif paired with disciplined functional sans.                 | Rounded geometric sans, thin high-contrast fashion serifs, outline text on body copy. |
+
+---
+
+## 10. D1B Final Acceptance Lock
+
+- The homepage matches this identity contract: exact semantic palette, single
+  oxide accent, reusable wordmark-first lockups, Context Aperture geometry,
+  restrained Datum use, and no chartreuse product drift.
+- The responsive implementation preserves all eight sections and the same human
+  hiring authority at desktop, tablet, laptop, and mobile widths.
+- Text-bearing motion maintains readable contrast. Reduced motion produces the
+  complete resolved composition with no active animations.
+- Chromium accessibility scans report zero violations across the required
+  viewport matrix. Firefox 155 and the Codex in-app browser provide additional
+  rendering and semantic coverage. Safari/WebKit remains untested and is not
+  claimed.
+- Final verification passed formatting, lint, type generation, TypeScript, 649
+  tests with 6 skipped, and the optimized production build. Focused homepage
+  verification passed 9 tests.
+- No visible legacy `Synco` or `Delimit` name, generated Next.js development
+  file, new dependency, automated candidate judgment, score, ranking, or
+  non-human hiring verdict is accepted into the frozen D1B state.
+
+`D1B_FRONTEND_CRAFT_COMPLETE`

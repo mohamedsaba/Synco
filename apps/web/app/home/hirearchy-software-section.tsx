@@ -56,6 +56,7 @@ export const HirearchySoftwareSection = () => (
 
           <div
             className="software__work"
+            role="group"
             aria-label="Candidate workspace components"
           >
             <div className="software__fixture">
@@ -127,6 +128,7 @@ export const HirearchySoftwareSection = () => (
 
         <div
           className="software__conduit"
+          role="group"
           aria-label="Observable evidence pipeline"
         >
           <div className="software__conduit-top">
@@ -136,6 +138,7 @@ export const HirearchySoftwareSection = () => (
 
           <div
             className="software__conduit-stream"
+            role="group"
             aria-label="Evidence transmission stages"
           >
             <div className="software__conduit-node">
@@ -189,6 +192,7 @@ export const HirearchySoftwareSection = () => (
 
           <div
             className="software__record"
+            role="group"
             aria-label="Evaluator review components"
           >
             <div className="software__record-item">

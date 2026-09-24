@@ -11,7 +11,11 @@ export const AdaptiveFrame = ({
   children,
   label,
 }: AdaptiveFrameProps) => (
-  <div className={`adaptive-frame ${className}`.trim()} aria-label={label}>
+  <div
+    className={`adaptive-frame ${className}`.trim()}
+    role="group"
+    aria-label={label}
+  >
     {children}
   </div>
 );

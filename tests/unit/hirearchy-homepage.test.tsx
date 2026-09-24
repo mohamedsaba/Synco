@@ -107,6 +107,11 @@ describe('D1 — Hirearchy homepage', () => {
 
     expect(html.match(/<section/g)).toHaveLength(8);
     expect(html.match(/aria-labelledby=/g)).toHaveLength(8);
+    expect(
+      Array.from(html.matchAll(/<div[^>]*aria-label="[^"]+"[^>]*>/g)).every(
+        ([element]) => element.includes('role="group"'),
+      ),
+    ).toBe(true);
     expect(html.match(/<h1/g)).toHaveLength(1);
     expect(html.match(/<h2/g)).toHaveLength(7);
     expect(html.indexOf('id="hero-title"')).toBeLessThan(
@@ -145,6 +150,9 @@ describe('D1 — Hirearchy homepage', () => {
     expect(html).toContain('A résumé opens a conversation.');
     expect(html).toContain('Work adds context.');
     expect(html).toContain('The observable record precedes interpretation.');
+    expect(html).not.toContain(
+      '<footer class="campaign__colophon" aria-hidden="true">',
+    );
     expect(html).not.toMatch(
       /\b(score|grade|ranking|revolutionize|guarantee|superior)\b/i,
     );

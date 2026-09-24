@@ -2,7 +2,13 @@
 
 ## Status
 
+Completed and frozen: `D1B_FRONTEND_CRAFT_COMPLETE`.
+
 Accepted D1 foundation: `33850c872c19128bc7493a0b58bc236ecfe10684`.
+D1B implementation series: `7ad868f0e5b56bd310118b26779a12b811b44778`
+through `a7765c79ccf79c1bc246f71b33eefb79b5d9ff70`. Final engineering
+acceptance and documentation freeze: this commit
+(`docs(brand): freeze Hirearchy frontend craft`).
 
 ## Goal
 
@@ -184,7 +190,7 @@ and the absence of candidate ranking/scoring claims.
 - Lock semantic palette tokens (`--brand-paper`, `--brand-surface`, `--brand-surface-subtle`, `--brand-ink`, `--brand-muted`, `--brand-line`, `--brand-line-subtle`, `--brand-accent`).
 - Remove unexplained lime/chartreuse highlight (`#d9c94e`); Hirearchy Software inherits masterbrand palette with structural and evidentiary density.
 - Standardize Context Aperture and Datum visual primitives across header, product family root, and software environment substrate.
-- Provide comprehensive identity authority in `docs/plans/active/098-d1b-hirearchy-identity-system.md`.
+- Provide comprehensive identity authority in `docs/plans/completed/098-d1b-hirearchy-identity-system.md`.
 
 ## D1B.9 — Identity integration and whole-page rhythm
 
@@ -202,3 +208,65 @@ and the absence of candidate ranking/scoring claims.
   communicates entry without continuous paint work.
 - Protect section order, heading hierarchy, identity, product truth, human decision
   authority, motion semantics, and reduced-motion behavior in the focused test.
+
+## Final engineering acceptance and freeze
+
+### Architecture and identity
+
+- Eight section-owned React modules remain composed by `page.tsx`; the shared
+  homepage surface stays limited to `AdaptiveFrame`, `Arrow`, `ContextAperture`,
+  `BrandLogo`, and `Datum`.
+- `home.css` remains one ordered, homepage-scoped cascade with section-owned
+  selectors, shared tokens, two responsive breakpoints, motion, and reduced
+  motion. No dependency or speculative abstraction was added.
+- The locked masterbrand tokens are the only literal homepage palette values.
+  The removed chartreuse `#d9c94e` does not return. `BrandLogo` and
+  `ContextAperture` provide reusable primary, compact, wordmark, and Software
+  lockups.
+- Rendered homepage checks contain no visible `Synco` or `Delimit` branding.
+  Candidate and evaluator truth remains evidence-first, AI-neutral, and explicit
+  that the final hiring decision remains human.
+
+### Accessibility, motion, and performance
+
+- All named visual groups expose valid `role="group"` semantics. The campaign
+  axiom remains available to assistive technology; only its visual section index
+  is decorative.
+- Keyboard traversal exposes a visible 2px focus outline for every reachable
+  homepage control. Heading order, ordered evidence, definition-list semantics,
+  real destinations, and eight labeled sections remain intact.
+- Motion remains native CSS progressive enhancement. Text-bearing motion no
+  longer lowers contrast; structural transforms, borders, clipping, and the
+  three signature peaks remain. Reduced motion resolves the complete static
+  page with zero active animations at tested desktop and mobile viewports.
+- No new dependency, client runtime, image payload, animated filter, or
+  continuously painted Software shadow was added. Production build completes.
+
+### Responsive and browser acceptance
+
+- Chromium full-page and DOM acceptance: `1440×1000`, `1280×900`,
+  `1024×768` laptop intermediate, `820×900`, and `390×844`; reduced motion at
+  `1440×1000` and `390×844`. Every width reported document width equal to
+  viewport width with no horizontal overflow.
+- Axe-core reported zero violations at every Chromium viewport. Its remaining
+  contrast results were manual-review-only cases caused by pseudo-elements,
+  background gradients, non-text arrows, and the intentional text-stroke
+  campaign treatment; rendered states were visually reviewed.
+- Firefox 155 screenshot acceptance covered `1440×1000`, `1280×900`,
+  `1024×768`, `820×900`, and `390×844`. Codex in-app browser inspection
+  confirmed the final accessible structure and exposed campaign axiom.
+- Safari/WebKit was unavailable and is not claimed.
+
+### Verification
+
+- Focused homepage suite: 1 file, 9 tests passed.
+- Final `npm run verify`: formatting, lint, type generation, TypeScript, 69 test
+  files passed with 5 skipped; 649 tests passed with 6 skipped; optimized
+  production build and static generation passed.
+- An earlier sandboxed full run failed only at Docker-backed tests because access
+  to `/var/run/docker.sock` was denied. The same authoritative suite passed with
+  Docker access on the final corrected state.
+- `git diff --check` and final repository status are recorded at freeze. No
+  generated Next.js development file is included in this commit.
+
+`D1B_FRONTEND_CRAFT_COMPLETE`

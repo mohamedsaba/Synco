@@ -29,11 +29,13 @@ export const CampaignSection = () => (
       </h2>
     </div>
 
-    <footer className="campaign__colophon" aria-hidden="true">
+    <footer className="campaign__colophon">
       <span className="campaign__colophon-axiom">
         The observable record precedes interpretation.
       </span>
-      <span className="campaign__colophon-datum">07 / Expressive peak</span>
+      <span className="campaign__colophon-datum" aria-hidden="true">
+        07 / Expressive peak
+      </span>
     </footer>
   </section>
 );

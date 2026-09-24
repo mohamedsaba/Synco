@@ -6,7 +6,11 @@ export const ImpressionsSection = () => (
     data-motion="reframe"
   >
     <div className="impressions__content">
-      <div className="impressions__moments" aria-label="Individual impressions">
+      <div
+        className="impressions__moments"
+        role="group"
+        aria-label="Individual impressions"
+      >
         <p className="brand-kicker impressions__kicker">First encounter</p>
         <div className="impressions__moment-list">
           <p className="impressions__moment impressions__moment--1">

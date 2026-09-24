@@ -253,15 +253,6 @@
   border-top: 1px solid var(--brand-line);
 }
 
-.section-index {
-  position: absolute;
-  top: 2rem;
-  right: 0;
-  color: var(--brand-muted);
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-}
-
 .impressions__moments {
   border-top: 1px solid var(--brand-ink);
   border-bottom: 1px solid var(--brand-ink);

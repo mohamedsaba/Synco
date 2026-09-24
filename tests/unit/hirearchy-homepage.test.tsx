@@ -19,6 +19,7 @@ describe('D1 — Hirearchy homepage', () => {
     expect(html).toContain('Future direction');
     expect(html).toContain('The final hiring decision remains human.');
     expect(html).toContain('AI is permitted tooling inside the environment.');
+    expect(html).not.toContain('01 / 06');
     expect(html).not.toMatch(/candidate (score|grade)|pass\/fail|ranking/i);
   });
 

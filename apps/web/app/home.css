@@ -2007,7 +2007,26 @@
     position: relative;
     padding: 1.4rem 1.25rem;
     border-bottom: 1px solid var(--brand-line);
-    animation-name: none;
+  }
+
+  .brand-hero__frame .evidence-fragment--attempt {
+    animation: hero-fragment-mobile-1 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s
+      both;
+  }
+
+  .brand-hero__frame .evidence-fragment--check {
+    animation: hero-fragment-mobile-2 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.45s
+      both;
+  }
+
+  .brand-hero__frame .evidence-fragment--revision {
+    animation: hero-fragment-mobile-3 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s
+      both;
+  }
+
+  .brand-hero__frame .evidence-fragment--context {
+    animation: hero-fragment-mobile-context 0.8s cubic-bezier(0.16, 1, 0.3, 1)
+      0.75s both;
   }
 
   .brand-hero__frame .evidence-fragment:last-child {
@@ -2367,43 +2386,82 @@
     }
   }
 
+  /* ============================================================
+     PEAK 1 — HERO SIGNATURE (First-Viewport Context Resolution)
+     7-step sequence:
+     1. Restrained initial stillness (0.0s - 0.2s)
+     2. Context Aperture establishes itself (0.2s - 0.75s)
+     3. Isolated evidence fragments start from independent positions (0.35s - 1.0s)
+     4. Datum relationships resolve (0.5s - 1.35s)
+     5. Fragments align into contextual relationship against datums (0.8s - 1.8s)
+     6. Wordmark / tagline gains final visual authority (1.1s - 2.0s)
+     7. Composition settles (2.0s - 2.4s)
+     ============================================================ */
+
+  .brand-hero .frame-aperture {
+    transform-origin: left;
+    animation: hero-aperture 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+  }
+
+  .brand-hero .frame-axis--vertical {
+    transform-origin: top;
+    animation: hero-axis-v 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+  }
+
+  .brand-hero .frame-axis--horizontal {
+    transform-origin: left;
+    animation: hero-axis-h 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.65s both;
+  }
+
+  .brand-hero .evidence-fragment--attempt {
+    animation: hero-fragment-attempt 1.15s cubic-bezier(0.16, 1, 0.3, 1) 0.35s
+      both;
+  }
+
+  .brand-hero .evidence-fragment--check {
+    animation: hero-fragment-check 1.15s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+  }
+
+  .brand-hero .evidence-fragment--revision {
+    animation: hero-fragment-revision 1.15s cubic-bezier(0.16, 1, 0.3, 1) 0.65s
+      both;
+  }
+
+  .brand-hero .evidence-fragment--context {
+    animation: hero-fragment-context 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.85s
+      both;
+  }
+
+  .brand-hero #hero-title {
+    animation: hero-title-authority 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+  }
+
+  .brand-hero .brand-hero__line {
+    animation: hero-line-authority 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+  }
+
+  .brand-hero .brand-hero__support {
+    animation: hero-support-settle 1s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+  }
+
+  .brand-hero .brand-hero__transition {
+    animation: hero-transition-settle 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.5s
+      both;
+  }
+
+  /* ============================================================
+     SCROLL TIMELINE CHOREOGRAPHY (Peaks 2 & 3 + Calm Flow)
+     ============================================================ */
+
   @supports (animation-timeline: view()) {
-    .brand-hero__frame .frame-axis--vertical {
-      animation: frame-axis-v linear both;
-      animation-range: exit 0% exit 80%;
-      animation-timeline: view();
-    }
-
-    .brand-hero__frame .frame-axis--horizontal {
-      animation: frame-axis-h linear both;
-      animation-range: exit 0% exit 80%;
-      animation-timeline: view();
-    }
-
-    .evidence-fragment--attempt {
-      animation: organize-attempt linear both;
-      animation-range: exit 0% exit 80%;
-      animation-timeline: view();
-    }
-
-    .evidence-fragment--check {
-      animation: organize-check linear both;
-      animation-range: exit 0% exit 80%;
-      animation-timeline: view();
-    }
-
-    .evidence-fragment--revision {
-      animation: organize-revision linear both;
-      animation-range: exit 0% exit 80%;
-      animation-timeline: view();
-    }
-
+    /* Hero Exit Datum Guide */
     .hero-transition__axis {
       animation: transition-extend linear both;
       animation-range: exit 0% exit 70%;
       animation-timeline: view();
     }
 
+    /* Calm Section: Impressions (MEDIUM Editorial Tension) */
     .impressions__moments {
       animation: reframe-moments linear both;
       animation-range: entry 30% cover 65%;
@@ -2435,12 +2493,14 @@
       animation-timeline: view();
     }
 
+    /* Calm Section: Evidence Narrative (MEDIUM Controlled Unfold) */
     .evidence-sequence ol::before {
       animation: unfold-path linear both;
       animation-range: entry 20% cover 62%;
       animation-timeline: view();
     }
 
+    /* Calm Section: Clarity (LOW / Calm Focus) */
     .clarity {
       view-timeline-axis: block;
       view-timeline-name: --clarity-focus;
@@ -2467,8 +2527,20 @@
       animation-range: entry 40% cover 50%;
     }
 
+    /* ============================================================
+       PEAK 2 — PRODUCT FAMILY -> SOFTWARE STRUCTURAL TRANSFORMATION
+       Shared masterbrand adapts -> Software branch becomes selected spatial context ->
+       resolves into functional inhabited workbench environment
+       ============================================================ */
+
     .family__body {
       animation: adapt-frame linear both;
+      animation-range: entry 15% cover 65%;
+      animation-timeline: view();
+    }
+
+    .family__vertical--current {
+      animation: adapt-current-branch linear both;
       animation-range: entry 15% cover 65%;
       animation-timeline: view();
     }
@@ -2491,6 +2563,12 @@
       animation-timeline: view();
     }
 
+    .software__substrate {
+      animation: enter-substrate linear both;
+      animation-range: entry 10% cover 45%;
+      animation-timeline: view();
+    }
+
     .software__pane--candidate {
       animation: enter-candidate linear both;
       animation-range: entry 12% cover 52%;
@@ -2499,14 +2577,46 @@
 
     .software__conduit {
       animation: enter-conduit linear both;
-      animation-range: entry 16% cover 55%;
+      animation-range: entry 14% cover 55%;
       animation-timeline: view();
     }
 
     .software__pane--evaluator {
       animation: enter-evaluator linear both;
-      animation-range: entry 20% cover 58%;
+      animation-range: entry 16% cover 58%;
       animation-timeline: view();
+    }
+
+    /* ============================================================
+       PEAK 3 — CAMPAIGN (HIGHEST Expressive Peak: Evidence over Impressions)
+       Monumental typographic contrast + fulcrum balance datum
+       ============================================================ */
+
+    .campaign__aperture {
+      animation: campaign-aperture linear both;
+      animation-range: entry 10% cover 40%;
+      animation-timeline: view();
+      transform-origin: left;
+    }
+
+    .campaign__fulcrum > .campaign__axis-rule:first-child {
+      animation: campaign-axis-left linear both;
+      animation-range: entry 18% cover 50%;
+      animation-timeline: view();
+      transform-origin: right;
+    }
+
+    .campaign__over {
+      animation: campaign-over-fulcrum linear both;
+      animation-range: entry 18% cover 50%;
+      animation-timeline: view();
+    }
+
+    .campaign__fulcrum > .campaign__axis-rule:last-child {
+      animation: campaign-axis-right linear both;
+      animation-range: entry 18% cover 50%;
+      animation-timeline: view();
+      transform-origin: left;
     }
 
     .campaign__evidence {
@@ -2515,18 +2625,19 @@
       animation-timeline: view();
     }
 
-    .campaign__fulcrum {
-      animation: expand-fulcrum linear both;
-      animation-range: entry 18% cover 50%;
-      animation-timeline: view();
-    }
-
     .campaign__impressions {
       animation: soften-impressions linear both;
-      animation-range: entry 15% cover 65%;
+      animation-range: entry 18% cover 65%;
       animation-timeline: view();
     }
 
+    .campaign__colophon {
+      animation: campaign-colophon-settle linear both;
+      animation-range: entry 25% cover 60%;
+      animation-timeline: view();
+    }
+
+    /* Calm Section: CTA (VERY LOW / Settle) */
     .final-cta__rule {
       animation: settle-rule linear both;
       animation-range: entry 10% cover 45%;
@@ -2536,53 +2647,208 @@
   }
 }
 
-@keyframes frame-axis-v {
-  from {
-    opacity: 0.5;
+/* ============================================================
+   KEYFRAME DEFINITIONS
+   ============================================================ */
+
+/* Hero Signature Keyframes (Context Resolution) */
+@keyframes hero-aperture {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
   }
-  to {
+  100% {
+    transform: scaleX(1);
     opacity: 1;
-    background: var(--brand-ink);
   }
 }
 
-@keyframes frame-axis-h {
-  from {
-    opacity: 0.5;
+@keyframes hero-axis-v {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
   }
-  to {
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: scaleY(1);
     opacity: 1;
-    background: var(--brand-ink);
   }
 }
 
-@keyframes organize-attempt {
-  from {
-    transform: translate(0, 0);
+@keyframes hero-axis-h {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
   }
-  to {
-    transform: translate(14px, 10px);
+  50% {
+    opacity: 0.6;
   }
-}
-
-@keyframes organize-check {
-  from {
-    transform: translate(0, 0);
-  }
-  to {
-    transform: translate(-14px, 12px);
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
   }
 }
 
-@keyframes organize-revision {
-  from {
-    transform: translate(0, 0);
+@keyframes hero-fragment-attempt {
+  0% {
+    transform: translate(-38px, -24px) scale(0.95);
+    opacity: 0.2;
+    clip-path: inset(0 6% 0 0);
   }
-  to {
-    transform: translate(12px, -12px);
+  40% {
+    transform: translate(-14px, -8px) scale(0.98);
+    opacity: 0.7;
+    clip-path: inset(0 2% 0 0);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
   }
 }
 
+@keyframes hero-fragment-check {
+  0% {
+    transform: translate(46px, -20px) scale(0.95);
+    opacity: 0.2;
+    clip-path: inset(0 0 0 6%);
+  }
+  40% {
+    transform: translate(16px, -6px) scale(0.98);
+    opacity: 0.7;
+    clip-path: inset(0 0 0 2%);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes hero-fragment-revision {
+  0% {
+    transform: translate(-32px, 34px) scale(0.95);
+    opacity: 0.2;
+  }
+  40% {
+    transform: translate(-10px, 12px) scale(0.98);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes hero-fragment-context {
+  0% {
+    transform: translateY(28px) scale(0.96);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translateY(10px) scale(0.99);
+    opacity: 0.65;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes hero-title-authority {
+  0% {
+    transform: translateY(18px);
+    opacity: 0.55;
+    letter-spacing: -0.055em;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+    letter-spacing: -0.07em;
+  }
+}
+
+@keyframes hero-line-authority {
+  0% {
+    transform: translateY(14px);
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes hero-support-settle {
+  0% {
+    transform: translateY(10px);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes hero-transition-settle {
+  0% {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile Hero Keyframes */
+@keyframes hero-fragment-mobile-1 {
+  0% {
+    transform: translateY(16px);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes hero-fragment-mobile-2 {
+  0% {
+    transform: translateY(18px);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes hero-fragment-mobile-3 {
+  0% {
+    transform: translateY(20px);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes hero-fragment-mobile-context {
+  0% {
+    transform: translateY(22px);
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Transition & Flow Keyframes */
 @keyframes transition-extend {
   from {
     transform: scaleX(0.35);
@@ -2657,22 +2923,6 @@
   }
 }
 
-@media (max-width: 64rem) and (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .evidence-sequence ol::before {
-      animation-name: unfold-path-vertical;
-    }
-  }
-}
-
-@media (max-width: 44rem) and (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .family__body {
-      animation: none;
-    }
-  }
-}
-
 @keyframes unfold-path-vertical {
   from {
     transform: scaleY(0);
@@ -2693,115 +2943,268 @@
   }
 }
 
+/* Peak 2 Keyframes: Product Family -> Software Structural Transformation */
 @keyframes adapt-frame {
-  from {
+  0% {
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.15fr);
+  }
+  100% {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 0.85fr);
+  }
+}
+
+@keyframes adapt-current-branch {
+  0% {
+    border-right-color: var(--brand-line);
+    background: color-mix(in srgb, var(--brand-paper) 92%, white);
+  }
+  100% {
+    border-right-color: var(--brand-ink);
+    background: color-mix(in srgb, var(--brand-paper) 96%, white);
   }
 }
 
 @keyframes adapt-resolve {
-  from {
+  0% {
     opacity: 0.65;
     border-color: var(--brand-line);
+  }
+  100% {
+    opacity: 1;
+    border-color: var(--brand-ink);
   }
 }
 
 @keyframes adapt-provisional {
-  from {
+  0% {
+    opacity: 0.75;
+  }
+  100% {
     opacity: 0.45;
   }
 }
 
 @keyframes enter-environment {
-  from {
+  0% {
     border-color: var(--brand-line);
     box-shadow: 0 0 0 rgba(28, 27, 23, 0);
   }
-  to {
+  100% {
     border-color: var(--brand-ink);
-    box-shadow: 0 4px 16px rgba(28, 27, 23, 0.05);
+    box-shadow: 0 6px 24px rgba(28, 27, 23, 0.06);
+  }
+}
+
+@keyframes enter-substrate {
+  0% {
+    transform: translateY(-8px);
+    opacity: 0.6;
+    border-bottom-color: var(--brand-line);
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+    border-bottom-color: var(--brand-ink);
   }
 }
 
 @keyframes enter-candidate {
-  from {
-    opacity: 0.75;
+  0% {
+    transform: translateX(-24px);
+    opacity: 0.7;
   }
-  to {
+  100% {
+    transform: translateX(0);
     opacity: 1;
   }
 }
 
 @keyframes enter-conduit {
-  from {
+  0% {
+    transform: scaleY(0.92);
     opacity: 0.6;
-    border-color: transparent;
+    border-color: var(--brand-line);
   }
-  to {
+  100% {
+    transform: scaleY(1);
     opacity: 1;
     border-color: var(--brand-ink);
   }
 }
 
 @keyframes enter-evaluator {
-  from {
-    opacity: 0.75;
+  0% {
+    transform: translateX(24px);
+    opacity: 0.7;
   }
-  to {
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Peak 3 Keyframes: Campaign Expressive Peak */
+@keyframes campaign-aperture {
+  0% {
+    transform: scaleX(0.15);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes campaign-axis-left {
+  0% {
+    transform: scaleX(0.15);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes campaign-axis-right {
+  0% {
+    transform: scaleX(0.15);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes campaign-over-fulcrum {
+  0% {
+    transform: scale(0.88);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
     opacity: 1;
   }
 }
 
 @keyframes strengthen-evidence {
-  from {
+  0% {
+    transform: translateY(32px) scale(0.94);
+    opacity: 0.55;
     color: var(--brand-muted);
-    opacity: 0.8;
   }
-  to {
+  45% {
+    transform: translateY(12px) scale(0.98);
+    opacity: 0.85;
     color: var(--brand-ink);
-    opacity: 1;
   }
-}
-
-@keyframes expand-fulcrum {
-  from {
-    opacity: 0.5;
-  }
-  to {
+  100% {
+    transform: translateY(0) scale(1);
     opacity: 1;
+    color: var(--brand-ink);
   }
 }
 
 @keyframes soften-impressions {
-  from {
+  0% {
+    transform: translateY(-20px) scale(1.03);
     opacity: 0.95;
-    -webkit-text-stroke-color: var(--brand-ink);
+    -webkit-text-stroke: 2.2px var(--brand-ink);
   }
-  to {
-    opacity: 0.72;
-    -webkit-text-stroke-color: var(--brand-muted);
+  40% {
+    transform: translateY(-8px) scale(1.01);
+    opacity: 0.8;
+    -webkit-text-stroke: 1.6px var(--brand-muted);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.65;
+    -webkit-text-stroke: 1.25px var(--brand-muted);
+  }
+}
+
+@keyframes campaign-colophon-settle {
+  0% {
+    transform: translateY(10px);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
 @keyframes settle-rule {
   from {
-    transform: scaleX(2.6);
+    transform: scaleX(2.2);
   }
   to {
     transform: scaleX(1);
   }
 }
 
+/* ============================================================
+   RESPONSIVE PROGRESSIVE ENHANCEMENT
+   ============================================================ */
+@media (max-width: 64rem) and (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .evidence-sequence ol::before {
+      animation-name: unfold-path-vertical;
+    }
+  }
+}
+
+@media (max-width: 44rem) and (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .family__body {
+      animation: none;
+    }
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION CONTRACT (Instant Resolved Static Completeness)
+   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
+  .brand-hero .frame-aperture,
+  .brand-hero .frame-axis--vertical,
+  .brand-hero .frame-axis--horizontal,
+  .brand-hero .evidence-fragment,
+  .brand-hero #hero-title,
+  .brand-hero .brand-hero__line,
+  .brand-hero .brand-hero__support,
+  .brand-hero .brand-hero__transition,
+  .impressions__moments,
+  .impressions__moment-list,
+  .impressions__reframe,
+  .impressions__reframe h2 em,
+  .evidence-sequence ol::before,
   .clarity__layer,
+  .family__body,
+  .family__vertical--current,
+  .family__inhabited,
+  .family__provisional,
   .software__environment,
+  .software__substrate,
   .software__pane--candidate,
   .software__conduit,
   .software__pane--evaluator,
+  .campaign__aperture,
+  .campaign__axis-rule,
+  .campaign__over,
   .campaign__evidence,
   .campaign__fulcrum,
-  .campaign__impressions {
+  .campaign__impressions,
+  .campaign__colophon,
+  .final-cta__rule {
     animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  .campaign__impressions {
+    -webkit-text-stroke: 1.75px var(--brand-ink) !important;
   }
 
   .brand-home *,

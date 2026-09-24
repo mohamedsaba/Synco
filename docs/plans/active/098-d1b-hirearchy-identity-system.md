@@ -181,19 +181,85 @@ Hirearchy uses a **wordmark-first identity** paired with an architectural signat
 
 ---
 
-## 8. Motion Identity Principles (Placeholder for D1B.ID2)
+## 8. Motion Identity System (D1B.ID2 Locked)
 
-- Motion is functional choreography, not decoration.
-- Each section owns one distinct semantic verb:
-  1. Hero: `organize`
-  2. Impressions: `reframe`
-  3. Evidence Narrative: `unfold`
-  4. Clarity: `prioritize`
-  5. Product Family: `adapt`
-  6. Hirearchy Software: `enter`
-  7. Campaign: `contrast`
-  8. Final CTA: `settle`
-- Static Completeness: When `prefers-reduced-motion: reduce` is active, the entire visual hierarchy, layout, contrast, and legible meaning remain 100% complete and legible with zero animation dependency.
+### Core Motion Principle: Context Resolution
+
+Hirearchy's motion identity is **Context Resolution**:
+
+- **Not:** chaos → correct answer, bad → good, or flash-in-the-pan animation demo.
+- **Instead:** less context → more context. Information begins partially isolated, misregistered, or unresolved in space; structural relationships establish; the Context Aperture and Datum create a coherent context; and the result settles into a crisp, legible composition.
+
+### Three Signature Motion Peaks
+
+Hirearchy focuses visual attention into exactly three memorable signature moments, while keeping the rest of the page restrained:
+
+1. **Peak 1 — Hero Signature (`organize`):**
+   - **First-Viewport First-Impression Resolution:** Plays in the first 2.4 seconds on page load.
+   - **7-Stage Architectural Sequence:**
+     1. _Restrained initial stillness_ (0.0s–0.2s hold)
+     2. _Context Aperture establishes itself_ (0.2s–0.75s, top oxide threshold bar draws open with `scaleX`)
+     3. _Isolated evidence fragments occupy independent positions_ (0.35s–1.0s, Attempt, Verification, Revision, Context displaced across coordinates)
+     4. _Datum relationships resolve_ (0.5s–1.35s, vertical and horizontal axes intersect to create the coordinate frame)
+     5. _Fragments align into contextual relationship against datums_ (0.8s–1.8s, docking into exact cells with `cubic-bezier(0.16, 1, 0.3, 1)`)
+     6. _Wordmark / tagline gains final visual authority_ (1.1s–2.0s, title and brand line solidify in dark carbon ink)
+     7. _Composition settles_ (2.0s–2.4s, quiet transition cues appear)
+   - On mobile viewports (`max-width: 44rem`), resolves vertically with staggered upward alignment into the stack.
+
+2. **Peak 2 — Product Family → Software Structural Transformation (`adapt` → `enter`):**
+   - **Mid-Page Structural Transformation:** Shared masterbrand architecture adapts; Software branch becomes selected spatial context; resolves into functional inhabited workbench environment.
+   - **Choreography:**
+     - In Product Family (`adapt`), the active Software vertical expands column proportion (`1.55fr : 0.85fr`), border deepens to ink, and the 3 inhabited layers resolve in sequence while provisional wings soften.
+     - In Software (`enter`), the Context Aperture boundary resolves from a thin line to full workbench enclosure (`enter-environment`), the top substrate bar locks into position from the aperture (`enter-substrate`), the central evidentiary conduit establishes the vertical transmission spine (`enter-conduit`), and candidate workspace and evaluator reconstruction chambers deploy outward to left and right (`enter-candidate`, `enter-evaluator`).
+
+3. **Peak 3 — Campaign Expressive Peak (`contrast`):**
+   - **Highest Expressive Peak:** "Evidence over impressions." monumental typography broadside.
+   - **Choreography:**
+     - Top oxide aperture draws open (`campaign-aperture`).
+     - Symmetrical fulcrum datum rules expand outward from the center terracotta italic "over" pivot (`campaign-axis-left`, `campaign-axis-right`, `campaign-over-fulcrum`).
+     - **Material Presence & Scale Shift:** "Evidence" surges with massive physical authority, solid carbon ink, rising into monumental scale (`strengthen-evidence`). "impressions." settles on the lower tier as an airy architectural wireframe outline (`soften-impressions`), maintaining legibility without deletion, glitches, or character explosions.
+     - Colophon datum locks the axiom: _"The observable record precedes interpretation."_
+     - The resolved state functions as an authoritative static poster.
+
+### Motion Energy Curve
+
+Attention requires contrast. Every section is tuned to an intentional energy curve:
+
+| Section                | Energy Level | Semantic Role & Motion Behavior                                              |
+| ---------------------- | ------------ | ---------------------------------------------------------------------------- |
+| **Hero**               | HIGH         | Signature impact: on-load Context Resolution sequence + exit datum guide     |
+| **Impressions**        | MEDIUM       | Editorial tension: subtle reframe of moments and context emergence           |
+| **Evidence Narrative** | MEDIUM       | Controlled unfold: connecting path drawing across 6 chronological events     |
+| **Clarity**            | LOW          | Calm focus: subtle layer focus hairline highlight as scroll passes           |
+| **Product Family**     | BUILD        | Adapt frame: active Software branch claims spatial dominance                 |
+| **Software entry**     | HIGH         | Structural transformation: substrate lock, conduit spine deployment chambers |
+| **Software body**      | LOW          | Grounded: candidate fixtures and evaluator records stay stable and readable  |
+| **Campaign**           | HIGHEST      | Expressive peak: monumental contrast, fulcrum expansion, material shift      |
+| **Final CTA**          | VERY LOW     | Settle: subtle rule settle, quiet finality                                   |
+
+### Timing & Easing Rules
+
+- **No Uniform Slowness:** Premium does not mean lethargic. Movement is decisive and crisp.
+- **Intentional Holds:** Readable intermediate states allow the eye to perceive context formation.
+- **Easing Contract:** Snappy architectural ease-out `cubic-bezier(0.16, 1, 0.3, 1)` for entrances and settling; `linear` for scroll-linked view timelines.
+- **No Elastic Bounce:** Absolutely no rubbery spring physics or playful wobble.
+
+### Forbidden Motion Behaviors
+
+1. ❌ No particles, floating sparkles, dust, or glowing energy nodes.
+2. ❌ No random flying or drifting text.
+3. ❌ No cursor followers, magnetic buttons, or 3D tilt cards.
+4. ❌ No character animation, kinetic typography gymnastics, text explosion, or glitch effects.
+5. ❌ Never delete, strike through, or cross out "impressions."; authority shifts via scale and material presence.
+6. ❌ Never force touch interactions to simulate desktop hover states.
+
+### Reduced Motion Contract
+
+- When `prefers-reduced-motion: reduce` is detected:
+  - All animations and transitions are nullified (`animation: none !important; transition: none !important;`).
+  - `transform: none !important; opacity: 1 !important;`
+  - Every signature moment immediately presents its 100% complete, fully resolved static state.
+  - Zero semantic information, visual contrast, or layout completeness depends on motion.
 
 ---
 

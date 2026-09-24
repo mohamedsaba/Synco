@@ -1403,50 +1403,143 @@
 }
 
 .campaign {
-  display: grid;
-  min-height: 100vh;
-  grid-template-columns: minmax(12rem, 0.35fr) minmax(0, 1.65fr);
-  gap: clamp(2rem, 8vw, 8rem);
-  align-items: center;
-  padding: 10rem 0;
+  display: block;
+  min-height: auto;
+  padding: clamp(7rem, 14vh, 12rem) 0 clamp(6rem, 11vh, 9rem);
   border-top: 1px solid var(--brand-line);
+  position: relative;
+}
+
+.campaign__aperture {
+  width: 3.5rem;
+  height: 3px;
+  background: var(--brand-accent);
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.campaign__masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  padding-bottom: clamp(1.5rem, 2.5vw, 2.25rem);
+  border-bottom: 1px solid var(--brand-line);
+  margin-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+.campaign__kicker {
+  font-family: var(--brand-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brand-accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.campaign__kicker-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--brand-accent);
+  border-radius: 50%;
 }
 
 .campaign__context {
-  align-self: start;
-  margin-top: 10vh;
-  color: var(--brand-muted);
-  font-size: 0.8rem;
+  margin: 0;
+  font-family: var(--brand-body);
+  font-size: clamp(0.82rem, 1.2vw, 0.95rem);
   line-height: 1.6;
+  color: var(--brand-muted);
+  text-align: right;
+  max-width: 32ch;
 }
 
-.campaign__line {
+.campaign__display {
   display: flex;
   flex-direction: column;
   margin: 0;
-  font-size: clamp(5rem, 11vw, 11.5rem);
-  letter-spacing: -0.075em;
-  line-height: 0.7;
-  text-transform: none;
+  padding: clamp(1rem, 2vw, 2.5rem) 0 clamp(2rem, 4vw, 4rem);
 }
 
-.campaign__line span {
-  display: block;
+.campaign__line {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  text-transform: none;
+  width: 100%;
+}
+
+.campaign__evidence {
+  font-family: var(--brand-display);
+  font-size: clamp(3.25rem, 12vw, 12.5rem);
+  font-weight: 700;
+  line-height: 0.85;
+  letter-spacing: -0.055em;
+  color: var(--brand-ink);
+  align-self: flex-start;
+}
+
+.campaign__fulcrum {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.5vw, 2.5rem);
+  margin: clamp(0.85rem, 2vw, 2.25rem) 0;
+  width: 100%;
+}
+
+.campaign__axis-rule {
+  flex: 1 1 0%;
+  height: 1px;
+  background: var(--brand-line);
 }
 
 .campaign__over {
-  align-self: center;
-  color: var(--brand-accent);
-  font-size: 0.42em;
+  flex: 0 0 auto;
+  font-family: var(--brand-display);
+  font-size: clamp(1.6rem, 3.6vw, 3.5rem);
   font-style: italic;
-  letter-spacing: -0.035em;
-  line-height: 1.4;
+  font-weight: 400;
+  color: var(--brand-accent);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  padding: 0 0.5rem;
 }
 
 .campaign__impressions {
-  align-self: flex-end;
+  font-family: var(--brand-display);
+  font-size: clamp(3.25rem, 12vw, 12.5rem);
+  font-weight: 400;
+  line-height: 0.85;
+  letter-spacing: -0.045em;
   color: transparent;
-  -webkit-text-stroke: 1px var(--brand-ink);
+  -webkit-text-stroke: 1.75px var(--brand-ink);
+  align-self: flex-end;
+}
+
+.campaign__colophon {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  padding-top: clamp(1.25rem, 2vw, 2rem);
+  border-top: 1px solid var(--brand-line);
+  margin-top: clamp(1.5rem, 3vw, 3rem);
+  font-family: var(--brand-body);
+  font-size: 0.72rem;
+  color: var(--brand-muted);
+}
+
+.campaign__colophon-axiom {
+  letter-spacing: 0.02em;
+}
+
+.campaign__colophon-datum {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-ink);
+  font-weight: 500;
 }
 
 .final-cta {
@@ -1735,12 +1828,21 @@
     margin-left: 0.6rem;
   }
 
-  .campaign {
-    grid-template-columns: 1fr;
+  .campaign__masthead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 3rem;
   }
 
   .campaign__context {
-    margin: 0;
+    text-align: left;
+  }
+
+  .campaign__colophon {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 }
 
@@ -1827,8 +1929,7 @@
   .evidence-story,
   .clarity,
   .family,
-  .software,
-  .campaign {
+  .software {
     padding: 7rem 0;
   }
 
@@ -2101,12 +2202,39 @@
     flex-direction: column;
   }
 
-  .campaign__line {
-    font-size: clamp(4.25rem, 22vw, 7rem);
+  .campaign {
+    padding: 4.5rem 0 3.5rem;
+  }
+
+  .campaign__aperture {
+    width: 2.5rem;
+    height: 2.5px;
+    margin-bottom: 1.5rem;
+  }
+
+  .campaign__evidence,
+  .campaign__impressions {
+    font-size: clamp(2.85rem, 13.5vw, 3.85rem);
+    letter-spacing: -0.04em;
+    line-height: 0.9;
   }
 
   .campaign__impressions {
-    align-self: flex-start;
+    -webkit-text-stroke-width: 1.25px;
+    align-self: flex-end;
+  }
+
+  .campaign__over {
+    font-size: 1.6rem;
+  }
+
+  .campaign__fulcrum {
+    margin: 0.65rem 0;
+    gap: 0.75rem;
+  }
+
+  .campaign__display {
+    padding: 0.5rem 0 1.5rem;
   }
 
   .final-cta {
@@ -2279,6 +2407,12 @@
     .campaign__evidence {
       animation: strengthen-evidence linear both;
       animation-range: entry 15% cover 55%;
+      animation-timeline: view();
+    }
+
+    .campaign__fulcrum {
+      animation: expand-fulcrum linear both;
+      animation-range: entry 18% cover 50%;
       animation-timeline: view();
     }
 
@@ -2516,19 +2650,30 @@
 @keyframes strengthen-evidence {
   from {
     color: var(--brand-muted);
+    opacity: 0.8;
   }
   to {
     color: var(--brand-ink);
+    opacity: 1;
+  }
+}
+
+@keyframes expand-fulcrum {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
   }
 }
 
 @keyframes soften-impressions {
   from {
-    opacity: 1;
+    opacity: 0.95;
     -webkit-text-stroke-color: var(--brand-ink);
   }
   to {
-    opacity: 0.66;
+    opacity: 0.72;
     -webkit-text-stroke-color: var(--brand-muted);
   }
 }
@@ -2547,7 +2692,10 @@
   .software__environment,
   .software__pane--candidate,
   .software__conduit,
-  .software__pane--evaluator {
+  .software__pane--evaluator,
+  .campaign__evidence,
+  .campaign__fulcrum,
+  .campaign__impressions {
     animation: none !important;
   }
 

@@ -8,6 +8,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 import HomePage from '../../apps/web/app/page';
+import { CampaignSection } from '../../apps/web/app/home/campaign-section';
 import { ClaritySection } from '../../apps/web/app/home/clarity-section';
 import { EvidenceNarrativeSection } from '../../apps/web/app/home/evidence-narrative-section';
 import { HirearchySoftwareSection } from '../../apps/web/app/home/hirearchy-software-section';
@@ -108,6 +109,22 @@ describe('D1 — Hirearchy homepage', () => {
     expect(html.match(/aria-labelledby=/g)).toHaveLength(8);
     expect(html).toContain('href="/evaluator"');
     expect(html).toContain('Start a software assessment');
+  });
+
+  it('elevates the brand line into an ownable campaign moment with contrast motion', () => {
+    const html = renderToStaticMarkup(<CampaignSection />);
+
+    expect(html).toContain('id="campaign-title"');
+    expect(html).toContain('data-motion="contrast"');
+    expect(html).toContain('Evidence');
+    expect(html).toContain('over');
+    expect(html).toContain('impressions.');
+    expect(html).toContain('A résumé opens a conversation.');
+    expect(html).toContain('Work adds context.');
+    expect(html).toContain('The observable record precedes interpretation.');
+    expect(html).not.toMatch(
+      /\b(score|grade|ranking|revolutionize|guarantee|superior)\b/i,
+    );
   });
 
   it('keeps motion optional and supplies an explicit reduced-motion contract', () => {

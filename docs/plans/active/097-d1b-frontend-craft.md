@@ -161,3 +161,19 @@ and the absence of candidate ranking/scoring claims.
   re-authoring gracefully to vertical flow on mobile.
 - Support reduced motion with complete, stable static hierarchy and full contrast.
 - Validate with focused homepage unit test, typecheck, diff check, and formatting.
+
+## D1B.8 — Campaign moment craft pass
+
+- Elevate "Evidence over impressions." from homepage section copy into an ownable
+  Hirearchy campaign broadside asset with dominant semantic action CONTRAST.
+- Architect the section as a monumental broadside poster: aperture accent bar,
+  authoritative position masthead, and balanced context note above a fine hairline rule.
+- Deepen the core material contrast without invalidating impressions: massive solid
+  ink "Evidence" commanding the upper hemisphere, balanced against hollow architectural
+  outline "impressions." on the lower tier, linked by an italic terracotta "over" fulcrum.
+- Anchor the campaign frame with a quiet colophon ("The observable record precedes
+  interpretation.") resolving the expressive peak before the Final CTA settles.
+- Implement responsive art direction across 1440, 1280, 820, and 390px with zero text
+  overflow, maintaining proportional scale, tracking, and optical stroke weight.
+- Provide full static completeness under reduced motion with zero dependency on animation.
+- Validate with focused homepage unit test, typecheck, diff check, and formatting.

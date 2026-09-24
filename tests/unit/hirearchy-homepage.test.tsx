@@ -138,4 +138,32 @@ describe('D1 — Hirearchy homepage', () => {
     expect(css).toContain('animation-duration: 0.001ms !important');
     expect(css).toContain('transition-duration: 0.001ms !important');
   });
+
+  it('locks the Hirearchy brand identity system and removes legacy names and arbitrary highlights', () => {
+    const html = renderToStaticMarkup(<HomePage />);
+    const css = readFileSync(
+      new URL('../../apps/web/app/home.css', import.meta.url),
+      'utf8',
+    );
+
+    // No legacy product or prototype names in visible homepage
+    expect(html).not.toMatch(/\b(?:Delimit|Synco)\b/);
+
+    // Context Aperture signature mark is rendered in primary lockup
+    expect(html).toContain('context-aperture');
+    expect(html).toContain('brand-logo');
+
+    // Locked semantic palette tokens in home.css
+    expect(css).toContain('--brand-paper: #f2eee4;');
+    expect(css).toContain('--brand-surface: #ede8dd;');
+    expect(css).toContain('--brand-surface-subtle: #ebe5d8;');
+    expect(css).toContain('--brand-ink: #1c1b17;');
+    expect(css).toContain('--brand-muted: #645f55;');
+    expect(css).toContain('--brand-line: #bdb4a4;');
+    expect(css).toContain('--brand-accent: #9e4328;');
+
+    // Unexplained lime/chartreuse highlight is completely removed
+    expect(css).not.toContain('--brand-highlight');
+    expect(css).not.toContain('#d9c94e');
+  });
 });

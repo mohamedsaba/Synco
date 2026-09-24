@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { CreateSessionButton } from '../create-session-button';
+import { BrandLogo } from './shared';
 
 export const FinalCtaSection = () => (
   <section
@@ -20,8 +21,8 @@ export const FinalCtaSection = () => (
       <Link href="/evaluator">Evaluator access</Link>
     </div>
     <footer>
-      <a className="brand-wordmark" href="#top">
-        Hirearchy<span aria-hidden="true">.</span>
+      <a className="brand-wordmark" href="#top" aria-label="Hirearchy home">
+        <BrandLogo variant="primary" />
       </a>
       <p>Evidence for human decisions.</p>
     </footer>

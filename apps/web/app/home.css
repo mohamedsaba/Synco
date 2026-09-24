@@ -1,13 +1,19 @@
 .brand-home {
   --brand-paper: #f2eee4;
+  --brand-surface: #ede8dd;
+  --brand-surface-subtle: #ebe5d8;
   --brand-ink: #1c1b17;
   --brand-muted: #645f55;
   --brand-line: #bdb4a4;
+  --brand-line-subtle: #d8d1c5;
   --brand-accent: #9e4328;
-  --brand-highlight: #d9c94e;
+  --brand-accent-soft: rgba(158, 67, 40, 0.08);
   --brand-display:
     'Bitstream Charter', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
-  --brand-body: 'Avenir Next', Cantarell, 'Segoe UI', sans-serif;
+  --brand-body:
+    'Avenir Next', Cantarell, 'Segoe UI', -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  --brand-sans: var(--brand-body);
 
   min-width: 0;
   overflow: clip;
@@ -37,15 +43,99 @@
 }
 
 .brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
   font-family: var(--brand-display);
   font-size: 1.45rem;
   font-weight: 700;
   letter-spacing: -0.04em;
   text-decoration: none;
+  color: var(--brand-ink);
 }
 
-.brand-wordmark span {
+.brand-wordmark > .brand-wordmark__dot,
+.brand-logo__dot {
   color: var(--brand-accent);
+}
+
+/* Brand Logo Primitives */
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--brand-ink);
+  text-decoration: none;
+  line-height: 1;
+}
+
+.brand-logo__mark {
+  flex-shrink: 0;
+}
+
+.brand-logo__wordmark {
+  font-family: var(--brand-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: var(--brand-ink);
+}
+
+.brand-logo__dot {
+  color: var(--brand-accent);
+}
+
+.brand-logo__text-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.brand-logo__descriptor {
+  font-family: var(--brand-body);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand-muted);
+}
+
+.brand-logo--sm .brand-logo__wordmark {
+  font-size: 1.05rem;
+}
+
+.brand-logo--sm .brand-logo__descriptor {
+  font-size: 0.62rem;
+}
+
+.brand-logo--lg .brand-logo__wordmark {
+  font-size: 1.85rem;
+}
+
+/* Brand Datum Primitives */
+.brand-datum {
+  display: block;
+  pointer-events: none;
+}
+
+.brand-datum--horizontal {
+  width: 100%;
+  height: 1px;
+  background: var(--brand-line);
+}
+
+.brand-datum--vertical {
+  width: 1px;
+  height: 100%;
+  background: var(--brand-line);
+}
+
+.brand-datum--accent {
+  background: var(--brand-accent);
+}
+
+.brand-datum--subtle {
+  background: var(--brand-line-subtle);
 }
 
 .brand-header nav {
@@ -697,7 +787,7 @@
   display: flex;
   flex-direction: column;
   min-height: 42rem;
-  background: #ede8dd;
+  background: var(--brand-surface);
 }
 
 .family__root {
@@ -718,11 +808,18 @@
 }
 
 .family__root-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
   font-family: var(--brand-display);
   font-size: clamp(2.4rem, 4.5vw, 4.2rem);
   font-weight: 700;
   letter-spacing: -0.06em;
   line-height: 0.95;
+}
+
+.family__root-mark {
+  flex-shrink: 0;
 }
 
 .family__root-type {
@@ -748,7 +845,7 @@
   flex: 1;
   min-height: 38rem;
   grid-template-columns: minmax(0, 1.48fr) minmax(0, 0.92fr);
-  background: #ede8dd;
+  background: var(--brand-surface);
 }
 
 .family__vertical {
@@ -780,8 +877,8 @@
 }
 
 .family__vertical--current .family__vertical-status {
-  color: var(--brand-ink);
-  background: var(--brand-highlight);
+  color: var(--brand-paper);
+  background: var(--brand-ink);
   padding: 0.25rem 0.65rem;
 }
 
@@ -893,7 +990,7 @@
 .family__future-wing {
   display: grid;
   grid-template-rows: 1fr 1fr;
-  background: #ebe5d8;
+  background: var(--brand-surface-subtle);
 }
 
 .family__vertical--future {
@@ -980,7 +1077,7 @@
   display: flex;
   flex-direction: column;
   min-height: 46rem;
-  background: #ede8dd;
+  background: var(--brand-surface);
   border: 1px solid var(--brand-ink);
 }
 
@@ -1046,7 +1143,7 @@
       0,
       1.25fr
     );
-  background: #ede8dd;
+  background: var(--brand-surface);
 }
 
 .software__pane {
@@ -1153,7 +1250,11 @@
   margin: 0.4rem 0;
   padding: 0.9rem 1rem;
   border-left: 3px solid var(--brand-accent);
-  background: color-mix(in srgb, var(--brand-paper) 82%, #e5dfd2);
+  background: color-mix(
+    in srgb,
+    var(--brand-paper) 82%,
+    var(--brand-surface-subtle)
+  );
 }
 
 .software__pane-closure {
@@ -1187,7 +1288,7 @@
   justify-content: space-between;
   align-items: center;
   padding: clamp(1.75rem, 2.5vw, 2.5rem) 0.75rem;
-  background: #e8e2d4;
+  background: var(--brand-surface-subtle);
   border-right: 1px solid var(--brand-ink);
   text-align: center;
 }
@@ -1324,7 +1425,7 @@
   margin-left: 1.25rem;
   border-left-style: dashed;
   border-left-color: var(--brand-muted);
-  background: color-mix(in srgb, var(--brand-paper) 96%, #e7e2d6);
+  background: color-mix(in srgb, var(--brand-paper) 96%, var(--brand-surface));
 }
 
 .software__record-header {
@@ -2114,7 +2215,11 @@
     align-items: flex-start;
     gap: 0.25rem;
     font-size: 0.62rem;
-    background: color-mix(in srgb, #ebe5d8 90%, transparent);
+    background: color-mix(
+      in srgb,
+      var(--brand-surface-subtle) 90%,
+      transparent
+    );
     padding: 0.2rem 0;
   }
 

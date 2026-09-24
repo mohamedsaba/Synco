@@ -1,4 +1,4 @@
-import { AdaptiveFrame, Arrow } from './shared';
+import { AdaptiveFrame, Arrow, ContextAperture } from './shared';
 
 export const ProductFamilySection = () => (
   <section
@@ -14,7 +14,10 @@ export const ProductFamilySection = () => (
     <AdaptiveFrame className="family__frame" label="Hirearchy product family">
       <div className="family__root">
         <div className="family__root-mast">
-          <span className="family__root-brand">Hirearchy</span>
+          <span className="family__root-brand">
+            <ContextAperture size={32} className="family__root-mark" />
+            Hirearchy
+          </span>
           <span className="family__root-type">Masterbrand architecture</span>
         </div>
         <p className="family__root-axiom">

@@ -6,11 +6,12 @@ import { HirearchyHero } from './home/hirearchy-hero';
 import { HirearchySoftwareSection } from './home/hirearchy-software-section';
 import { ImpressionsSection } from './home/impressions-section';
 import { ProductFamilySection } from './home/product-family-section';
+import { BrandLogo } from './home/shared';
 
 const SiteHeader = () => (
   <header className="brand-header">
     <a className="brand-wordmark" href="#top" aria-label="Hirearchy home">
-      Hirearchy<span aria-hidden="true">.</span>
+      <BrandLogo variant="primary" />
     </a>
     <nav aria-label="Homepage">
       <a href="#approach">Approach</a>

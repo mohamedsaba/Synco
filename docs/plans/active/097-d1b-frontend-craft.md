@@ -177,3 +177,11 @@ and the absence of candidate ranking/scoring claims.
   overflow, maintaining proportional scale, tracking, and optical stroke weight.
 - Provide full static completeness under reduced motion with zero dependency on animation.
 - Validate with focused homepage unit test, typecheck, diff check, and formatting.
+
+## D1B.ID1 — Hirearchy brand identity system lock
+
+- Establish wordmark-first masterbrand identity paired with signature Context Aperture mark.
+- Lock semantic palette tokens (`--brand-paper`, `--brand-surface`, `--brand-surface-subtle`, `--brand-ink`, `--brand-muted`, `--brand-line`, `--brand-line-subtle`, `--brand-accent`).
+- Remove unexplained lime/chartreuse highlight (`#d9c94e`); Hirearchy Software inherits masterbrand palette with structural and evidentiary density.
+- Standardize Context Aperture and Datum visual primitives across header, product family root, and software environment substrate.
+- Provide comprehensive identity authority in `docs/plans/active/098-d1b-hirearchy-identity-system.md`.

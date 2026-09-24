@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { AdaptiveFrame, Arrow } from './shared';
+import { AdaptiveFrame, Arrow, BrandLogo } from './shared';
 
 export const HirearchySoftwareSection = () => (
   <section
@@ -26,7 +26,7 @@ export const HirearchySoftwareSection = () => (
     >
       <div className="software__substrate">
         <div className="software__substrate-context">
-          <span className="software__substrate-system">Hirearchy Software</span>
+          <BrandLogo variant="software" size="sm" />
           <span className="software__substrate-divider" aria-hidden="true">
             /
           </span>

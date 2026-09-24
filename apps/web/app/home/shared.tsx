@@ -17,3 +17,5 @@ export const AdaptiveFrame = ({
 );
 
 export const Arrow = () => <span aria-hidden="true">↗</span>;
+
+export * from './brand-identity';

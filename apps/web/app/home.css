@@ -966,11 +966,13 @@
   border-radius: min(6cqw, 8.34svh) 0 0 min(6cqw, 8.34svh);
   margin-top: min(5cqw, 6.95svh);
 }
+
 .ct-contact-form {
   padding: min(3.5cqw, 4.86svh);
   background: white;
   border-radius: min(3cqw, 4.17svh);
 }
+
 .ct-contact-form h2 {
   font-size: min(3cqw, 4.17svh);
   margin-bottom: min(2cqw, 2.78svh);
@@ -1191,6 +1193,39 @@
 .ct-contact-form .ct-form-success p {
   margin: 2cqw 0;
   font-size: 1.6cqw;
+}
+/* The contact section holds five fields, a topic selector, a message area and
+   a submit control, so on laptop heights it is taller than one viewport and
+   scrolls there by design. Where there is vertical room to spare, a compact
+   composition pulls it inside a single screen. Gated on height rather than
+   width because the overflow is vertical, and placed after the form rules it
+   overrides so it wins on source order. */
+@media (min-height: 1000px) {
+  .ct-contact {
+    padding: min(2.8cqw, 3.9svh) min(7cqw, 9.73svh) min(3.2cqw, 4.44svh);
+  }
+  .ct-contact h1 {
+    font-size: min(7.5cqw, 8.4svh);
+  }
+  .ct-contact-line {
+    height: min(14cqw, 12svh);
+  }
+  .ct-contact-form {
+    padding: min(2.4cqw, 3.34svh);
+  }
+  .ct-contact-form .ct-field {
+    padding: min(13px, 0.941svh) 18px min(11px, 0.797svh) 44px;
+    margin-top: min(8px, 0.579svh);
+  }
+  .ct-contact-form .ct-field textarea {
+    min-height: min(104px, 7.536svh);
+  }
+  .ct-contact-form .ct-form-note {
+    margin-top: min(24px, 1.738svh);
+  }
+  .ct-contact-form .ct-button {
+    padding: min(18px, 1.303svh) 28px;
+  }
 }
 .ct-legal-page {
   min-height: 60vh;
@@ -1969,6 +2004,41 @@
 }
 .ct-symbol {
   flex-shrink: 0;
+}
+/* The diagram is present but unlit at rest, so a hover reads as the diagram
+   being energised and stays visibly lit while hovered. The draw animations
+   below resolve to this same lit end state, and because these are static
+   declarations (not inside the motion query) they also give
+   prefers-reduced-motion users a persistent affordance. */
+.ct-site .ct-network-trace {
+  opacity: 0.34;
+}
+.ct-site .ct-network-node {
+  opacity: 0.5;
+}
+.ct-site .ct-campaign-wave,
+.ct-site .ct-campaign-spark {
+  opacity: 0.38;
+}
+.ct-site .ct-code-left,
+.ct-site .ct-code-right,
+.ct-site .ct-code-caret {
+  opacity: 0.45;
+}
+.ct-site
+  :is(.ct-destination, .ct-family-future):is(:hover, :focus-visible)
+  :is(
+    .ct-network-trace,
+    .ct-network-node,
+    .ct-campaign-wave,
+    .ct-campaign-spark
+  ) {
+  opacity: 1;
+}
+.ct-site
+  :is(.ct-destination, .ct-family-software):is(:hover, :focus-visible)
+  :is(.ct-code-left, .ct-code-right, .ct-code-caret) {
+  opacity: 1;
 }
 @media (prefers-reduced-motion: no-preference) {
   .ct-site

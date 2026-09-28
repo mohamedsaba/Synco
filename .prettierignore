@@ -3,3 +3,14 @@ apps/web/next-env.d.ts
 coverage
 node_modules
 package-lock.json
+
+# Worktrees live inside this directory but are separate checkouts with their
+# own formatting state. Without this, `npm run format:check` in the main
+# checkout walks into every worktree and reports their generated
+# apps/web/next-env.d.ts as unformatted. The .next and coverage entries above
+# are likewise matched here rather than at every nested path.
+.worktrees
+
+# Local agent-tooling directory, untracked and not part of the project source.
+# Safe to drop if you would rather keep this file free of local-tooling rules.
+.agents

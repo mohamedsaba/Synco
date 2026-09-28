@@ -10,5 +10,14 @@ export default defineConfig([
       '@next/next/no-html-link-for-pages': 'off',
     },
   },
-  globalIgnores(['apps/web/.next/**', 'coverage/**']),
+  // `.worktrees` and `.agents` are separate checkouts and a local tooling
+  // directory that sit inside this repository but are not its source. Without
+  // these ignores `npm run lint` in the main checkout descends into every
+  // worktree and reports their code as this project's errors.
+  globalIgnores([
+    'apps/web/.next/**',
+    'coverage/**',
+    '.worktrees/**',
+    '.agents/**',
+  ]),
 ]);

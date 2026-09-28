@@ -4,11 +4,38 @@ import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 
 type Chapter = { id: string; label: string };
+type Surface = 'light' | 'dark';
+
+/**
+ * Relative luminance of a computed background colour, used to decide which of
+ * the two contrast-aware navigator themes suits the section behind it. Reads
+ * only the section's own resolved background, never an authored per-section
+ * override, so the navigator adapts on any route including ones not yet
+ * written. Alpha is composited over white because a translucent section
+ * background is ultimately read against the page.
+ */
+function readsDark(colour: string): boolean {
+  const channels = colour.match(/[\d.]+/g);
+  if (!channels || channels.length < 3) return true;
+  const [r, g, b, a = '1'] = channels.map(Number);
+  const over = Number(a);
+  const mix = (c: number) => (c * over + 255 * (1 - over)) / 255;
+  const linear = (c: number) =>
+    c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  const luminance =
+    0.2126 * linear(mix(r)) + 0.7152 * linear(mix(g)) + 0.0722 * linear(mix(b));
+  return luminance < 0.32;
+}
 
 export function PageNavigator() {
   const pathname = usePathname();
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [active, setActive] = useState(0);
+  const [surface, setSurface] = useState<Surface>('dark');
+  // Monotonic counter used as the React key of the wipe overlay. It exists
+  // because a CSS animation cannot be retriggered by changing an attribute's
+  // value when the matching rule is unchanged; remounting the element can.
+  const [wipe, setWipe] = useState(0);
   const root = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
@@ -47,6 +74,13 @@ export function PageNavigator() {
       if (current !== index) {
         current = index;
         setActive(index);
+        // Derive the theme from the section now behind the navigator. Reading
+        // the resolved background keeps this deterministic: the same section
+        // always yields the same theme, in both scroll directions, and no
+        // route has to declare one.
+        const background = getComputedStyle(sections[index]).backgroundColor;
+        setSurface(readsDark(background) ? 'dark' : 'light');
+        setWipe((n) => n + 1);
       }
     };
     const schedule = () => {
@@ -98,7 +132,15 @@ export function PageNavigator() {
     }
   };
   return createPortal(
-    <div className="ct-site-controls ct-page-navigator" ref={root}>
+    <div
+      className="ct-site-controls ct-page-navigator"
+      data-surface={surface}
+      ref={root}
+    >
+      {/* Remounted on every surface change so the wipe sweep always replays; see
+          the .ct-nav-wipe rule in home.css for why this is a keyed element. */}
+      <span className="ct-nav-wipe" key={wipe} aria-hidden="true" />
+
       <svg
         className="ct-page-progress"
         viewBox="0 0 224 54"

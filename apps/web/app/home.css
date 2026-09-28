@@ -7,6 +7,23 @@
   --ct-purple: #bb98f4;
   --ct-ink: #251a35;
   --ct-muted: #625871;
+
+  /* Brand-level hover. Derived in oklab from --ct-lilac/--ct-plum only, so it
+     belongs to no product family (mint=Software, coral=IT, purple=Marketing).
+     Two members because a single flat fill cannot clear contrast on both a
+     light and a dark resting surface; see plan 104 section 2.3. */
+  --ct-brand-hover-on-light: #c0b9c9;
+  --ct-brand-hover-on-dark: #473d54;
+
+  /* The header's dual-axis height, promoted from the landing-page-only
+     override to the one definition every route shares. Interior routes have
+     the header in flow, so their sections are measured against
+     100svh - var(--ct-header-h); the landing page overlays it absolutely. */
+  --ct-header-h: min(7.3cqw, 10.2svh);
+  --ct-section-min: 100svh;
+}
+.ct-site.ct-inner {
+  --ct-section-min: calc(100svh - var(--ct-header-h));
 }
 .ct-site {
   background: white;
@@ -72,7 +89,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 7.3cqw;
+  height: var(--ct-header-h);
   padding: 0 6.3%;
   gap: 24px;
 }
@@ -86,7 +103,7 @@
   background: transparent;
 }
 .ct-wordmark {
-  font-size: 2.65cqw;
+  font-size: clamp(22px, min(2.65cqw, 3.7svh), 46px);
   font-weight: 750;
   letter-spacing: -0.055em;
 }
@@ -95,7 +112,7 @@
   gap: 4.5cqw;
   align-items: center;
   margin-left: 10%;
-  font-size: 1.13cqw;
+  font-size: clamp(12px, min(1.13cqw, 1.58svh), 20px);
   font-weight: 550;
 }
 .ct-nav .ct-mobile-contact {
@@ -105,8 +122,8 @@
   background: var(--ct-mint);
   color: var(--ct-ink) !important;
   border-radius: 1.7cqw;
-  padding: 1cqw 1.8cqw;
-  font-size: 1.02cqw;
+  padding: min(1cqw, 1.4svh) 1.8cqw;
+  font-size: clamp(11px, min(1.02cqw, 1.43svh), 18px);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -126,7 +143,36 @@
   opacity: 0.55;
   margin-top: 1.3cqw;
 }
-.ct-button {
+/* Brand interaction language: the painted hover.
+   One primitive, one rule set, inherited by every button on the site. The
+   paint layer is a ::after placed behind the label by isolation + z-index, so
+   no markup change is needed and nothing re-implements this. It sweeps in on
+   hover and retracts on unhover, and the label colour is swapped at the same
+   instant, so the fill reads as deliberate rather than as a colour jump.
+   Each variant declares only which surface it rests on, via --ct-brand-hover;
+   the sweep itself is never re-declared. */
+.ct-site :is(.ct-button, .ct-start) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  /* The light-surface fill is the default here; the two resting variants
+     override it in their own equally-specific rules further down, so nothing
+     is redeclared about the sweep itself. */
+  --ct-brand-hover: var(--ct-brand-hover-on-light);
+}
+.ct-site :is(.ct-button, .ct-start)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--ct-brand-hover);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 340ms cubic-bezier(0.22, 0.68, 0.24, 1);
+}
+.ct-site :is(.ct-button, .ct-start):is(:hover, :focus-visible)::after {
+  clip-path: inset(0 0 0 0);
+}
+.ct-site .ct-button {
   display: inline-flex;
   gap: 2cqw;
   align-items: center;
@@ -137,21 +183,21 @@
   font-size: 1.2cqw;
   font-weight: 650;
   border: 1px solid transparent;
-  transition: background 180ms;
+  transition: color 200ms;
+  --ct-brand-hover: var(--ct-brand-hover-on-dark);
 }
 .ct-button svg {
   width: 1.8cqw;
 }
 .ct-button:hover {
   text-decoration: none !important;
-  background: #493857;
 }
-.ct-button--light {
+/* The light resting surface gets the light fill, so each variant states only
+   its own resting surface and nothing more. */
+.ct-site .ct-button--light {
   color: var(--ct-ink) !important;
   background: var(--ct-mint);
-}
-.ct-button--light:hover {
-  background: #d0f9e1;
+  --ct-brand-hover: var(--ct-brand-hover-on-light);
 }
 .ct-paths {
   position: absolute;
@@ -727,6 +773,23 @@
 .ct-inner.ct-dark-header .ct-header {
   background: var(--ct-plum);
 }
+/* One major section = one viewport.
+   A min-height floor, never a forced height and never a clip: a section whose
+   content exceeds the floor keeps its natural height and scrolls normally, and
+   a section that under-fills is centred so the remainder reads as breathing
+   room. Interior routes subtract the in-flow header, because --ct-section-min
+   does it for them. Same dual-axis idiom the hero already uses, so overflow
+   behaviour at ultra-wide and short-landscape sizes is inherited rather than
+   newly invented. See plan 104 section 2.2. */
+.ct-site main > section {
+  min-height: var(--ct-section-min);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.ct-site main > section > :first-child {
+  margin-top: 0;
+}
 .ct-page-hero {
   position: relative;
   padding: min(7cqw, 9.73svh) min(8cqw, 11.12svh) min(8cqw, 11.12svh);
@@ -1254,6 +1317,9 @@
   .ct-home .ct-header {
     position: relative;
     background: var(--ct-plum);
+  }
+  .ct-inner .ct-header {
+    height: auto;
   }
   .ct-wordmark {
     font-size: 26px;
@@ -1895,10 +1961,34 @@
   opacity: 1;
   transform: translateX(0);
 }
+/* Arrows share the button's interaction language: the same 340ms curve and the
+   same direction of travel, so the glyph reads as pushed by the paint. The
+   stroke re-inks through a one-shot keyframe on a pathLength=1 path (set in
+   Arrow()). A static hover dashoffset was tried first and rejected: it has to
+   settle on a non-zero value, which leaves the arrow visibly part-erased for as
+   long as it is hovered. The keyframe ends fully drawn, and the persistent
+   delta is the 5px translation. */
+@keyframes ct-arrow-ink {
+  from {
+    stroke-dashoffset: 0.86;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
 .ct-site
   :is(.ct-button, .ct-destination, .ct-family-software, .ct-family-future)
   .ct-arrow {
-  transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition:
+    transform 340ms cubic-bezier(0.22, 0.68, 0.24, 1),
+    opacity 200ms;
+}
+.ct-site
+  :is(.ct-button, .ct-destination, .ct-family-software, .ct-family-future)
+  .ct-arrow
+  path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
 }
 .ct-site
   :is(.ct-button, .ct-destination, .ct-family-software, .ct-family-future):is(
@@ -1906,7 +1996,16 @@
     :focus-visible
   )
   .ct-arrow {
-  transform: translateX(4px);
+  transform: translateX(5px);
+}
+.ct-site
+  :is(.ct-button, .ct-destination, .ct-family-software, .ct-family-future):is(
+    :hover,
+    :focus-visible
+  )
+  .ct-arrow
+  path {
+  animation: ct-arrow-ink 340ms cubic-bezier(0.22, 0.68, 0.24, 1);
 }
 .ct-site :is(.ct-family-software, .ct-family-future, .ct-start) {
   transition: box-shadow 200ms;
@@ -1922,19 +2021,6 @@
   filter: brightness(0.93);
 }
 
-.ct-home .ct-header {
-  height: min(7.3cqw, 10.2svh);
-}
-.ct-home .ct-wordmark {
-  font-size: clamp(22px, min(2.65cqw, 3.7svh), 46px);
-}
-.ct-home .ct-nav {
-  font-size: clamp(12px, min(1.13cqw, 1.58svh), 20px);
-}
-.ct-home .ct-start {
-  font-size: clamp(11px, min(1.02cqw, 1.43svh), 18px);
-  padding: min(1cqw, 1.4svh) 1.8cqw;
-}
 .ct-scroll-cue {
   position: absolute;
   left: 5.85%;
@@ -1964,8 +2050,15 @@
 .ct-scroll-cue:is(:hover, :focus-visible) .ct-arrow {
   transform: translateY(4px) rotate(90deg);
 }
-.ct-site :is(.ct-button, .ct-start):is(:hover, :focus-visible) {
-  background: var(--ct-coral);
+/* Hover label colours follow the painted fill, not a sub-brand. The dark
+   resting surface (.ct-button on plum) needs a light label over the lifted
+   plum hover; the light ones keep ink. box-shadow:none retires the old
+   overlay behaviour so the ring rule below no longer fights the fill. */
+.ct-site .ct-button:is(:hover, :focus-visible) {
+  color: #fff !important;
+  box-shadow: none;
+}
+.ct-site :is(.ct-button--light, .ct-start):is(:hover, :focus-visible) {
   color: var(--ct-ink) !important;
   box-shadow: none;
 }
@@ -2141,8 +2234,50 @@ html.ct-scroll-enhanced::-webkit-scrollbar {
   font-size: 13px;
   line-height: 1.4;
 }
+/* Context-aware navigator theme.
+   data-surface is set by PageNavigator from the active section's own resolved
+   background, classified by relative luminance. The two themes are brand
+   surfaces chosen to stay legible against the section behind them, NOT copies
+   of it: a plum-lifted plate over dark sections, a lilac plate over light
+   ones. Because the plate is never the section's own colour, inner text and
+   icons keep their contrast by construction.
+   The colours are @property-registered so a theme change is a real colour
+   interpolation rather than a jump, and the ::after wipe replays on every
+   flip of the attribute, giving the change a directional sweep. */
+@property --ct-nav-plate {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #291e36;
+}
+@property --ct-nav-ink {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #f4eef8;
+}
+@property --ct-nav-rule {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #776985;
+}
+@property --ct-nav-hover {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #473d54;
+}
+@keyframes ct-nav-wipe {
+  from {
+    transform: translateX(-101%);
+  }
+  to {
+    transform: translateX(101%);
+  }
+}
 .ct-page-navigator {
   --page-progress: 0;
+  --ct-nav-plate: #291e36;
+  --ct-nav-ink: #f4eef8;
+  --ct-nav-rule: #776985;
+  --ct-nav-hover: #473d54;
   position: fixed;
   bottom: 22px;
   right: 22px;
@@ -2150,10 +2285,46 @@ html.ct-scroll-enhanced::-webkit-scrollbar {
   width: 224px;
   height: 54px;
   display: flex;
-  background: var(--ct-plum);
+  background: var(--ct-nav-plate);
+  color: var(--ct-nav-ink);
   border-radius: 30px;
-  color: white;
   box-shadow: 0 6px 24px rgb(25 17 35 / 16%);
+  transition:
+    --ct-nav-plate 420ms cubic-bezier(0.22, 0.68, 0.24, 1),
+    --ct-nav-ink 420ms cubic-bezier(0.22, 0.68, 0.24, 1),
+    --ct-nav-rule 420ms cubic-bezier(0.22, 0.68, 0.24, 1);
+}
+.ct-page-navigator[data-surface='light'] {
+  --ct-nav-plate: #f3eff7;
+  --ct-nav-ink: #251a35;
+  --ct-nav-rule: #b9aec9;
+  --ct-nav-hover: #c0b9c9;
+}
+/* Wipe overlay, above the plate and below the label. It is a real element, not
+   a ::after, because a CSS animation only restarts when its own computed
+   animation properties change. Keying the rule to an attribute value does not
+   do that: the rule still matches before and after, so animation-name is
+   unchanged and the animation never replays. PageNavigator therefore renders
+   this span with the wipe counter as its React key, so each surface change
+   remounts it and the sweep is guaranteed to run. */
+.ct-nav-wipe {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgb(255 255 255 / 34%) 46%,
+    transparent 92%
+  );
+  opacity: 0;
+  pointer-events: none;
+  animation: ct-nav-wipe 620ms cubic-bezier(0.22, 0.68, 0.24, 1);
+}
+.ct-page-navigator > * {
+  position: relative;
+  z-index: 2;
 }
 .ct-page-progress {
   position: absolute;
@@ -2161,7 +2332,7 @@ html.ct-scroll-enhanced::-webkit-scrollbar {
   width: 100%;
   height: 100%;
   fill: none;
-  stroke: #776985;
+  stroke: var(--ct-nav-rule);
   stroke-width: 2;
   pointer-events: none;
 }
@@ -2221,8 +2392,8 @@ html.ct-scroll-enhanced::-webkit-scrollbar {
   justify-content: center;
   width: 46px;
   height: 54px;
-  color: white;
-  border-left: 1px solid #74657f;
+  color: var(--ct-nav-ink);
+  border-left: 1px solid var(--ct-nav-rule);
   border-radius: 0 30px 30px 0;
   transition:
     background 180ms,
@@ -2234,9 +2405,11 @@ html.ct-scroll-enhanced::-webkit-scrollbar {
   stroke: currentColor;
   stroke-width: 1.5;
 }
+/* The navigator's own hover follows the same brand language as the buttons:
+   a surface shift toward the brand hover token, never a sub-brand colour. */
 .ct-page-navigator :is(summary, .ct-next-chapter):hover {
-  background: var(--ct-coral);
-  color: var(--ct-ink);
+  background: var(--ct-nav-hover);
+  color: var(--ct-nav-ink);
 }
 .ct-page-navigator :is(a, summary):focus-visible {
   outline: 3px solid #9f7fd0;
@@ -2290,18 +2463,7 @@ html.ct-scroll-enhanced::-webkit-scrollbar {
 }
 @media (max-width: 700px) {
   .ct-home .ct-header {
-    height: auto;
     min-height: 104px;
-  }
-  .ct-home .ct-wordmark {
-    font-size: 26px;
-  }
-  .ct-home .ct-nav {
-    font-size: 13px;
-  }
-  .ct-home .ct-start {
-    padding: 11px 14px;
-    font-size: 11px;
   }
   .ct-scroll-cue {
     bottom: 12%;
@@ -2400,26 +2562,28 @@ html.ct-scroll-enhanced::-webkit-scrollbar {
   }
 }
 @media (min-width: 551px) and (max-height: 550px) {
-  .ct-home .ct-header {
+  /* Compact header composition, shared by every route. Previously scoped to
+     .ct-home only, which is what let the short-landscape scale diverge too. */
+  .ct-header {
     height: 58px;
     min-height: 0;
     flex-wrap: nowrap;
     padding-block: 0;
   }
-  .ct-home .ct-wordmark {
+  .ct-wordmark {
     font-size: 22px;
   }
-  .ct-home .ct-nav {
+  .ct-nav {
     font-size: 12px;
     width: auto;
     order: initial;
     margin-left: 0;
     gap: 16px;
   }
-  .ct-home .ct-mobile-contact {
+  .ct-nav .ct-mobile-contact {
     display: none;
   }
-  .ct-home .ct-start {
+  .ct-start {
     font-size: 11px;
     padding: 10px 16px;
   }

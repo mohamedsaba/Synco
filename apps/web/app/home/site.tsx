@@ -13,6 +13,7 @@ export function Arrow() {
     >
       <path
         d="M4 12h15m-6-6 6 6-6 6"
+        pathLength="1"
         stroke="currentColor"
         strokeWidth="1.6"
         strokeLinecap="round"

@@ -105,7 +105,7 @@ export class NvidiaNimEvidenceReconstructionGenerator implements EvidenceReconst
           response_format: {
             type: 'json_schema',
             json_schema: {
-              name: 'delimit_evidence_reconstruction_v1',
+              name: 'hirearchy_evidence_reconstruction_v1',
               strict: true,
               schema: reconstructionOutputJsonSchema,
             },

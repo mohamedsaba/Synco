@@ -799,7 +799,7 @@ where they supersede earlier creative language.
   SAFE ABSTRACT REPRESENTATION for a scripted walkthrough CTA.
 - **Supported basis:** Real Candidate and Evaluator routes require session state
   and authorization. A public walkthrough does not currently exist.
-- **Correction:** Public naming is Hirearchy Software. Remove Delimit and Synco
+- **Correction:** Public naming is Hirearchy Software. Remove Hirearchy Software and Hirearchy
   from public copy. The CTA may link only to a real route or a clearly labeled
   scripted fixture added in an authorized implementation slice. Do not promise an
   active session without authentication. The monolith is brand imagery only.
@@ -826,7 +826,7 @@ where they supersede earlier creative language.
   correctness, task success, or candidate quality.
 - **Outcome:** An observable command, test, or submission outcome, not a hiring
   outcome.
-- **Delimit and Synco:** Internal repository names only. They must not appear in
+- **Hirearchy Software and Hirearchy:** Internal repository names only. They must not appear in
   public labels, product chrome, CTAs, colophon, or accessibility text.
 
 ### Component architecture

@@ -1,4 +1,4 @@
-# 061 — Delimit Slice 6F: Candidate Integrated AI Surface
+# 061 — Hirearchy Software Slice 6F: Candidate Integrated AI Surface
 
 Status: completed.
 Authorized: 2026-09-18.
@@ -6,7 +6,7 @@ Baseline: `6473c9768fafa535c9ce52280764a80605bd3933` (origin/main).
 
 ## Objective
 
-Implement the candidate-facing integrated AI interaction surface for Delimit:
+Implement the candidate-facing integrated AI interaction surface for Hirearchy Software:
 
 - Engineering assistant panel embedded in the candidate assessment workspace.
 - Prompt composer with multiline text input and native submit action.
@@ -34,7 +34,7 @@ Implement the candidate-facing integrated AI interaction surface for Delimit:
    - Ambiguous dispatch (HTTP 409 or `AMBIGUOUS_DISPATCH`) prompts an explicit new request.
 
 3. **Workspace Invariants**:
-   - The editor textarea and terminal command console remain fully active while AI is in flight. Delimit explicitly captures observable candidate work occurring concurrently with AI execution.
+   - The editor textarea and terminal command console remain fully active while AI is in flight. Hirearchy Software explicitly captures observable candidate work occurring concurrently with AI execution.
    - Assessment submission is permitted while an AI request is in flight according to server rules; UI tolerates session transition without throwing unhandled exceptions.
 
 4. **Zero Causal Language**:

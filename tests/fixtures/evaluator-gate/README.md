@@ -19,18 +19,18 @@ They contain no candidate tokens. B/C/E reuse existing histories, not new histor
 
 ## Reproduce route-ready sessions
 
-Requires Docker and the real `delimit-scenario-001:latest` image. The existing
+Requires Docker and the real `hirearchy-scenario-001:latest` image. The existing
 acceptance runner prepares the prerequisite records. The gate runner reuses
 acceptance C/B/D as validation B/C/E, captures only missing A/D/F/G, and writes
-`/tmp/delimit-evaluator-gate/gate.sqlite`, snapshots, and a fresh manifest.
+`/tmp/hirearchy-evaluator-gate/gate.sqlite`, snapshots, and a fresh manifest.
 Session IDs, timestamps, and elapsed times vary across runs. Semantic progression
 and submitted diffs are checked; this is not byte-identical telemetry replay.
 Validation E's background note uses timing, so a fresh run must inspect its capture.
 
 ```sh
-DELIMIT_DETERMINISTIC_ACCEPTANCE=1 npm test -- tests/live/deterministic-reconstruction-acceptance.test.ts
-DELIMIT_GATE_FIXTURES=1 npm test -- tests/live/evaluator-gate-fixtures.test.ts
-DELIMIT_DB_PATH=/tmp/delimit-evaluator-gate/gate.sqlite npm run dev
+HIREARCHY_DETERMINISTIC_ACCEPTANCE=1 npm test -- tests/live/deterministic-reconstruction-acceptance.test.ts
+HIREARCHY_GATE_FIXTURES=1 npm test -- tests/live/evaluator-gate-fixtures.test.ts
+HIREARCHY_DB_PATH=/tmp/hirearchy-evaluator-gate/gate.sqlite npm run dev
 ```
 
 Use the existing evaluator access flow, then the session references in the fresh
@@ -47,7 +47,7 @@ come from the real container, not mocked pytest results. F/G are evidence-state
 controls and do not claim a successful task fix.
 
 The committed manifest's B/C/E identities refer to the original acceptance
-artifact at `/tmp/delimit-deterministic-acceptance/acceptance.sqlite`; they are
+artifact at `/tmp/hirearchy-deterministic-acceptance/acceptance.sqlite`; they are
 not portable frozen snapshots. A fresh run creates a new manifest for all seven
 sessions. The source histories remain in the repository.
 

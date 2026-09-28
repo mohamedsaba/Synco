@@ -14,7 +14,7 @@ This slice does **not** add automatic timeout finalization, durable `EXPIRED`/`F
 ## Delivered Guarantees
 
 1. **Named session workspace volume**
-   - `/workspace` uses one dedicated Docker named volume per session: `delimit-ws-<sanitized-session-id>`.
+   - `/workspace` uses one dedicated Docker named volume per session: `hirearchy-ws-<sanitized-session-id>`.
    - Volume replaces `/workspace` tmpfs so evidence remains addressable after `docker pause`.
    - Volume is created before container start; create failure cleans orphan volumes; final volume removal happens only after durable SQLite closure (or create-time orphan cleanup).
 

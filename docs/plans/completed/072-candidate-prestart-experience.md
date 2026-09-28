@@ -17,16 +17,16 @@ Implement the candidate pre-start, orientation, and provisioning experience, est
    - Full scenario content and working files are delivered only once the session reaches `ACTIVE` or `SUBMITTED`.
 
 2. **Pre-Start View Primitives (`apps/web/app/candidate/[token]/candidate-prestart.tsx`)**:
-   - Implemented accessible, editorial-style pre-start view components matching Delimit product principles:
+   - Implemented accessible, editorial-style pre-start view components matching Hirearchy Software product principles:
      - `ENTRY`: Initial landing screen presenting assessment identity, expected duration ("You'll have 60 minutes once the assessment begins"), neutral framing, and primary action to continue to orientation.
      - `ORIENTATION`: Single structured screen detailing the 7 core contracts:
        1. Assessment duration (factual duration, no countdown before activation)
        2. Available tools (file editor, terminal command console, integrated AI assistant, scenario brief)
        3. AI policy (permitted as part of the environment, candidate remains responsible, no surveillance talk)
        4. Observable activity recording (saved edits, commands, and AI prompts captured as technical evidence)
-       5. Persistence (saved in environment, save failures surfaced immediately, Delimit manages infrastructure)
+       5. Persistence (saved in environment, save failures surfaced immediately, Hirearchy Software manages infrastructure)
        6. Submission (candidate may submit at any time, submission is final, review step provided before confirmation)
-       7. Time expiry (work stops automatically upon deadline, Delimit finalizes automatically)
+       7. Time expiry (work stops automatically upon deadline, Hirearchy Software finalizes automatically)
      - `READY_TO_START`: Final confirmation screen stating duration and that timing begins only after successful workspace setup, with "Start Assessment" action and Back navigation.
      - `PROVISIONING`: Truthful platform state ("Preparing your assessment environment…") with `role="status"` and `aria-live="polite"`. No countdown timer.
      - `PROVISIONING_FAILURE`: Explicit platform failure presentation ("Environment Setup Incomplete") that never blames the candidate and provides safe retry.

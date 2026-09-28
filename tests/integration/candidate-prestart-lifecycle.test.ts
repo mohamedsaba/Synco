@@ -25,18 +25,18 @@ describe('C2 — Candidate Pre-Start Lifecycle & Boundary Tests', () => {
   let originalDbPath: string | undefined;
 
   beforeEach(() => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-c2-lifecycle-'));
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-c2-lifecycle-'));
     databasePath = path.join(directory, 'c2-test.sqlite');
-    originalDbPath = process.env.DELIMIT_DB_PATH;
-    process.env.DELIMIT_DB_PATH = databasePath;
+    originalDbPath = process.env.HIREARCHY_DB_PATH;
+    process.env.HIREARCHY_DB_PATH = databasePath;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
     if (originalDbPath !== undefined) {
-      process.env.DELIMIT_DB_PATH = originalDbPath;
+      process.env.HIREARCHY_DB_PATH = originalDbPath;
     } else {
-      delete process.env.DELIMIT_DB_PATH;
+      delete process.env.HIREARCHY_DB_PATH;
     }
     rmSync(directory, { recursive: true, force: true });
   });

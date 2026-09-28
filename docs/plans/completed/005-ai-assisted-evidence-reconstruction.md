@@ -251,7 +251,7 @@ occurs before submission, without classifying the command's intent.
 
 ### Deterministic implementation and acceptance result
 
-The runtime uses `delimit-deterministic` with version
+The runtime uses `hirearchy-deterministic` with version
 `evaluator-reconstruction-deterministic-v2`. The pre-C4 Docker-backed A–D run
 passed exact fact/reference validation and negative-language checks. Scenario D
 retained its initial failure, partial change, continued failure, reversion,
@@ -261,11 +261,11 @@ Manual browser verification confirmed the evaluator hierarchy and inline raw
 evidence expansion. The final `npm run verify` gate passes format, lint,
 typecheck, 20 test files / 77 tests (four credential-gated live files skipped),
 and the production build. The separate fresh deterministic A–D runner passes,
-and the final Docker leak check reports zero `delimit-` containers.
+and the final Docker leak check reports zero `hirearchy-` containers.
 
 ## Product question
 
-> Can a non-technical evaluator understand the important sequence of candidate work from concise deterministic statements, and inspect authoritative evidence whenever they want to verify a statement, without Delimit judging the candidate?
+> Can a non-technical evaluator understand the important sequence of candidate work from concise deterministic statements, and inspect authoritative evidence whenever they want to verify a statement, without Hirearchy Software judging the candidate?
 
 The implementation favors boring, mechanically grounded language. The product question is whether that compression makes Slice 4 evidence usable while preserving chronology, uncertainty, failed attempts, evidence gaps, and technical drill-down.
 
@@ -325,18 +325,18 @@ type EvidenceReconstructionContentV1 = Readonly<{
 }>;
 
 type ReconstructionStatement = Readonly<{
-  id: string; // assigned by Delimit after validation: stmt_001, stmt_002, ...
+  id: string; // assigned by Hirearchy Software after validation: stmt_001, stmt_002, ...
   text: string;
   detail?: string;
   claimBasis: 'chronology' | 'final_state';
   evidenceRefs: readonly string[];
-  firstEvidenceOrder: number; // derived and assigned by Delimit; never model supplied
+  firstEvidenceOrder: number; // derived and assigned by Hirearchy Software; never model supplied
 }>;
 ```
 
 Persisted array order is chronology order. There is no free-floating title, conclusion, verdict, overall assessment, or Markdown field. `detail` is optional factual clarification supported by the same references as `text`.
 
-The model supplies neither statement IDs nor ordering metadata. Delimit derives `firstEvidenceOrder`, stably sorts accepted statements by it, and then assigns deterministic IDs. This removes arbitrary IDs and model-generated chronology from the trust boundary. Persisted IDs must still be unique and persisted order must be nondecreasing.
+The model supplies neither statement IDs nor ordering metadata. Hirearchy Software derives `firstEvidenceOrder`, stably sorts accepted statements by it, and then assigns deterministic IDs. This removes arbitrary IDs and model-generated chronology from the trust boundary. Persisted IDs must still be unique and persisted order must be nondecreasing.
 
 Conservative initial bounds, to be calibrated during acceptance:
 
@@ -495,7 +495,7 @@ type ModelReconstructionV1 = Readonly<{
 }>;
 ```
 
-Disallow unknown fields. The model cannot return Markdown, an overall summary, scores, labels, confidence, verdicts, or hidden reasoning. The generator returns `unknown`; only the validator may convert it into domain content. Delimit trims strings, validates, assigns statement IDs, and persists only the normalized validated form.
+Disallow unknown fields. The model cannot return Markdown, an overall summary, scores, labels, confidence, verdicts, or hidden reasoning. The generator returns `unknown`; only the validator may convert it into domain content. Hirearchy Software trims strings, validates, assigns statement IDs, and persists only the normalized validated form.
 
 Do not request or store chain-of-thought. Do not persist malformed raw provider output. A bounded provider request ID and sanitized failure metadata are sufficient for operational diagnosis.
 
@@ -703,7 +703,7 @@ Automated tests verify that the packet contains no inferred cause and that the o
 - Deterministic chronology remains a trusted server projection of authoritative evidence.
 - Evidence packet is a bounded derived representation.
 - Provider output is untrusted until validated and remains non-authoritative afterward.
-- Candidate-authored repository content, commands, and output may contain prompt injection. Delimit serializes them strictly as data, uses no provider tools, and never lets them alter the system instruction or output schema.
+- Candidate-authored repository content, commands, and output may contain prompt injection. Hirearchy Software serializes them strictly as data, uses no provider tools, and never lets them alter the system instruction or output schema.
 - The generation route requires evaluator authorization and accepts only a session ID plus a narrow failed-retry flag; clients cannot supply evidence packets, prompts, model IDs, or evidence references.
 - Provider key and configuration are read server-side, excluded from client bundles, logs, events, and candidate containers.
 - Failure messages and provider request IDs are bounded before persistence or display.
@@ -824,7 +824,7 @@ Add deterministic unit and integration coverage without asserting exact model pr
 
 - Existing 14 suites / 41 tests continue to pass.
 - `npm run verify` passes.
-- Docker-backed evidence tests leave zero Delimit containers.
+- Docker-backed evidence tests leave zero Hirearchy Software containers.
 
 ## Live acceptance experiment
 
@@ -913,7 +913,7 @@ During implementation:
 
 ## Resolved implementation decisions (superseded where noted)
 
-1. **Runtime generator:** deterministic typed facts, phase-bounded workspace aggregation, closed templates, and evaluator-readable milestone presentation, with current provenance `delimit-deterministic` / `evaluator-reconstruction-deterministic-v3`. Deterministic v2 remains immutable audit history.
+1. **Runtime generator:** deterministic typed facts, phase-bounded workspace aggregation, closed templates, and evaluator-readable milestone presentation, with current provenance `hirearchy-deterministic` / `evaluator-reconstruction-deterministic-v3`. Deterministic v2 remains immutable audit history.
 2. **Provider experiments:** NVIDIA NIM and OpenRouter remain explicit synthetic tooling only; real applicant use still requires a separate privacy/provider review.
 3. **Initial numeric bounds:** the centrally defined packet and output limits remain implemented. Coverage cannot be silently weakened to fit them.
 
@@ -927,11 +927,11 @@ ADR 0003 already authorizes evidence-grounded AI explanation and prohibits judgm
   lint, typecheck, 18 test files / 68 tests passed with three opt-in live files
   skipped, and the production build completed.
 - Synthetic evaluator SSR checks: the authenticated missing-provider state rendered successfully; a separately persisted fake `AVAILABLE` artifact rendered Candidate Work statement text, inline `View evidence`, technical chronology, and final submitted diff without contacting provider.
-- Runtime cleanup: zero containers matching `delimit-` remained after Docker-backed verification.
+- Runtime cleanup: zero containers matching `hirearchy-` remained after Docker-backed verification.
 - Frozen-packet Scenario A comparison: eight calls across four exact models are
   recorded above. No candidate passed the repeated semantic and operational
   gate; Sessions B–D were not run and the runtime provider did not change.
-- Runtime cleanup: zero containers matching `delimit-`; `.env` remains ignored,
+- Runtime cleanup: zero containers matching `hirearchy-`; `.env` remains ignored,
   `apps/web/next-env.d.ts` has no diff, and no active Gemini provider references
   remain.
 

@@ -44,7 +44,7 @@ Candidate AI interactions emit application-level append-only events capturing th
    - `model`: Model identifier (`string`, e.g. `'mock-model'`, `'claude-3-7-sonnet'`).
    - `prompt`: Candidate prompt string (bounded to 32,768 characters).
    - `candidateContext`: Attached candidate context items (open files, selection snippets, excerpts bounded to 500 chars).
-   - `delimitContext`: Delimit system metadata (session id, scenario id, active file path).
+   - `hirearchyContext`: Hirearchy Software system metadata (session id, scenario id, active file path).
    - `requestedAt`: ISO-8601 UTC timestamp of request submission.
 
 2. **`AI_RESPONSE_COMPLETED`**: Emitted when the AI provider successfully delivers a response.

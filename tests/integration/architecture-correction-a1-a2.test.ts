@@ -70,25 +70,25 @@ class ControllableAiProvider implements AiProvider {
   }
 }
 
-describe('Delimit Architecture Correction A1/A2 — Same-Session Coordination + Evidence Closure', () => {
+describe('Hirearchy Software Architecture Correction A1/A2 — Same-Session Coordination + Evidence Closure', () => {
   let directory: string;
   let databasePath: string;
   let originalDbPath: string | undefined;
 
   beforeEach(() => {
     directory = mkdtempSync(
-      path.join(tmpdir(), 'delimit-architecture-correction-'),
+      path.join(tmpdir(), 'hirearchy-architecture-correction-'),
     );
     databasePath = path.join(directory, 'correction.sqlite');
-    originalDbPath = process.env.DELIMIT_DB_PATH;
-    process.env.DELIMIT_DB_PATH = databasePath;
+    originalDbPath = process.env.HIREARCHY_DB_PATH;
+    process.env.HIREARCHY_DB_PATH = databasePath;
   });
 
   afterEach(() => {
     if (originalDbPath !== undefined) {
-      process.env.DELIMIT_DB_PATH = originalDbPath;
+      process.env.HIREARCHY_DB_PATH = originalDbPath;
     } else {
-      delete process.env.DELIMIT_DB_PATH;
+      delete process.env.HIREARCHY_DB_PATH;
     }
     rmSync(directory, { recursive: true, force: true });
   });

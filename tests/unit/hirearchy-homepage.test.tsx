@@ -37,8 +37,11 @@ describe('Hirearchy public website', () => {
           expect(html).toContain(`id="${href.slice(1)}"`);
         else expect(routes).toContain(href.split(/[?#]/)[0]);
       }
+      // The public site must not leak the evaluation vocabulary, the
+      // competitor, or the retired brand names. Hirearchy and Hirearchy
+      // Software are the site's own product-family names and are expected here.
       expect(html).not.toMatch(
-        /candidate score|candidate ranking|Northwind|Synco|Delimit/i,
+        /candidate score|candidate ranking|Northwind|\bDelimit\b|\bSynco\b/i,
       );
     },
   );

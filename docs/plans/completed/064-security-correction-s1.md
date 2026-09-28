@@ -1,4 +1,4 @@
-# 064 — Delimit Security Correction S1: Control-Plane Hardening
+# 064 — Hirearchy Software Security Correction S1: Control-Plane Hardening
 
 Status: completed.
 Baseline: `286c45a54e708c65c80416d4a3b9901fb438255d` (correction/f03).
@@ -35,7 +35,7 @@ Strictly deferred / out of scope:
    - Files exceeding this limit fail explicitly with typed domain errors (`CONTENT_TOO_LARGE` / HTTP 413) rather than returning truncated partial content.
 
 4. **Public Error Sanitization (SEC-004)**:
-   - `errorResponse` sanitizes infrastructure exceptions, ensuring client responses never expose raw Docker command lines, container names (`delimit-sandbox-*`), internal script paths, or raw stderr.
+   - `errorResponse` sanitizes infrastructure exceptions, ensuring client responses never expose raw Docker command lines, container names (`hirearchy-sandbox-*`), internal script paths, or raw stderr.
    - Client responses return stable error codes and concise factual safe messages; detailed diagnostics remain in server-side logging.
 
 5. **Terminal Command Size Bounds (SEC-005)**:

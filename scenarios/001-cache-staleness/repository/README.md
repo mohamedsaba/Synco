@@ -27,9 +27,9 @@ This repository contains the inventory and storefront service for product stock 
   ```
 - Inspect PostgreSQL database:
   ```sh
-  psql -h 127.0.0.1 -p 5432 -U delimit -d inventory
+  psql -h 127.0.0.1 -p 5432 -U hirearchy -d inventory
   # Or run a single query:
-  psql -h 127.0.0.1 -p 5432 -U delimit -d inventory -c "SELECT * FROM inventory;"
+  psql -h 127.0.0.1 -p 5432 -U hirearchy -d inventory -c "SELECT * FROM inventory;"
   ```
 - Inspect Redis:
   ```sh

@@ -535,13 +535,13 @@ describe('briefing presentation refinement slice', () => {
       (lim) => lim.kind === 'workspace_capture_gap',
     );
     expect(gapLimitation?.text).toBe(
-      'Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
+      'Hirearchy Software did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
     );
     const gapObservation = briefing.observedActivity.find(
       (obs) => obs.kind === 'workspace_capture_gap',
     );
     expect(gapObservation?.text).toBe(
-      'Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
+      'Hirearchy Software did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
     );
     expect(factualCopy(briefing)).not.toMatch(
       /candidate disconnected|misconduct|omission|fully captured|complete environment intact|lost session/i,

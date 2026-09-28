@@ -9,7 +9,7 @@ import { DockerSandboxAdapter } from '../../apps/web/src/sandbox/docker-sandbox-
 import { SessionService } from '../../apps/web/src/sessions/session-service';
 import { SqliteSessionStore } from '../../apps/web/src/sessions/sqlite-session-store';
 
-const imageName = 'delimit-scenario-001:latest';
+const imageName = 'hirearchy-scenario-001:latest';
 
 const expectRecordedPidsGone = async (
   adapter: DockerSandboxAdapter,
@@ -119,7 +119,7 @@ describe('T1A.3B command supervisor containment', () => {
     const result = await adapter.exec(
       sessionId,
       'candidate-supervisor-access',
-      'test ! -r /run/delimit-evidence; /usr/local/bin/delimit-exec-supervisor 10 /workspace nested true; printf "%s" "$?"',
+      'test ! -r /run/hirearchy-evidence; /usr/local/bin/hirearchy-exec-supervisor 10 /workspace nested true; printf "%s" "$?"',
     );
 
     expect(result).toMatchObject({
@@ -319,7 +319,7 @@ time.sleep(30)'`,
       sessionId,
       'service-health',
       [
-        'pg_isready -h 127.0.0.1 -p 5432 -U delimit -q',
+        'pg_isready -h 127.0.0.1 -p 5432 -U hirearchy -q',
         `test "$(redis-cli ping)" = PONG`,
         `python3 -c 'import json,urllib.request; assert json.load(urllib.request.urlopen("http://127.0.0.1:8000/health"))["status"] == "healthy"'`,
         'echo healthy',
@@ -376,7 +376,7 @@ time.sleep(30)'`,
 });
 
 describe('T1A.3B command timeout evidence and session state', () => {
-  const directory = mkdtempSync(path.join(tmpdir(), 'delimit-supervisor-'));
+  const directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-supervisor-'));
   const databasePath = path.join(directory, 'test.sqlite');
   const adapter = new DockerSandboxAdapter({
     imageName,

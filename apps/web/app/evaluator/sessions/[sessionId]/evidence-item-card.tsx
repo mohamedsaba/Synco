@@ -157,8 +157,9 @@ export const EvidenceItemCard = ({
           <div>
             <p className="activity-label">Activity capture incomplete</p>
             <p className="activity-copy">
-              Delimit could not establish every intermediate workspace change
-              during this interval. Other recorded activity remains available.
+              Hirearchy Software could not establish every intermediate
+              workspace change during this interval. Other recorded activity
+              remains available.
             </p>
           </div>
           <EvidenceTime

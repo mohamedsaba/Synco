@@ -1,13 +1,13 @@
 import type {
   CandidateContextAttachment,
-  DelimitContextMetadata,
+  HirearchyContextMetadata,
 } from './ai-interaction';
 
 export type NormalizedAiRequest = Readonly<{
   configuredModelId: string;
   candidateInput: string;
   candidateContext?: readonly CandidateContextAttachment[];
-  delimitContext?: DelimitContextMetadata;
+  hirearchyContext?: HirearchyContextMetadata;
 }>;
 
 export type NormalizedAiTokenUsage = Readonly<{

@@ -89,10 +89,14 @@ describe('C5 command presentation state', () => {
       completeCommand(started, 'one', result({ timedOut: true }))[0].state,
     ).toBe('TIMED_OUT');
     expect(
-      failCommand(started, 'one', 'Delimit could not run the command.')[0],
+      failCommand(
+        started,
+        'one',
+        'Hirearchy Software could not run the command.',
+      )[0],
     ).toMatchObject({
       state: 'PLATFORM_ERROR',
-      platformError: 'Delimit could not run the command.',
+      platformError: 'Hirearchy Software could not run the command.',
     });
   });
 

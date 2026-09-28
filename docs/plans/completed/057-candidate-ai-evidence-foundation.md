@@ -1,12 +1,12 @@
-# 057 — Delimit Slice 6B: Candidate AI Evidence Foundation
+# 057 — Hirearchy Software Slice 6B: Candidate AI Evidence Foundation
 
 Status: completed.
 Authorized: 2026-09-18.
 
 ## Context & Objective
 
-Delimit Slice 6B implements the **Candidate AI Evidence Foundation** based on the frozen Slice 6A architecture.
-The goal is to provide a rock-solid, transactional persistence model and immutable event evidence pipeline for candidate AI interactions, strictly maintaining the non-negotiable Delimit principles:
+Hirearchy Software Slice 6B implements the **Candidate AI Evidence Foundation** based on the frozen Slice 6A architecture.
+The goal is to provide a rock-solid, transactional persistence model and immutable event evidence pipeline for candidate AI interactions, strictly maintaining the non-negotiable Hirearchy Software principles:
 
 - Evidence precedes judgment.
 - AI use is neutral (recorded as observable events, never scored or used to infer intent/competence).

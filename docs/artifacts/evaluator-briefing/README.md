@@ -16,9 +16,9 @@ No historical record is enriched with today's semantic snapshot. New-session map
 To regenerate derived outputs from these preserved sources:
 
 ```sh
-DELIMIT_WRITE_BRIEFING_ARTIFACTS=1 npm test -- tests/integration/evaluator-briefing-artifacts.test.ts
+HIREARCHY_WRITE_BRIEFING_ARTIFACTS=1 npm test -- tests/integration/evaluator-briefing-artifacts.test.ts
 ```
 
-The original one-time C capture is opt-in (`DELIMIT_CAPTURE_BRIEFING_C=1`) and requires the original acceptance database. Normal verification uses the preserved portable C fixture; it never fabricates C events or needs that temporary database.
+The original one-time C capture is opt-in (`HIREARCHY_CAPTURE_BRIEFING_C=1`) and requires the original acceptance database. Normal verification uses the preserved portable C fixture; it never fabricates C events or needs that temporary database.
 
 Current tests compare JSON meaning. Markdown layout may be normalized; it is a readable view of the same data, not an additional evidence source. The original gate snapshots/histories and submitted-diff hashes are unchanged.

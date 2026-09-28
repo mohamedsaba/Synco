@@ -608,7 +608,7 @@ export const CandidateWorkspace = ({
           failCommand(
             history,
             entryId,
-            'Delimit returned an incomplete command result. Try again.',
+            'Hirearchy Software returned an incomplete command result. Try again.',
           ),
         );
         return;
@@ -1057,7 +1057,7 @@ export const CandidateWorkspace = ({
                           </span>
                         ) : (
                           <span className="badge badge-error">
-                            Delimit could not run command
+                            Hirearchy Software could not run command
                           </span>
                         )}
                         {item.result ? (

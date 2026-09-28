@@ -14,7 +14,7 @@ import { initialReconstructionLimits } from './reconstruction-limits';
 
 export type { DeterministicStatementTrace } from './deterministic-reconstruction-renderer';
 
-export const deterministicReconstructionProviderId = 'delimit-deterministic';
+export const deterministicReconstructionProviderId = 'hirearchy-deterministic';
 export const deterministicReconstructionVersion =
   'evaluator-reconstruction-deterministic-v3';
 

@@ -8,12 +8,13 @@ import {
 
 export const POST = async (request: Request) => {
   const body = (await request.json()) as { credential?: unknown };
-  if (!process.env.DELIMIT_EVALUATOR_KEY) {
+  if (!process.env.HIREARCHY_EVALUATOR_KEY) {
     return Response.json(
       {
         error: {
           code: 'EVALUATOR_NOT_CONFIGURED',
-          message: 'Set DELIMIT_EVALUATOR_KEY before opening evidence review.',
+          message:
+            'Set HIREARCHY_EVALUATOR_KEY before opening evidence review.',
         },
       },
       { status: 503 },

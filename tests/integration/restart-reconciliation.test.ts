@@ -45,7 +45,7 @@ describe('T1B.2 — Restart / Reconciliation', () => {
   beforeEach(() => {
     mockTime = new Date('2026-09-21T10:00:00Z').getTime();
     idCounter = 0;
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-reconciliation-'));
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-reconciliation-'));
     databasePath = path.join(directory, 'db.sqlite');
     adapter = new DockerSandboxAdapter({ defaultTimeoutMs: 10_000 });
     store = new SqliteSessionStore(databasePath);
@@ -244,7 +244,7 @@ describe('T1B.2 — Restart / Reconciliation', () => {
     // Recreate container and volume manually to simulate leak
     await adapter.createAndVerify(session.id, {
       scenarioType: 'multi_file',
-      imageName: 'delimit-scenario-001:latest',
+      imageName: 'hirearchy-scenario-001:latest',
     });
     expect(containerExists(adapter.getContainerName(session.id))).toBe(true);
 
@@ -329,7 +329,7 @@ describe('T1B.2 — Restart / Reconciliation', () => {
     // Leak resources
     await adapter.createAndVerify(session.id, {
       scenarioType: 'multi_file',
-      imageName: 'delimit-scenario-001:latest',
+      imageName: 'hirearchy-scenario-001:latest',
     });
     expect(containerExists(adapter.getContainerName(session.id))).toBe(true);
 
@@ -384,7 +384,7 @@ describe('T1B.2 — Restart / Reconciliation', () => {
   }, 30000);
 
   it('STARTUP: reconciliation initiates once at startup and prevents duplicate registration', async () => {
-    const globalKey = Symbol.for('delimit.sessionTimeoutSweeper');
+    const globalKey = Symbol.for('hirearchy.sessionTimeoutSweeper');
     const target = globalThis as unknown as Record<
       symbol,
       { running?: boolean; timer?: NodeJS.Timeout | null }

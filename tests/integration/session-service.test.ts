@@ -27,7 +27,7 @@ describe('persisted session flow', () => {
     });
 
   beforeEach(() => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-session-'));
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-session-'));
     databasePath = path.join(directory, 'sessions.sqlite');
     sequence = 0;
   });

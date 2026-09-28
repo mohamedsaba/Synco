@@ -6,7 +6,7 @@ import type {
   AiInteraction,
   AiInteractionStatus,
   CandidateContextAttachment,
-  DelimitContextMetadata,
+  HirearchyContextMetadata,
 } from './ai-interaction';
 
 export const aiInteractionsSchema = `
@@ -21,7 +21,7 @@ export const aiInteractionsSchema = `
     configured_model_id TEXT NOT NULL,
     candidate_prompt_text TEXT NOT NULL,
     candidate_context_json TEXT,
-    delimit_context_json TEXT,
+    hirearchy_context_json TEXT,
     captured_response_text TEXT,
     terminal_reason TEXT,
     error_message TEXT,
@@ -43,7 +43,7 @@ type AiInteractionRow = Readonly<{
   configured_model_id: string;
   candidate_prompt_text: string;
   candidate_context_json: string | null;
-  delimit_context_json: string | null;
+  hirearchy_context_json: string | null;
   captured_response_text: string | null;
   terminal_reason: string | null;
   error_message: string | null;
@@ -67,8 +67,8 @@ const toAiInteraction = (row: AiInteractionRow): AiInteraction => ({
         row.candidate_context_json,
       ) as readonly CandidateContextAttachment[])
     : undefined,
-  delimitContext: row.delimit_context_json
-    ? (JSON.parse(row.delimit_context_json) as DelimitContextMetadata)
+  hirearchyContext: row.hirearchy_context_json
+    ? (JSON.parse(row.hirearchy_context_json) as HirearchyContextMetadata)
     : undefined,
   capturedResponseText: row.captured_response_text,
   terminalReason: row.terminal_reason,
@@ -107,7 +107,7 @@ export class SqliteAiInteractionStore {
         `INSERT INTO ai_interactions (
           id, session_id, client_request_id, status, configured_provider_id,
           configured_model_id, candidate_prompt_text, candidate_context_json,
-          delimit_context_json, captured_response_text, terminal_reason,
+          hirearchy_context_json, captured_response_text, terminal_reason,
           error_message, duration_ms, created_at, terminal_at, started_sequence,
           terminal_sequence
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -123,8 +123,8 @@ export class SqliteAiInteractionStore {
         interaction.candidateContext
           ? JSON.stringify(interaction.candidateContext)
           : null,
-        interaction.delimitContext
-          ? JSON.stringify(interaction.delimitContext)
+        interaction.hirearchyContext
+          ? JSON.stringify(interaction.hirearchyContext)
           : null,
         interaction.capturedResponseText ?? null,
         interaction.terminalReason ?? null,

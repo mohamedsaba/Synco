@@ -24,7 +24,7 @@ export const scenario001: ScenarioSnapshot = {
     'Environment & Tools:',
     '- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).',
     '- Tests can be run from the command console: pytest',
-    '- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory',
+    '- PostgreSQL CLI: psql -h 127.0.0.1 -U hirearchy inventory',
     '- Redis CLI: redis-cli',
     '',
     'Your Task:',
@@ -42,7 +42,7 @@ export const scenario001: ScenarioSnapshot = {
   filePath: 'inventory/service.py',
   originalContent: '',
   type: 'multi_file',
-  imageName: 'delimit-scenario-001:latest',
+  imageName: 'hirearchy-scenario-001:latest',
   semanticSnapshot: scenario001SemanticSnapshot,
   evaluationContext: {
     schemaVersion: 1,
@@ -86,7 +86,7 @@ export const scenario001: ScenarioSnapshot = {
     interpretationWarnings: [
       'Related evidence identifies recorded activity associated with a scenario area; it does not establish task success or candidate competence.',
       'A failing test or command can be valid investigative activity and is not a candidate verdict.',
-      'Not observed means Delimit recorded no evidence of that activity in the captured assessment environment. It does not mean the candidate lacks the underlying capability.',
+      'Not observed means Hirearchy Software recorded no evidence of that activity in the captured assessment environment. It does not mean the candidate lacks the underlying capability.',
     ],
     reviewPolicy: [
       'Final automated verification alone is not a hiring decision for this assessment. Engineering review is required before technical rejection.',

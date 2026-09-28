@@ -1,6 +1,6 @@
-# Synco / Delimit agent guide
+# Hirearchy / Hirearchy Software agent guide
 
-Delimit is Synco's engineering-evaluation prototype. A candidate does realistic engineering work in a controlled workspace; the system captures observable events and reconstructs them as evidence; a human evaluator decides what that evidence means.
+Hirearchy Software is Hirearchy's engineering-evaluation prototype. A candidate does realistic engineering work in a controlled workspace; the system captures observable events and reconstructs them as evidence; a human evaluator decides what that evidence means.
 
 ## Read before changing the product
 

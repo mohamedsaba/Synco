@@ -89,7 +89,7 @@ describe('AiInteractionService (Slice 6B Foundation)', () => {
         clientRequestId: 'req_001',
         candidatePromptText: 'How do I strip whitespace in formatGreeting?',
         candidateContext: [{ filePath: 'src/format-greeting.ts' }],
-        delimitContext: {
+        hirearchyContext: {
           scenarioId: session.scenario.id,
           scenarioVersion: session.scenario.version,
           configurationVersion: '1.0.0',
@@ -707,13 +707,13 @@ describe('AiInteractionService (Slice 6B Foundation)', () => {
   });
 
   describe('8. Input & Context Authorship Separation', () => {
-    it('stores candidate input separately from Delimit context without concatenation', () => {
+    it('stores candidate input separately from Hirearchy Software context without concatenation', () => {
       const { aiService, session, activateSession } = createTestContext();
 
       activateSession();
 
       const candidatePromptText = 'How do I run pytest?';
-      const delimitContext = {
+      const hirearchyContext = {
         scenarioId: 'scenario-001',
         scenarioVersion: '1.0.0',
         configurationVersion: '1.0.0',
@@ -723,17 +723,17 @@ describe('AiInteractionService (Slice 6B Foundation)', () => {
       const { interaction } = aiService.admitInteraction(session.id, {
         clientRequestId: 'req_authorship',
         candidatePromptText,
-        delimitContext,
+        hirearchyContext,
       });
 
       // Assert interaction stores prompt strictly as candidate text
       expect(interaction.candidatePromptText).toBe(candidatePromptText);
-      expect(interaction.delimitContext).toEqual(delimitContext);
+      expect(interaction.hirearchyContext).toEqual(hirearchyContext);
 
       // Verify DB row
       const row = aiService.getInteraction(interaction.id);
       expect(row?.candidatePromptText).toBe(candidatePromptText);
-      expect(row?.delimitContext).toEqual(delimitContext);
+      expect(row?.hirearchyContext).toEqual(hirearchyContext);
       expect(row?.candidatePromptText).not.toContain('scenario-001');
     });
   });

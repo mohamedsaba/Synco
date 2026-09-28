@@ -1,4 +1,4 @@
-# 063 — Delimit Architecture Correction F03: Candidate Save Integrity
+# 063 — Hirearchy Software Architecture Correction F03: Candidate Save Integrity
 
 Status: completed.
 Baseline: `0896d90a7b07e8572f0caa40392dab06d909e4b6` (correction/a1-a2).

@@ -40,7 +40,7 @@ const safeSandboxMessages: Record<SandboxError['code'], string> = {
 };
 
 const hasInfrastructureDiagnostics = (message: string): boolean => {
-  return /docker|delimit-sandbox|\/usr\/local\/bin|exited with code|Command\s+'|ENOENT|ECONNREFUSED|SIGKILL|SIGTERM|spawn\s+/i.test(
+  return /docker|hirearchy-sandbox|\/usr\/local\/bin|exited with code|Command\s+'|ENOENT|ECONNREFUSED|SIGKILL|SIGTERM|spawn\s+/i.test(
     message,
   );
 };

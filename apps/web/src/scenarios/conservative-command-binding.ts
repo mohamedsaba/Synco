@@ -34,7 +34,7 @@ export const conservativeReadTarget = (
     '-h',
     '127.0.0.1',
     '-U',
-    'delimit',
+    'hirearchy',
     '-d',
     'inventory',
     '-t',

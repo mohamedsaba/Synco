@@ -1,12 +1,12 @@
-# 058 — Delimit Slice 6C: Provider Execution Lifecycle
+# 058 — Hirearchy Software Slice 6C: Provider Execution Lifecycle
 
 Status: completed.
 Authorized: 2026-09-18.
 
 ## Context & Objective
 
-Delimit Slice 6C builds directly on the accepted Slice 6B foundation (`4197f007040145f4d86dd7397f1edf0cf85c8797`).
-The objective is to implement the synchronous candidate AI provider execution lifecycle while preserving core Delimit principles:
+Hirearchy Software Slice 6C builds directly on the accepted Slice 6B foundation (`4197f007040145f4d86dd7397f1edf0cf85c8797`).
+The objective is to implement the synchronous candidate AI provider execution lifecycle while preserving core Hirearchy Software principles:
 
 - Evidence precedes judgment;
 - AI use is neutral (observable interactions recorded without inferring competence or causality);
@@ -18,9 +18,9 @@ The objective is to implement the synchronous candidate AI provider execution li
 1. **Minimal Provider Abstraction (`apps/web/src/ai/ai-provider.ts`)**:
    - Smallest interface required for normalized text completion:
      - `AiProvider`: `readonly providerId: string; execute(request: NormalizedAiRequest, options?: { signal?: AbortSignal }): Promise<NormalizedAiResult>;`
-     - `NormalizedAiRequest`: configured model ID, candidate input, candidate context attachments, Delimit context metadata.
+     - `NormalizedAiRequest`: configured model ID, candidate input, candidate context attachments, Hirearchy Software context metadata.
      - `NormalizedAiResult`: response text, reported model ID, provider request ID, finish reason, token usage.
-   - Preserves authorship boundaries: candidate prompt, candidate-selected context, and Delimit scenario context are kept distinct.
+   - Preserves authorship boundaries: candidate prompt, candidate-selected context, and Hirearchy Software scenario context are kept distinct.
    - `AiProviderRegistry` and `DefaultAiProviderRegistry` for resolving providers by ID.
 
 2. **Deterministic In-Process Mock Provider (`apps/web/src/ai/mock-ai-provider.ts`)**:
@@ -51,7 +51,7 @@ The objective is to implement the synchronous candidate AI provider execution li
    - `POST /api/candidate/sessions/[token]/ai/interactions`.
    - Authenticates session via token, verifies `ACTIVE` status.
    - Extracts clientRequestId, candidate prompt, context attachments; ignores any client-supplied provider/model/apiKey.
-   - Assembles Delimit context from authoritative session.
+   - Assembles Hirearchy Software context from authoritative session.
    - Returns normalized execution response via HTTP 200 or handles domain errors via `errorResponse`.
 
 6. **Error Response Integration (`apps/web/src/http/error-response.ts`)**:

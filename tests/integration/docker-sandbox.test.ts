@@ -10,7 +10,7 @@ describe('DockerSandboxAdapter integration', () => {
     try {
       // 1. Create and verify readiness
       await adapter.createAndVerify(sessionId, {
-        'src/greeting.txt': 'Hello Synco\n',
+        'src/greeting.txt': 'Hello Hirearchy\n',
       });
 
       // 2. Execute command reading initial file
@@ -20,7 +20,7 @@ describe('DockerSandboxAdapter integration', () => {
         'cat src/greeting.txt',
       );
       expect(res1.exitCode).toBe(0);
-      expect(res1.stdoutPreview).toBe('Hello Synco\n');
+      expect(res1.stdoutPreview).toBe('Hello Hirearchy\n');
       expect(res1.timedOut).toBe(false);
 
       // 3. Command-side filesystem mutations persist across commands in the same sandbox

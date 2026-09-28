@@ -26,5 +26,5 @@ Reconcile the committed Slice 4 implementation and documentation without adding 
 - `git diff --check` passes.
 - `npm run verify` passes: 14 test suites / 41 tests, formatting, lint, typecheck, and production build.
 - `apps/web/next-env.d.ts` has no generated drift.
-- `docker ps -a --filter "name=delimit-"` reports no leaked containers.
+- `docker ps -a --filter "name=hirearchy-"` reports no leaked containers.
 - Final diff reviewed; reconciliation is awaiting human review before commit.

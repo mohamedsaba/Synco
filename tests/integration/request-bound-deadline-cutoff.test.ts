@@ -106,8 +106,8 @@ describe('T1A.2 — Request-Bound Deadline Cutoff', () => {
   let service: SessionService;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(path.join(tmpdir(), 'delimit-t1a2-'));
-    databasePath = path.join(tempDir, 'delimit.sqlite');
+    tempDir = mkdtempSync(path.join(tmpdir(), 'hirearchy-t1a2-'));
+    databasePath = path.join(tempDir, 'hirearchy.sqlite');
     currentTime = '2026-09-20T10:00:00.000Z';
 
     store = new SqliteSessionStore(databasePath);
@@ -617,8 +617,8 @@ describe('T1A.2 — Request-Bound Deadline Cutoff', () => {
       });
       await service.activate(candidateToken);
 
-      // Set environment variable so route handlers pointing to DELIMIT_DB_PATH use our test database
-      process.env.DELIMIT_DB_PATH = databasePath;
+      // Set environment variable so route handlers pointing to HIREARCHY_DB_PATH use our test database
+      process.env.HIREARCHY_DB_PATH = databasePath;
 
       // A malicious or crafted candidate request attempts to send closureReason = 'timeout'
       const maliciousPayload = JSON.stringify({ closureReason: 'timeout' });

@@ -21,8 +21,8 @@ import { SessionService } from '../../apps/web/src/sessions/session-service';
 import { SqliteSessionStore } from '../../apps/web/src/sessions/sqlite-session-store';
 import { scenarioAcceptanceHistories } from './scenario-acceptance-histories';
 
-const liveEnabled = process.env.DELIMIT_DETERMINISTIC_ACCEPTANCE === '1';
-const outputDirectory = '/tmp/delimit-deterministic-acceptance';
+const liveEnabled = process.env.HIREARCHY_DETERMINISTIC_ACCEPTANCE === '1';
+const outputDirectory = '/tmp/hirearchy-deterministic-acceptance';
 const databasePath = path.join(outputDirectory, 'acceptance.sqlite');
 const forbiddenSemanticLanguage =
   /\bstale\b|\boutdated\b|\bcorrectly\b|\bsolved\b|\bconfirmed\b|\bbecause\b|\bin order to\b|\bto verify\b|\bto confirm\b/i;

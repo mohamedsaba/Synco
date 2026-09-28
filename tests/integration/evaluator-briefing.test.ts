@@ -27,7 +27,7 @@ vi.mock('next/headers', () => ({
 const directories: string[] = [];
 const databasePath = () => {
   const directory = mkdtempSync(
-    path.join(tmpdir(), 'delimit-briefing-integration-'),
+    path.join(tmpdir(), 'hirearchy-briefing-integration-'),
   );
   directories.push(directory);
   return path.join(directory, 'sessions.sqlite');
@@ -185,8 +185,8 @@ describe('authorized briefing read and preserved reconstruction', () => {
       expect(briefing.submittedState.evidenceRefs).toEqual([
         `session:${evidence.sessionId}:final-diff`,
       ]);
-      vi.stubEnv('DELIMIT_DB_PATH', dbPath);
-      vi.stubEnv('DELIMIT_EVALUATOR_KEY', 'briefing-key');
+      vi.stubEnv('HIREARCHY_DB_PATH', dbPath);
+      vi.stubEnv('HIREARCHY_EVALUATOR_KEY', 'briefing-key');
       const request = (depth = '') =>
         GET(
           new Request(

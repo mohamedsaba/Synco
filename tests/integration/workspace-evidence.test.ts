@@ -14,7 +14,9 @@ import { SqliteSessionStore } from '../../apps/web/src/sessions/sqlite-session-s
 
 describe('Workspace Evidence & Threat Invariants Integration', () => {
   it('enforces immutable baseline, scratch isolation, git tampering resilience, and deterministic reconstruction', async () => {
-    const tempDir = mkdtempSync(path.join(tmpdir(), 'delimit-evidence-test-'));
+    const tempDir = mkdtempSync(
+      path.join(tmpdir(), 'hirearchy-evidence-test-'),
+    );
     const dbPath = path.join(tempDir, 'test.sqlite');
     const store = new SqliteSessionStore(dbPath);
     const eventStore = new SqliteEventStore(dbPath);
@@ -37,20 +39,20 @@ describe('Workspace Evidence & Threat Invariants Integration', () => {
 
       await service.activate(candidateToken);
 
-      // Invariant 1: Candidate cannot write to /opt/delimit/repo-template (Read-only filesystem)
+      // Invariant 1: Candidate cannot write to /opt/hirearchy/repo-template (Read-only filesystem)
       const tamperBaseline = await service.executeCommand(
         candidateToken,
-        'touch /opt/delimit/repo-template/evil.txt',
+        'touch /opt/hirearchy/repo-template/evil.txt',
       );
       expect(tamperBaseline.exitCode).not.toBe(0);
       expect(tamperBaseline.stderrPreview).toMatch(
         /Read-only file system|Permission denied/,
       );
 
-      // Invariant 2: Candidate (UID 1000) cannot access /run/delimit-evidence (mode 0700 root:root)
+      // Invariant 2: Candidate (UID 1000) cannot access /run/hirearchy-evidence (mode 0700 root:root)
       const inspectEvidenceStore = await service.executeCommand(
         candidateToken,
-        'ls -la /run/delimit-evidence',
+        'ls -la /run/hirearchy-evidence',
       );
       expect(inspectEvidenceStore.exitCode).not.toBe(0);
       expect(inspectEvidenceStore.stderrPreview).toMatch(/Permission denied/);
@@ -139,11 +141,11 @@ describe('Workspace Evidence & Threat Invariants Integration', () => {
       const ignorePayload =
         ignoreChangedEvent?.payload as WorkspaceChangedPayload;
       const pathsChanged = ignorePayload.files.map((f) => f.path);
-      // Delimit-owned force-add captured inventory/custom.py and .gitignore!
+      // Hirearchy Software-owned force-add captured inventory/custom.py and .gitignore!
       expect(pathsChanged).toContain('inventory/custom.py');
       expect(pathsChanged).toContain('.gitignore');
 
-      // Invariant 8: No ephemeral index files linger in /run/delimit-evidence
+      // Invariant 8: No ephemeral index files linger in /run/hirearchy-evidence
       const checkIndices = spawnSync('docker', [
         'exec',
         '-u',
@@ -151,7 +153,7 @@ describe('Workspace Evidence & Threat Invariants Integration', () => {
         containerName,
         'sh',
         '-c',
-        'ls -1 /run/delimit-evidence/idx_* 2>/dev/null || true',
+        'ls -1 /run/hirearchy-evidence/idx_* 2>/dev/null || true',
       ]);
       expect(checkIndices.stdout.toString().trim()).toBe('');
 
@@ -206,7 +208,7 @@ describe('Workspace Evidence & Threat Invariants Integration', () => {
 
   it('captures candidate out-of-band background mutations without falsely attributing them to subsequent commands', async () => {
     const tempDir = mkdtempSync(
-      path.join(tmpdir(), 'delimit-oob-evidence-test-'),
+      path.join(tmpdir(), 'hirearchy-oob-evidence-test-'),
     );
     const dbPath = path.join(tempDir, 'test.sqlite');
     const store = new SqliteSessionStore(dbPath);

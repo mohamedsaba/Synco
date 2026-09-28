@@ -2,7 +2,7 @@ import { getSessionService, type SessionService } from './session-service';
 
 export const SESSION_TIMEOUT_SWEEP_INTERVAL_MS = 1_000;
 
-const GLOBAL_SWEEPER_KEY = Symbol.for('delimit.sessionTimeoutSweeper');
+const GLOBAL_SWEEPER_KEY = Symbol.for('hirearchy.sessionTimeoutSweeper');
 
 type SweeperState = {
   timer: NodeJS.Timeout;

@@ -15,17 +15,17 @@ describe('Candidate Save Integrity — Integration & Persistence Invariants', ()
   let originalDbPath: string | undefined;
 
   beforeEach(() => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-save-integrity-'));
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-save-integrity-'));
     databasePath = path.join(directory, 'save-test.sqlite');
-    originalDbPath = process.env.DELIMIT_DB_PATH;
-    process.env.DELIMIT_DB_PATH = databasePath;
+    originalDbPath = process.env.HIREARCHY_DB_PATH;
+    process.env.HIREARCHY_DB_PATH = databasePath;
   });
 
   afterEach(() => {
     if (originalDbPath !== undefined) {
-      process.env.DELIMIT_DB_PATH = originalDbPath;
+      process.env.HIREARCHY_DB_PATH = originalDbPath;
     } else {
-      delete process.env.DELIMIT_DB_PATH;
+      delete process.env.HIREARCHY_DB_PATH;
     }
     rmSync(directory, { recursive: true, force: true });
   });

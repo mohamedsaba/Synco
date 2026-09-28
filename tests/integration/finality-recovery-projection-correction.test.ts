@@ -25,7 +25,7 @@ describe('C8A — finality recovery projection correction', () => {
   let service: SessionService;
 
   beforeEach(() => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-c8a-'));
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-c8a-'));
     databasePath = path.join(directory, 'test.sqlite');
     now = '2026-09-22T10:00:00.000Z';
     store = new SqliteSessionStore(databasePath);

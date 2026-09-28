@@ -2,7 +2,7 @@
 
 **Status:** APPROVED ARCHITECTURAL SPECIFICATION  
 **Scope:** Canonical visual asset inventory, safety classifications, transformation boundaries, and consumption mandates for the Hirearchy website experience.  
-**Authority:** Synco / Delimit / Hirearchy Engineering Evaluation Prototype — `docs/plans/active/099-hirearchy-website-experience-rebuild.md` Product Truth & Architecture Gate.
+**Authority:** Hirearchy / Hirearchy Software / Hirearchy Engineering Evaluation Prototype — `docs/plans/active/099-hirearchy-website-experience-rebuild.md` Product Truth & Architecture Gate.
 
 ---
 

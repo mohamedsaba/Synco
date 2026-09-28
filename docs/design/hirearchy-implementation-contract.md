@@ -58,7 +58,7 @@ The masterbrand name is **Hirearchy**. It is the parent entity representing the 
 
 ### Rule 9: Hirearchy Software Is the Product Expression
 
-**Hirearchy Software** is the current engineering evaluation workbench and product expression, not the entire brand. Keep masterbrand statements (`Real work. In context.`, `Evidence over impressions.`) distinct from product software chrome. Delimit and Synco are internal engineering repository codenames and must never appear in public UI.
+**Hirearchy Software** is the current engineering evaluation workbench and product expression, not the entire brand. Keep masterbrand statements (`Real work. In context.`, `Evidence over impressions.`) distinct from product software chrome. Hirearchy Software and Hirearchy are internal engineering repository codenames and must never appear in public UI.
 
 ### Rule 10: Prohibition on Rejected Assets
 

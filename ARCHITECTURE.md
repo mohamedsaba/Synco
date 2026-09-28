@@ -1,6 +1,6 @@
 # Architecture map
 
-Delimit is a modular monolith: one Next.js application owns the candidate and evaluator experiences, ordinary HTTP APIs, SQLite persistence, application-level append-only event capture, deterministic reconstruction, and the Docker boundary around candidate execution. These are conceptual module boundaries, not separate services.
+Hirearchy Software is a modular monolith: one Next.js application owns the candidate and evaluator experiences, ordinary HTTP APIs, SQLite persistence, application-level append-only event capture, deterministic reconstruction, and the Docker boundary around candidate execution. These are conceptual module boundaries, not separate services.
 
 ## Candidate architecture
 

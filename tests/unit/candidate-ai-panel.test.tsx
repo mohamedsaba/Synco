@@ -203,7 +203,7 @@ describe('C6 candidate integrated AI experience', () => {
     expect(providerFailure.prompt).toBe('Preserve this prompt');
     expect(providerFailure.conversation[0]).toMatchObject({ status: 'failed' });
     expect(networkFailure.errorMessage).toBe(
-      'Delimit could not reach AI. Try again.',
+      'Hirearchy Software could not reach AI. Try again.',
     );
   });
 
@@ -217,7 +217,7 @@ describe('C6 candidate integrated AI experience', () => {
     });
 
     expect(state.errorMessage).toBe(
-      'Delimit received an incomplete AI result. Try again.',
+      'Hirearchy Software received an incomplete AI result. Try again.',
     );
   });
 

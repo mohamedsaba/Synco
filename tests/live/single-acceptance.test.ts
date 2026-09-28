@@ -14,7 +14,7 @@ import { SessionService } from '../../apps/web/src/sessions/session-service';
 import { SqliteSessionStore } from '../../apps/web/src/sessions/sqlite-session-store';
 import { scenarioAcceptanceHistories } from './scenario-acceptance-histories';
 
-const outputDir = '/tmp/delimit-nvidia-single';
+const outputDir = '/tmp/hirearchy-nvidia-single';
 
 const liveEnabled = Boolean(process.env.NVIDIA_API_KEY);
 

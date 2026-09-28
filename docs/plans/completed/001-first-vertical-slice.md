@@ -45,7 +45,7 @@ The repository contains a Next.js TypeScript shell, health endpoint, documentati
 
 1. Define the smallest domain vocabulary: scenario version, `CREATED → ACTIVE → SUBMITTED`, editable file snapshot, immutable submission, and final diff.
 2. Persist sessions in a local SQLite database. SQLite gives candidate and evaluator requests one durable server-owned state without adding a database service or ORM for this slice.
-3. Store only a hash of each random candidate token. Candidate routes resolve a session exclusively through that token; evaluator routes require a separate HTTP-only credential cookie derived from `DELIMIT_EVALUATOR_KEY`.
+3. Store only a hash of each random candidate token. Candidate routes resolve a session exclusively through that token; evaluator routes require a separate HTTP-only credential cookie derived from `HIREARCHY_EVALUATOR_KEY`.
 4. Add server-side use cases for creating a session, activating it, saving its one permitted file while active, and submitting idempotently.
 5. Add thin HTTP boundaries and two focused pages: a candidate workspace and an evaluator evidence-review page containing source and submitted content plus the final diff.
 6. Use a plain textarea for the editor. Monaco would add weight without proving anything more in this slice.

@@ -52,7 +52,7 @@ describe('T1B.1 — Authoritative Deadline Convergence', () => {
   let service: SessionService;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(path.join(tmpdir(), 'delimit-t1b1-'));
+    tempDir = mkdtempSync(path.join(tmpdir(), 'hirearchy-t1b1-'));
     databasePath = path.join(tempDir, 'test.sqlite');
     now = '2026-09-21T10:00:00.000Z';
     store = new SqliteSessionStore(databasePath);

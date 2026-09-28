@@ -4,7 +4,7 @@ Status: completed with Docker verification blocked by environment access.
 
 ## Validated F-04 root cause
 
-`POST /api/sessions` passed an optional ID to `SessionService.createSession`. Any value other than Scenario 001, including missing, malformed, or unknown IDs, selected the Slice 1 single-file fixture. That fixture uses the default Alpine image; absence of `delimit-exec-supervisor` causes Docker execution to select `execLegacy`.
+`POST /api/sessions` passed an optional ID to `SessionService.createSession`. Any value other than Scenario 001, including missing, malformed, or unknown IDs, selected the Slice 1 single-file fixture. That fixture uses the default Alpine image; absence of `hirearchy-exec-supervisor` causes Docker execution to select `execLegacy`.
 
 ## Issuance contract
 
@@ -16,7 +16,7 @@ The homepage sends the canonical Scenario 001 ID and no longer exposes the Slice
 
 Slice 1 is a documented development and verification fixture. Its direct service/test use and the historical `scenario-001` alias remain compatible, but neither is publicly issuable.
 
-- Public production reachable: **NO** — the only public scenario is Scenario 001, whose image includes `delimit-exec-supervisor`.
+- Public production reachable: **NO** — the only public scenario is Scenario 001, whose image includes `hirearchy-exec-supervisor`.
 - Test reachable: **YES** — direct Slice 1 fixtures and legacy compatibility tests may retain their existing legacy execution behavior.
 - Internal fixture reachable: **YES** — Slice 1 remains an internal development fixture.
 

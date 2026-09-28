@@ -56,8 +56,8 @@ describe('evidence reconstruction persistence lifecycle', () => {
   let tick: number;
 
   beforeEach(() => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-reconstruction-'));
-    databasePath = path.join(directory, 'delimit.sqlite');
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-reconstruction-'));
+    databasePath = path.join(directory, 'hirearchy.sqlite');
     tick = 0;
   });
 

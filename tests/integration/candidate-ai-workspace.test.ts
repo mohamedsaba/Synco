@@ -22,17 +22,17 @@ describe('Candidate AI Workspace End-to-End Integration', () => {
   let originalDbPath: string | undefined;
 
   beforeEach(() => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-candidate-ai-ws-'));
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-candidate-ai-ws-'));
     databasePath = path.join(directory, 'ws-test.sqlite');
-    originalDbPath = process.env.DELIMIT_DB_PATH;
-    process.env.DELIMIT_DB_PATH = databasePath;
+    originalDbPath = process.env.HIREARCHY_DB_PATH;
+    process.env.HIREARCHY_DB_PATH = databasePath;
   });
 
   afterEach(() => {
     if (originalDbPath !== undefined) {
-      process.env.DELIMIT_DB_PATH = originalDbPath;
+      process.env.HIREARCHY_DB_PATH = originalDbPath;
     } else {
-      delete process.env.DELIMIT_DB_PATH;
+      delete process.env.HIREARCHY_DB_PATH;
     }
     rmSync(directory, { recursive: true, force: true });
   });

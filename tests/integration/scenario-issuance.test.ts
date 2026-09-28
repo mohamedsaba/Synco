@@ -21,16 +21,18 @@ describe('R2 — public scenario issuance', () => {
   let originalDbPath: string | undefined;
 
   beforeEach(() => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-scenario-issuance-'));
+    directory = mkdtempSync(
+      path.join(tmpdir(), 'hirearchy-scenario-issuance-'),
+    );
     databasePath = path.join(directory, 'sessions.sqlite');
-    originalDbPath = process.env.DELIMIT_DB_PATH;
-    process.env.DELIMIT_DB_PATH = databasePath;
+    originalDbPath = process.env.HIREARCHY_DB_PATH;
+    process.env.HIREARCHY_DB_PATH = databasePath;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    if (originalDbPath === undefined) delete process.env.DELIMIT_DB_PATH;
-    else process.env.DELIMIT_DB_PATH = originalDbPath;
+    if (originalDbPath === undefined) delete process.env.HIREARCHY_DB_PATH;
+    else process.env.HIREARCHY_DB_PATH = originalDbPath;
     rmSync(directory, { recursive: true, force: true });
   });
 
@@ -75,7 +77,7 @@ describe('R2 — public scenario issuance', () => {
       result.candidatePath.split('/').at(-1)!,
     );
     expect(createAndVerify).toHaveBeenCalledWith(result.sessionId, {
-      imageName: 'delimit-scenario-001:latest',
+      imageName: 'hirearchy-scenario-001:latest',
       scenarioType: 'multi_file',
     });
 

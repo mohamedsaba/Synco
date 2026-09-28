@@ -47,7 +47,7 @@ const literalTemplates = {
   prior_tree: 'The workspace returned to a previously recorded state.',
   submission: 'The work was submitted.',
   workspace_gap:
-    'Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
+    'Hirearchy Software did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
   verification_execution: 'A test execution was recorded.',
   no_summary:
     'No supported test summary is available for this recorded execution.',

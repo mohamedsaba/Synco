@@ -18,7 +18,7 @@
         "sha256": null
       },
       "scenarioVersion": "1.0.0",
-      "scenarioSnapshotSha256": "e0db2410ae5078ef086ff19cac54d8d4fffac7393d41063c39f747d44e33274b",
+      "scenarioSnapshotSha256": "0fcf748cac7c8cbc41fa96420f7ede16c946002c323f5d47610c5eea172ae8a6",
       "evaluationContextSha256": null,
       "evaluationContextVersion": null,
       "mapperVersion": "briefing-mapper-v1",
@@ -47,7 +47,7 @@
           "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:brief",
           "version": "1.0.0"
         },
-        "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
+        "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U hirearchy inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
       }
     ],
     "observedActivity": [
@@ -662,7 +662,7 @@
               "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:brief",
               "version": "1.0.0"
             },
-            "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
+            "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U hirearchy inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
           }
         ],
         "observedActivity": [
@@ -1254,7 +1254,7 @@
             "sha256": null
           },
           "scenarioVersion": "1.0.0",
-          "scenarioSnapshotSha256": "e0db2410ae5078ef086ff19cac54d8d4fffac7393d41063c39f747d44e33274b",
+          "scenarioSnapshotSha256": "0fcf748cac7c8cbc41fa96420f7ede16c946002c323f5d47610c5eea172ae8a6",
           "evaluationContextSha256": null,
           "evaluationContextVersion": null,
           "mapperVersion": "briefing-mapper-v1",
@@ -1283,7 +1283,7 @@
               "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:brief",
               "version": "1.0.0"
             },
-            "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
+            "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U hirearchy inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
           }
         ],
         "observedActivity": [
@@ -1903,7 +1903,7 @@
             "sha256": null
           },
           "scenarioVersion": "1.0.0",
-          "scenarioSnapshotSha256": "e0db2410ae5078ef086ff19cac54d8d4fffac7393d41063c39f747d44e33274b",
+          "scenarioSnapshotSha256": "0fcf748cac7c8cbc41fa96420f7ede16c946002c323f5d47610c5eea172ae8a6",
           "evaluationContextSha256": null,
           "evaluationContextVersion": null,
           "mapperVersion": "briefing-mapper-v1",
@@ -1932,7 +1932,7 @@
               "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:brief",
               "version": "1.0.0"
             },
-            "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
+            "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U hirearchy inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
           }
         ],
         "observedActivity": [
@@ -2571,7 +2571,7 @@
               "fieldRef": "scenario:a18cdd2c-2374-4f92-8158-95a2fe7fcfdb:brief",
               "version": "1.0.0"
             },
-            "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
+            "authoredText": "Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U hirearchy inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
           }
         ],
         "observedActivity": [

@@ -68,8 +68,8 @@ describe('legacy reconstruction upgrade', () => {
   });
 
   it('preserves the legacy artifact and creates a separate deterministic version', async () => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-upgrade-'));
-    const databasePath = path.join(directory, 'delimit.sqlite');
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-upgrade-'));
+    const databasePath = path.join(directory, 'hirearchy.sqlite');
     createLegacyDatabase(databasePath);
     const store = new SqliteEvidenceReconstructionStore(databasePath);
 

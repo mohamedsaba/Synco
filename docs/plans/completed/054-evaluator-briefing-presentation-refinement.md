@@ -22,7 +22,7 @@ Not Slice 6 or visual redesign. Do not modify evidence truth.
 
 1. **Platform Gap Copy**:
    Update `workspace_gap` in `briefing-wording.ts` to bounded explicit platform attribution:
-   `"Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available."`
+   `"Hirearchy Software did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available."`
    Ensure Case F acts as the regression case.
 
 2. **Deduplicate Unsupported Semantic-Mapping Notices**:
@@ -51,7 +51,7 @@ Not Slice 6 or visual redesign. Do not modify evidence truth.
 6. **Review Renderer & Tests**:
    - Update `tests/support/evaluator-briefing-review.ts` to reflect the refined presentation.
    - Update/add unit tests in `tests/unit/evaluator-briefing.test.ts`.
-   - Regenerate C, D, F, G artifacts in `docs/artifacts/evaluator-briefing/` with `DELIMIT_WRITE_BRIEFING_ARTIFACTS=1`.
+   - Regenerate C, D, F, G artifacts in `docs/artifacts/evaluator-briefing/` with `HIREARCHY_WRITE_BRIEFING_ARTIFACTS=1`.
    - Run full `npm run verify`.
 
 See also: [Slice 054 Implementation Report](../../artifacts/evaluator-briefing/slice-054-implementation-report.md).

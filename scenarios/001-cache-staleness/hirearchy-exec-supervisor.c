@@ -173,7 +173,7 @@ int main(int argc, char **argv) {
 
   char status_path[PATH_MAX];
   const int path_length = snprintf(status_path, sizeof(status_path),
-                                   "/run/delimit-evidence/command-%s.status",
+                                   "/run/hirearchy-evidence/command-%s.status",
                                    argv[3]);
   if (path_length < 0 || path_length >= (int)sizeof(status_path)) return 125;
   if (unlink(status_path) != 0 && errno != ENOENT) return 125;

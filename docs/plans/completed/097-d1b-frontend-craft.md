@@ -223,7 +223,7 @@ and the absence of candidate ranking/scoring claims.
   The removed chartreuse `#d9c94e` does not return. `BrandLogo` and
   `ContextAperture` provide reusable primary, compact, wordmark, and Software
   lockups.
-- Rendered homepage checks contain no visible `Synco` or `Delimit` branding.
+- Rendered homepage checks contain no visible `Hirearchy` or `Hirearchy Software` branding.
   Candidate and evaluator truth remains evidence-first, AI-neutral, and explicit
   that the final hiring decision remains human.
 

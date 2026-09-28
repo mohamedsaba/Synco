@@ -73,7 +73,7 @@ export const sliceOneScenario: ScenarioSnapshot = {
       'Recorded verification may help an evaluator inspect the submitted behavior.',
     ],
     interpretationWarnings: [
-      'Related evidence shows only what Delimit recorded in the captured assessment environment.',
+      'Related evidence shows only what Hirearchy Software recorded in the captured assessment environment.',
       'An activity that was not observed is not evidence that the candidate lacks the underlying capability.',
     ],
     reviewPolicy: [

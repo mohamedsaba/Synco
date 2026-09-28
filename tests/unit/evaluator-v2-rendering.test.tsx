@@ -520,7 +520,7 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
   });
 
   describe('EvaluatorHeader', () => {
-    it('renders Delimit branding, session reference, scenario title, and duration', () => {
+    it('renders Hirearchy Software branding, session reference, scenario title, and duration', () => {
       const html = renderToStaticMarkup(
         <EvaluatorHeader
           sessionId="session-c-12345678"
@@ -532,7 +532,7 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
         />,
       );
 
-      expect(html).toContain('Delimit');
+      expect(html).toContain('Hirearchy Software');
       expect(html).toContain('Evaluator Briefing');
       expect(html).toContain('Cache Staleness Investigation');
       expect(html).toContain('12m 34s recorded');
@@ -613,7 +613,7 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
           wording: {
             key: 'workspace_gap',
           },
-          text: 'Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
+          text: 'Hirearchy Software did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
         },
       ];
 
@@ -625,7 +625,7 @@ describe('Evaluator Experience V2 Component & Projection Suite', () => {
       expect(html).toContain('Platform recording limitation');
       expect(html).toContain('Activity capture incomplete');
       expect(html).toContain(
-        'Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
+        'Hirearchy Software did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
       );
     });
   });

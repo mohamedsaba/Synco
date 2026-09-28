@@ -131,8 +131,8 @@ describe('T1A.1 authoritative timing foundation', () => {
   let databasePath: string;
 
   beforeEach(() => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-timing-'));
-    databasePath = path.join(directory, 'delimit.sqlite');
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-timing-'));
+    databasePath = path.join(directory, 'hirearchy.sqlite');
   });
 
   afterEach(() => {

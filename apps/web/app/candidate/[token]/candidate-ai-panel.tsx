@@ -113,7 +113,7 @@ export const CandidateAiPanel = ({
                     ? `Included context: ${entry.context.map((item) => item.filePath).join(', ')}. File references only; unsaved editor edits are not included.`
                     : 'Included context: none.'}
                   {
-                    ' Delimit also includes assessment metadata for this request.'
+                    ' Hirearchy Software also includes assessment metadata for this request.'
                   }
                 </p>
               </section>
@@ -186,7 +186,9 @@ export const CandidateAiPanel = ({
               {activeFilePath
                 ? `Current file: ${activeFilePath}. File reference only; unsaved editor edits are not included.`
                 : 'No active file is included.'}
-              {' Delimit also includes assessment metadata for this request.'}
+              {
+                ' Hirearchy Software also includes assessment metadata for this request.'
+              }
             </p>
           </div>
 

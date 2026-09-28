@@ -30,7 +30,7 @@ const isMissingDockerVolumeError = (error: unknown): boolean => {
   return /No such volume/i.test(parts);
 };
 
-const workspacePathRejectedMarker = 'DELIMIT_WORKSPACE_PATH_REJECTED';
+const workspacePathRejectedMarker = 'HIREARCHY_WORKSPACE_PATH_REJECTED';
 
 const readWorkspaceFileScript = [
   'set -eu',
@@ -66,7 +66,7 @@ const writeWorkspaceFileScript = [
   'entry="/proc/self/fd/3/$remaining"',
   '[ -L "$entry" ] && reject',
   '[ -d "$entry" ] && reject',
-  'temporary="/proc/self/fd/3/.delimit-write-$temporaryName"',
+  'temporary="/proc/self/fd/3/.hirearchy-write-$temporaryName"',
   'set -C',
   'exec 4> "$temporary" || reject',
   'set +C',
@@ -91,7 +91,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
 
   getContainerName(sessionId: string): string {
     const sanitized = sessionId.replace(/[^a-zA-Z0-9_-]/g, '_');
-    return `delimit-sandbox-${sanitized}`;
+    return `hirearchy-sandbox-${sanitized}`;
   }
 
   /**
@@ -102,7 +102,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
    */
   getVolumeName(sessionId: string): string {
     const sanitized = sessionId.replace(/[^a-zA-Z0-9_-]/g, '_');
-    return `delimit-ws-${sanitized}`;
+    return `hirearchy-ws-${sanitized}`;
   }
 
   async inspectResources(sessionId: string): Promise<{
@@ -235,7 +235,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
             '--mount',
             `type=volume,source=${volumeName},target=/workspace`,
             '--tmpfs',
-            '/run/delimit-evidence:rw,noexec,nosuid,size=64m,mode=0700,uid=0,gid=0',
+            '/run/hirearchy-evidence:rw,noexec,nosuid,size=64m,mode=0700,uid=0,gid=0',
             '--network',
             'none',
             '--memory=1024m',
@@ -395,7 +395,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
             containerName,
             'sh',
             '-c',
-            'for i in $(seq 1 100); do if [ -f /tmp/scenario_ready ] && pg_isready -h 127.0.0.1 -p 5432 -U delimit -q && redis-cli ping | grep -q PONG; then echo delimit-ready; exit 0; fi; sleep 0.1; done; echo not-ready; exit 1',
+            'for i in $(seq 1 100); do if [ -f /tmp/scenario_ready ] && pg_isready -h 127.0.0.1 -p 5432 -U hirearchy -q && redis-cli ping | grep -q PONG; then echo hirearchy-ready; exit 0; fi; sleep 0.1; done; echo not-ready; exit 1',
           ],
           {
             timeoutMs: 25_000,
@@ -404,7 +404,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           },
         );
 
-        if (!readyCheck.stdout.includes('delimit-ready')) {
+        if (!readyCheck.stdout.includes('hirearchy-ready')) {
           throw new Error(
             `Multi-service readiness probe returned unexpected output: ${readyCheck.stdout}`,
           );
@@ -412,7 +412,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       } else {
         const readyCheck = await this.runProcess(
           'docker',
-          ['exec', containerName, 'sh', '-c', 'echo delimit-ready'],
+          ['exec', containerName, 'sh', '-c', 'echo hirearchy-ready'],
           {
             timeoutMs: 10_000,
             maxStdoutBytes: 4 * 1024,
@@ -420,7 +420,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           },
         );
 
-        if (!readyCheck.stdout.includes('delimit-ready')) {
+        if (!readyCheck.stdout.includes('hirearchy-ready')) {
           throw new Error(
             `Readiness probe returned unexpected output: ${readyCheck.stdout}`,
           );
@@ -479,7 +479,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
         containerName,
         'test',
         '-x',
-        '/usr/local/bin/delimit-exec-supervisor',
+        '/usr/local/bin/hirearchy-exec-supervisor',
       ],
       {
         timeoutMs: 10_000,
@@ -502,14 +502,14 @@ export class DockerSandboxAdapter implements SandboxAdapter {
       let watchdogTimer: NodeJS.Timeout | null = null;
       let processSettled = false;
       const statusToken = randomUUID();
-      const statusPath = `/run/delimit-evidence/command-${statusToken}.status`;
+      const statusPath = `/run/hirearchy-evidence/command-${statusToken}.status`;
 
       const child = spawn('docker', [
         'exec',
         '-u',
         '0:0',
         containerName,
-        '/usr/local/bin/delimit-exec-supervisor',
+        '/usr/local/bin/hirearchy-exec-supervisor',
         String(timeoutMs),
         cwd,
         statusToken,
@@ -654,7 +654,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
         'sh',
         '-c',
         wrapperScript,
-        'delimit-exec',
+        'hirearchy-exec',
         commandId,
         cwd,
         command,
@@ -913,7 +913,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           '-u',
           '0:0',
           containerName,
-          '/usr/local/bin/delimit-baseline-tree.sh',
+          '/usr/local/bin/hirearchy-baseline-tree.sh',
         ],
         {
           timeoutMs: 30_000,
@@ -942,7 +942,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           '-u',
           '0:0',
           containerName,
-          '/usr/local/bin/delimit-capture-tree.sh',
+          '/usr/local/bin/hirearchy-capture-tree.sh',
         ],
         {
           timeoutMs: 30_000,
@@ -975,7 +975,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           '-u',
           '0:0',
           containerName,
-          '/usr/local/bin/delimit-diff-trees.sh',
+          '/usr/local/bin/hirearchy-diff-trees.sh',
           beforeTree,
           afterTree,
         ],
@@ -1145,7 +1145,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
    *   - network none
    *   - read-only rootfs
    *   - cap-drop ALL, no-new-privileges
-   *   - runs as root (uid 0) only for evidence script access to /run/delimit-evidence
+   *   - runs as root (uid 0) only for evidence script access to /run/hirearchy-evidence
    *   - candidate-created symlinks cannot resolve to host filesystem
    *   - ephemeral: --rm, gone after capture
    *
@@ -1219,7 +1219,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           '--tmpfs',
           '/tmp:rw,exec,nosuid,size=64m',
           '--tmpfs',
-          '/run/delimit-evidence:rw,noexec,nosuid,size=64m,mode=0700,uid=0,gid=0',
+          '/run/hirearchy-evidence:rw,noexec,nosuid,size=64m,mode=0700,uid=0,gid=0',
           '--memory=512m',
           '--cpus=1.0',
           '--pids-limit=64',
@@ -1233,11 +1233,11 @@ export class DockerSandboxAdapter implements SandboxAdapter {
           [
             'set -e',
             'BASELINE="$1"',
-            '[ -n "$BASELINE" ] || BASELINE="$(/usr/local/bin/delimit-baseline-tree.sh)"',
-            'TREE="$(/usr/local/bin/delimit-capture-tree.sh)"',
+            '[ -n "$BASELINE" ] || BASELINE="$(/usr/local/bin/hirearchy-baseline-tree.sh)"',
+            'TREE="$(/usr/local/bin/hirearchy-capture-tree.sh)"',
             'printf \'%s\\n\' "$TREE"',
-            "printf '%s\\n' '---DELIMIT_FROZEN_BOUNDARY---'",
-            '/usr/local/bin/delimit-diff-trees.sh "$BASELINE" "$TREE"',
+            "printf '%s\\n' '---HIREARCHY_FROZEN_BOUNDARY---'",
+            '/usr/local/bin/hirearchy-diff-trees.sh "$BASELINE" "$TREE"',
           ].join('\n'),
           '_',
           baselineTree ?? '',
@@ -1249,7 +1249,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
         },
       );
 
-      const boundary = '---DELIMIT_FROZEN_BOUNDARY---';
+      const boundary = '---HIREARCHY_FROZEN_BOUNDARY---';
       const boundaryIndex = captureResult.stdout.indexOf(boundary);
       if (boundaryIndex === -1) {
         throw new SandboxError(
@@ -1474,7 +1474,7 @@ export class DockerSandboxAdapter implements SandboxAdapter {
 }
 
 export function parseTreeDiffOutput(stdout: string): TreeDiffResult {
-  const boundary = '---DELIMIT_DIFF_BOUNDARY---';
+  const boundary = '---HIREARCHY_DIFF_BOUNDARY---';
   const boundaryIndex = stdout.indexOf(boundary);
   const numstatPart =
     boundaryIndex !== -1 ? stdout.slice(0, boundaryIndex) : '';

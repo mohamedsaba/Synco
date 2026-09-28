@@ -75,8 +75,8 @@ describe('T1A.3A — Volume Lifecycle', () => {
     const vol1 = adapter.getVolumeName(`v03a-${Date.now()}`);
     const vol2 = adapter.getVolumeName(`v03b-${Date.now()}`);
     expect(vol1).not.toBe(vol2);
-    expect(vol1).toMatch(/^delimit-ws-/);
-    expect(vol2).toMatch(/^delimit-ws-/);
+    expect(vol1).toMatch(/^hirearchy-ws-/);
+    expect(vol2).toMatch(/^hirearchy-ws-/);
   });
 
   it('V-04: teardown removes container and volume', async () => {
@@ -100,7 +100,7 @@ describe('T1A.3A — Volume Lifecycle', () => {
 
   it('V-06: volume name sanitizes special characters', () => {
     const vol = adapter.getVolumeName('ses:sion/with#special@chars!');
-    expect(vol).toMatch(/^delimit-ws-[a-zA-Z0-9_-]+$/);
+    expect(vol).toMatch(/^hirearchy-ws-[a-zA-Z0-9_-]+$/);
   });
 
   it('V-07: partial creation failure removes container and volume', async () => {
@@ -164,7 +164,7 @@ describe('T1A.3A — Freeze Primitive', () => {
 describe('T1A.3A — Frozen Evidence Capture', () => {
   const adapter = new DockerSandboxAdapter({
     defaultTimeoutMs: 30_000,
-    imageName: 'delimit-scenario-001:latest',
+    imageName: 'hirearchy-scenario-001:latest',
   });
 
   it('C-01: captureFrozenEvidence returns non-empty currentTree', async () => {
@@ -261,7 +261,7 @@ describe('T1A.3A — Frozen Evidence Capture', () => {
     const sessionId = `c06-${Date.now()}`;
     const creator = new DockerSandboxAdapter({
       defaultTimeoutMs: 30_000,
-      imageName: 'delimit-scenario-001:latest',
+      imageName: 'hirearchy-scenario-001:latest',
     });
     const recoverer = new DockerSandboxAdapter({
       defaultTimeoutMs: 30_000,
@@ -307,7 +307,7 @@ describe('T1A.3A — Frozen Evidence Capture', () => {
           `type=volume,source=${volumeName},target=/workspace,readonly`,
           '--cap-drop=ALL',
           '--security-opt=no-new-privileges:true',
-          'delimit-scenario-001:latest',
+          'hirearchy-scenario-001:latest',
           'sh',
           '-c',
           'echo MUTATED > /workspace/inventory/service.py',
@@ -328,7 +328,7 @@ describe('T1A.3A — Frozen Evidence Capture', () => {
           '--mount',
           `type=volume,source=${volumeName},target=/workspace,readonly`,
           '--cap-drop=ALL',
-          'delimit-scenario-001:latest',
+          'hirearchy-scenario-001:latest',
           'cat',
           '/workspace/inventory/service.py',
         ],
@@ -351,7 +351,7 @@ describe('T1A.3A — Frozen Evidence Capture', () => {
 describe('T1A.3A — Pause Containment (Docker)', () => {
   const adapter = new DockerSandboxAdapter({
     defaultTimeoutMs: 30_000,
-    imageName: 'delimit-scenario-001:latest',
+    imageName: 'hirearchy-scenario-001:latest',
   });
 
   it('P-01: delayed in-sandbox write cannot mutate /workspace after confirmed pause', async () => {
@@ -396,7 +396,7 @@ describe('T1A.3A — Pause Containment (Docker)', () => {
           '--read-only',
           '--mount',
           `type=volume,source=${vol},target=/workspace,readonly`,
-          'delimit-scenario-001:latest',
+          'hirearchy-scenario-001:latest',
           'cat',
           '/workspace/freeze-marker.txt',
         ],
@@ -423,7 +423,7 @@ describe('T1A.3A — Manual Submission (Mock)', () => {
   let service: SessionService;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(path.join(tmpdir(), 'delimit-mock-sub-'));
+    tempDir = mkdtempSync(path.join(tmpdir(), 'hirearchy-mock-sub-'));
     const dbPath = path.join(tempDir, 'test.sqlite');
     store = new SqliteSessionStore(dbPath);
     eventStore = new SqliteEventStore(dbPath);
@@ -628,7 +628,7 @@ describe('T1A.3A — Full Submission Integration', () => {
   let store: SqliteSessionStore;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(path.join(tmpdir(), 'delimit-full-sub-'));
+    tempDir = mkdtempSync(path.join(tmpdir(), 'hirearchy-full-sub-'));
     const dbPath = path.join(tempDir, 'test.sqlite');
     store = new SqliteSessionStore(dbPath);
     const eventStore = new SqliteEventStore(dbPath);
@@ -687,7 +687,7 @@ describe('T1A.3A — Full Submission Integration', () => {
 
 describe('T1A.3A — Single-File Regression', () => {
   it('R-01: activation, save, and submit work on the named volume', async () => {
-    const tempDir = mkdtempSync(path.join(tmpdir(), 'delimit-single-file-'));
+    const tempDir = mkdtempSync(path.join(tmpdir(), 'hirearchy-single-file-'));
     const store = new SqliteSessionStore(path.join(tempDir, 'test.sqlite'));
     const sandbox = new DockerSandboxAdapter({ defaultTimeoutMs: 30_000 });
     const service = new SessionService(store, { sandboxAdapter: sandbox });

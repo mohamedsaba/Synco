@@ -1,8 +1,8 @@
-# Delimit Evaluator Experience v2 — Production Visual Implementation Plan
+# Hirearchy Software Evaluator Experience v2 — Production Visual Implementation Plan
 
 ## Goal Description
 
-Implement the production visual experience for the Delimit Evaluator Experience v2 on top of the completed, verified Evaluator Briefing Foundation and Presentation Refinement. The UI consumes the briefing data model and role projections (`GENERALIST_RECRUITER`, `TECHNICAL_RECRUITER`, `ENGINEER`, `ENGINEERING_MANAGER`) without creating a secondary interpretation engine, presenting a bright, calm, tactile, editorial product that carries technical complexity so the evaluator doesn't have to.
+Implement the production visual experience for the Hirearchy Software Evaluator Experience v2 on top of the completed, verified Evaluator Briefing Foundation and Presentation Refinement. The UI consumes the briefing data model and role projections (`GENERALIST_RECRUITER`, `TECHNICAL_RECRUITER`, `ENGINEER`, `ENGINEERING_MANAGER`) without creating a secondary interpretation engine, presenting a bright, calm, tactile, editorial product that carries technical complexity so the evaluator doesn't have to.
 
 ## User Review Required
 
@@ -51,7 +51,7 @@ Implement the production visual experience for the Delimit Evaluator Experience 
    - Cohesive responsive shell providing layout, visual rhythm, editorial typography, and lens state container.
 
 3. **`evaluator-header.tsx`** [NEW]:
-   - Editorial product header: Delimit wordmark, session reference, scenario title, submission status, deterministic session duration badge, and `<RoleLensSwitcher />`.
+   - Editorial product header: Hirearchy Software wordmark, session reference, scenario title, submission status, deterministic session duration badge, and `<RoleLensSwitcher />`.
 
 4. **`role-lens-switcher.tsx`** [NEW]:
    - Accessible role lens selector (`GENERALIST_RECRUITER`, `TECHNICAL_RECRUITER`, `ENGINEER`, `ENGINEERING_MANAGER`).
@@ -62,7 +62,7 @@ Implement the production visual experience for the Delimit Evaluator Experience 
    - Graceful fallback for Case G (legacy session without evaluation context).
 
 6. **`platform-notice.tsx`** [NEW]:
-   - Calm, non-alarmist platform alerts for material limitations (e.g. Case F workspace capture gap explicitly attributed to Delimit; Case G legacy metadata notice).
+   - Calm, non-alarmist platform alerts for material limitations (e.g. Case F workspace capture gap explicitly attributed to Hirearchy Software; Case G legacy metadata notice).
 
 7. **`recorded-activity.tsx`** [NEW]:
    - "Recorded activity" section:

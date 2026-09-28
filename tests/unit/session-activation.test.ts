@@ -14,7 +14,7 @@ describe('session activation readiness gate', () => {
   let databasePath: string;
 
   beforeEach(() => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-activation-test-'));
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-activation-test-'));
     databasePath = path.join(directory, 'sessions.sqlite');
   });
 

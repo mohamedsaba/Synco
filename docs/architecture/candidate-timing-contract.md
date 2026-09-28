@@ -97,7 +97,7 @@ Status: Authoritative Foundation (Slice T1A.1)
 T1A.3A establishes the frozen workspace finality foundation for manual candidate submissions:
 
 1. **Named Session Workspace Volume**:
-   - Each sandbox uses a dedicated Docker named volume `delimit-ws-<sanitized-session-id>` for `/workspace` instead of a tmpfs mount.
+   - Each sandbox uses a dedicated Docker named volume `hirearchy-ws-<sanitized-session-id>` for `/workspace` instead of a tmpfs mount.
    - Named volumes survive independently of the container lifecycle; they are addressable by trusted helpers without the primary container being running.
    - Volume is created before container start; removed only after successful SQLite finalization (teardown phase).
    - Volume name uses the same sanitization as the container name: `sessionId.replace(/[^a-zA-Z0-9_-]/g, '_')`.
@@ -112,7 +112,7 @@ T1A.3A establishes the frozen workspace finality foundation for manual candidate
    - Evidence is captured by an ephemeral trusted helper container that mounts the workspace volume read-only while the primary remains paused.
    - Helper security constraints: `--rm`, `--network none`, `--read-only`, `--mount … readonly`, `--cap-drop ALL`, `--security-opt=no-new-privileges:true`, runs as root (uid 0) for evidence script access only.
    - Tree capture and baseline diff run in a single helper invocation so ephemeral evidence objects remain available for diffing.
-   - Uses the same image as the primary (contains `/usr/local/bin/delimit-capture-tree.sh` and `/usr/local/bin/delimit-diff-trees.sh`), resolved via `docker inspect Config.Image`.
+   - Uses the same image as the primary (contains `/usr/local/bin/hirearchy-capture-tree.sh` and `/usr/local/bin/hirearchy-diff-trees.sh`), resolved via `docker inspect Config.Image`.
    - The helper has no access to the host Docker socket, no host bind mounts, and no writable rootfs.
 
 4. **Manual Submission Finality Sequence**:
@@ -165,7 +165,7 @@ T1B.1 converges overdue timed sessions through the frozen-workspace finality pat
    - Legacy untimed sessions use the full `commandTimeoutMs` bound (unchanged behavior).
 
 4. **Background Sweeper (`SessionTimeoutSweeper`)**:
-   - Registered once via `apps/web/instrumentation.ts` at Next.js server startup using a `Symbol.for('delimit.sessionTimeoutSweeper')` global guard to prevent duplicate intervals.
+   - Registered once via `apps/web/instrumentation.ts` at Next.js server startup using a `Symbol.for('hirearchy.sessionTimeoutSweeper')` global guard to prevent duplicate intervals.
    - Runs `SessionService.sweepTimedOutSessions()` on a 1-second interval using a re-entrancy guard.
    - `sweepTimedOutSessions` selects overdue `ACTIVE` sessions and every `ACTIVE` session whose finalization was already admitted, including legacy untimed sessions requiring recovery.
    - `finalizeTimedOutSession` uses the durable closure reason when present; only a not-yet-admitted overdue session receives `timeout`.

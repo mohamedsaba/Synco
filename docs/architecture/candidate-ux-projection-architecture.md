@@ -4,7 +4,7 @@ Status: Canonical Architecture (Slice C1)
 
 ## 1. Architectural Core Principles
 
-The Delimit Candidate Experience must feel like a truthful, professional engineering environment. The client interface never maintains a parallel or competing state machine against the backend domain. Instead, the candidate interface is constructed as a deterministic projection over server truth, calibrated time, and ephemeral UI mode:
+The Hirearchy Software Candidate Experience must feel like a truthful, professional engineering environment. The client interface never maintains a parallel or competing state machine against the backend domain. Instead, the candidate interface is constructed as a deterministic projection over server truth, calibrated time, and ephemeral UI mode:
 
 $$\text{Server Truth} + \text{Calibrated Time} + \text{Ephemeral UI Mode} \Longrightarrow \text{Candidate UX State}$$
 
@@ -94,9 +94,9 @@ Pre-active sessions (`status = 'CREATED'`) project deterministically across four
   2. Tools available (file editor, terminal command console, integrated AI assistant if enabled, scenario brief)
   3. AI policy (permitted within environment, candidate remains responsible, neutral phrasing)
   4. Observable activity (all edits, commands, and AI prompts captured as technical evidence)
-  5. Persistence (workspace saves persist, save failures surfaced immediately, Delimit manages infrastructure)
+  5. Persistence (workspace saves persist, save failures surfaced immediately, Hirearchy Software manages infrastructure)
   6. Submission (may submit at any time, submission is final, review step provided before confirmation)
-  7. Time expiry (modifications stop automatically upon timeout, Delimit finalizes automatically)
+  7. Time expiry (modifications stop automatically upon timeout, Hirearchy Software finalizes automatically)
 - **READY_TO_START**: Final confirmation reiterating that assessment time begins only after workspace setup completes. Prevents double-triggers while in-flight.
 - **PROVISIONING**: Truthful platform state ("Preparing your assessment environment…") equipped with accessible live status semantics (`role="status"`, `aria-live="polite"`). Displays no countdown timer.
 

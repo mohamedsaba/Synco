@@ -4,11 +4,11 @@ AI use is neutral and derived output is never authoritative evidence.
 
 ## Candidate AI
 
-AI acts as an ordinary engineering tool available to the candidate during assessment. Delimit records observable prompts, responses, supplied context, timestamps, and explicit terminal states. It must not infer that manually typed code came from AI, treat the amount of AI use as competence, or penalize candidates for AI utilization.
+AI acts as an ordinary engineering tool available to the candidate during assessment. Hirearchy Software records observable prompts, responses, supplied context, timestamps, and explicit terminal states. It must not infer that manually typed code came from AI, treat the amount of AI use as competence, or penalize candidates for AI utilization.
 
 ### Operational State vs. Append-Only Event Evidence (Slice 6B)
 
-Delimit strictly separates mutable operational lifecycle state from application-level append-only event evidence:
+Hirearchy Software strictly separates mutable operational lifecycle state from application-level append-only event evidence:
 
 1. **Operational Interaction Store (`ai_interactions`)**:
    - Manages mutable execution state (`ADMITTED → DISPATCH_STARTED → COMPLETED | CANCELLED | FAILED`).
@@ -38,7 +38,7 @@ Slice 6C implements the synchronous candidate AI provider execution lifecycle:
 
 1. **Provider Abstraction (`AiProvider`)**:
    - Smallest interface required for normalized text completion: `execute(request: NormalizedAiRequest, options?: { signal?: AbortSignal }): Promise<NormalizedAiResult>`.
-   - Distinct authorship boundaries preserved: candidate-authored input, candidate-selected context, and Delimit-supplied context remain separated without concatenation.
+   - Distinct authorship boundaries preserved: candidate-authored input, candidate-selected context, and Hirearchy Software-supplied context remain separated without concatenation.
    - Deterministic in-process `MockAiProvider` for testing and local execution without external network dependencies.
    - Provider registry resolves provider solely from immutable `session.aiCapabilitySnapshot.configuredProviderId`. Candidate input cannot select or override provider, model, or parameters.
 
@@ -50,20 +50,20 @@ Slice 6C implements the synchronous candidate AI provider execution lifecycle:
 
 3. **Dispatch Ambiguity & Idempotency**:
    - `DISPATCH_STARTED` is persisted atomically BEFORE calling the provider.
-   - `DISPATCH_STARTED` means only that Delimit initiated outbound dispatch; it does not prove the provider received or processed the request.
-   - For duplicate requests where current status is `DISPATCH_STARTED`, Delimit does not automatically call the provider again, returning an explicit ambiguous non-replayable state.
+   - `DISPATCH_STARTED` means only that Hirearchy Software initiated outbound dispatch; it does not prove the provider received or processed the request.
+   - For duplicate requests where current status is `DISPATCH_STARTED`, Hirearchy Software does not automatically call the provider again, returning an explicit ambiguous non-replayable state.
    - Terminal states (`COMPLETED`, `FAILED`, `CANCELLED`) return existing results without re-invoking the provider.
 
 4. **Failure & Timeout Semantics**:
    - Timeout aborts provider execution via `AbortController` and records `FAILED` with `TIMEOUT` terminal reason (never `CANCELLED`).
    - Provider errors transition to `FAILED` with `PROVIDER_ERROR` and append `AI_REQUEST_FAILED`.
-   - If terminal persistence fails after provider returns, Delimit throws a platform persistence error and never reports false success to the client.
+   - If terminal persistence fails after provider returns, Hirearchy Software throws a platform persistence error and never reports false success to the client.
 
 ### Same-Session Coordination & Submission Evidence Closure (Architecture Corrections A1/A2)
 
 1. **Same-Session Operation Serialization**:
    - Mutating session operations (`activate`, `save`, `saveWorkspaceFile`, `executeCommand`, `submit`) are serialized per assessment session by `SessionOperationCoordinator` using an in-memory FIFO queue across request boundaries.
-   - Singleton coordination is anchored across independent `SessionService` instances via process-wide storage (`Symbol.for('delimit.sessionOperationCoordinator')`).
+   - Singleton coordination is anchored across independent `SessionService` instances via process-wide storage (`Symbol.for('hirearchy.sessionOperationCoordinator')`).
    - Topology boundary: In-memory coordination is valid and supported only for the single-process monolith deployment topology. Multi-process clustering requires external distributed coordination before deployment.
    - Concurrency invariant: External AI provider requests are NEVER executed under the `SessionOperationCoordinator` lock, ensuring slow providers cannot starve workspace operations or assessment submission.
 
@@ -115,7 +115,7 @@ Slice 6F implements the candidate-facing integrated AI interaction surface withi
 2. **Prompt Composer & Context**:
    - Accessible multiline textarea with native submit button and polite screen reader announcements.
    - Each request captures the currently active workspace file as one path reference. The browser never reads or sends persisted file content or unsaved editor content to the AI endpoint.
-   - Delimit metadata contains scenario ID/version and configuration version only. It is separate from candidate input; no evaluator context, provider secret, model selection, or hidden browser history is sent.
+   - Hirearchy Software metadata contains scenario ID/version and configuration version only. It is separate from candidate input; no evaluator context, provider secret, model selection, or hidden browser history is sent.
    - Candidate-authored prompts only: no templates, suggestions, auto-complete, or prompt scoring.
 
 3. **Client Idempotency & Error Handling**:

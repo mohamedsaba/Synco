@@ -46,7 +46,7 @@ export const POST = async (
     const rawPrompt = body?.candidatePromptText ?? body?.candidateInput;
     const candidatePromptText = typeof rawPrompt === 'string' ? rawPrompt : '';
 
-    const delimitContext = {
+    const hirearchyContext = {
       scenarioId: session.scenario.id,
       scenarioVersion: session.scenario.version,
       configurationVersion:
@@ -58,7 +58,7 @@ export const POST = async (
       clientRequestId,
       candidatePromptText,
       candidateContext: body?.candidateContext,
-      delimitContext,
+      hirearchyContext,
     });
 
     return Response.json(result);

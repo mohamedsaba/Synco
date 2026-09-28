@@ -12,25 +12,25 @@
 
 This invariant governs the entire evidence architecture:
 
-- Delimit never relies on candidate-controlled Git metadata (`/workspace/.git`).
-- Delimit never relies on candidate-controlled ignore rules (`/workspace/.gitignore`).
-- Delimit never leaves evidence indices, object stores, or platform bookkeeping in candidate-writable paths (`/tmp`, `/workspace`).
-- Delimit derives all evidence from trusted platform-owned baselines, protected execution identities, and server-side monotonic sequence allocation.
+- Hirearchy Software never relies on candidate-controlled Git metadata (`/workspace/.git`).
+- Hirearchy Software never relies on candidate-controlled ignore rules (`/workspace/.gitignore`).
+- Hirearchy Software never leaves evidence indices, object stores, or platform bookkeeping in candidate-writable paths (`/tmp`, `/workspace`).
+- Hirearchy Software derives all evidence from trusted platform-owned baselines, protected execution identities, and server-side monotonic sequence allocation.
 
 ---
 
 ## 2. Core Product Architecture
 
-### Where does mutable Delimit evidence state live, who can access it, and what survives after the sandbox is destroyed?
+### Where does mutable Hirearchy Software evidence state live, who can access it, and what survives after the sandbox is destroyed?
 
-| Lifecycle Phase     | State / Component                      | Storage Location                                                                                                                 | Access Control                                                                                                                                                                                                                                                            | Durability / Retention                                                                                                                                                                         |
-| :------------------ | :------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Active Session**  | **Immutable Baseline Authority**       | `/opt/delimit/repo-template/.git` inside container                                                                               | Read-only Docker layer (`--read-only`), owned by root. Inaccessible to candidate modification.                                                                                                                                                                            | Survives indefinitely baked inside the Docker image (`delimit-scenario-001:latest`).                                                                                                           |
-| **Active Session**  | **Platform-Owned Evidence Store**      | `/run/delimit-evidence/` inside container (tmpfs):<br>• `/run/delimit-evidence/objects`<br>• `/run/delimit-evidence/idx_${uuid}` | Mode `0700`, owned by `root:root` (UID 0). Accessible **only** to platform control-plane operations (`docker exec -u 0:0`). Candidate UID `1000:1000` cannot traverse, list, read, write, or delete evidence files.                                                       | Destroyed deterministically upon session submission / sandbox teardown (`docker rm -f`).                                                                                                       |
-| **Active Session**  | **Candidate Workspace**                | `/workspace` (tmpfs 512MB)                                                                                                       | Owned by `delimit:delimit` (UID `1000:1000`). Candidate commands execute here.                                                                                                                                                                                            | Destroyed upon session submission / sandbox teardown.                                                                                                                                          |
-| **Post-Submission** | **Authoritative Event Log**            | Host SQLite database (`.data/delimit.sqlite` → `session_events`)                                                                 | Server-side process only. Contains monotonic sequences, timestamps, `COMMAND_STARTED`, `COMMAND_FINISHED`, `WORKSPACE_CHANGED` (with `beforeTree`, `afterTree`, line stats, bounded patch previews, truncation metadata), and any `WORKSPACE_CAPTURE_FAILED` gap markers. | **Durable & Immutable.** Survives container teardown.                                                                                                                                          |
-| **Post-Submission** | **Final Submitted Diff**               | Host SQLite database (`.data/delimit.sqlite` → `sessions.submitted_diff`)                                                        | Server-side process only. Captures complete, untruncated multi-file diff of candidate end state relative to baseline $T_0$.                                                                                                                                               | **Durable & Immutable.** Survives container teardown.                                                                                                                                          |
-| **Post-Submission** | **Intermediate Git Tree/Blob Objects** | N/A (Option A retention)                                                                                                         | N/A                                                                                                                                                                                                                                                                       | **Destroyed with container.** Tree hashes in events serve as immutable cryptographic transition identifiers. UI explicitly notes intermediate full patches are not retrievable after teardown. |
+| Lifecycle Phase     | State / Component                      | Storage Location                                                                                                                       | Access Control                                                                                                                                                                                                                                                            | Durability / Retention                                                                                                                                                                         |
+| :------------------ | :------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Active Session**  | **Immutable Baseline Authority**       | `/opt/hirearchy/repo-template/.git` inside container                                                                                   | Read-only Docker layer (`--read-only`), owned by root. Inaccessible to candidate modification.                                                                                                                                                                            | Survives indefinitely baked inside the Docker image (`hirearchy-scenario-001:latest`).                                                                                                         |
+| **Active Session**  | **Platform-Owned Evidence Store**      | `/run/hirearchy-evidence/` inside container (tmpfs):<br>• `/run/hirearchy-evidence/objects`<br>• `/run/hirearchy-evidence/idx_${uuid}` | Mode `0700`, owned by `root:root` (UID 0). Accessible **only** to platform control-plane operations (`docker exec -u 0:0`). Candidate UID `1000:1000` cannot traverse, list, read, write, or delete evidence files.                                                       | Destroyed deterministically upon session submission / sandbox teardown (`docker rm -f`).                                                                                                       |
+| **Active Session**  | **Candidate Workspace**                | `/workspace` (tmpfs 512MB)                                                                                                             | Owned by `hirearchy software:hirearchy software` (UID `1000:1000`). Candidate commands execute here.                                                                                                                                                                      | Destroyed upon session submission / sandbox teardown.                                                                                                                                          |
+| **Post-Submission** | **Authoritative Event Log**            | Host SQLite database (`.data/hirearchy.sqlite` → `session_events`)                                                                     | Server-side process only. Contains monotonic sequences, timestamps, `COMMAND_STARTED`, `COMMAND_FINISHED`, `WORKSPACE_CHANGED` (with `beforeTree`, `afterTree`, line stats, bounded patch previews, truncation metadata), and any `WORKSPACE_CAPTURE_FAILED` gap markers. | **Durable & Immutable.** Survives container teardown.                                                                                                                                          |
+| **Post-Submission** | **Final Submitted Diff**               | Host SQLite database (`.data/hirearchy.sqlite` → `sessions.submitted_diff`)                                                            | Server-side process only. Captures complete, untruncated multi-file diff of candidate end state relative to baseline $T_0$.                                                                                                                                               | **Durable & Immutable.** Survives container teardown.                                                                                                                                          |
+| **Post-Submission** | **Intermediate Git Tree/Blob Objects** | N/A (Option A retention)                                                                                                               | N/A                                                                                                                                                                                                                                                                       | **Destroyed with container.** Tree hashes in events serve as immutable cryptographic transition identifiers. UI explicitly notes intermediate full patches are not retrievable after teardown. |
 
 ---
 
@@ -38,7 +38,7 @@ This invariant governs the entire evidence architecture:
 
 ### 3.1 Objective
 
-Slice 3 proved that Delimit can host a realistic multi-file engineering incident (Scenario 001) in an isolated sandbox and capture candidate commands and a final multi-file diff.
+Slice 3 proved that Hirearchy Software can host a realistic multi-file engineering incident (Scenario 001) in an isolated sandbox and capture candidate commands and a final multi-file diff.
 
 However, the evaluator experience remains fragmented: atomic `COMMAND_STARTED` / `COMMAND_FINISHED` events and a single cumulative submission diff do not reveal **how candidate work evolved over time**. The evaluator cannot tell what code changed between commands, whether a test failed before or after a fix, or what intermediate hypotheses the candidate explored.
 
@@ -46,7 +46,7 @@ However, the evaluator experience remains fragmented: atomic `COMMAND_STARTED` /
 
 ### 3.2 Core Product Question
 
-> **Can Delimit turn raw candidate workspace activity into an authoritative chronological evidence object that a human evaluator can understand efficiently without relying on AI interpretation?**
+> **Can Hirearchy Software turn raw candidate workspace activity into an authoritative chronological evidence object that a human evaluator can understand efficiently without relying on AI interpretation?**
 
 If yes, hiring clarity is achieved through factual observability alone. Future AI assistance then becomes an optional compression and citation layer rather than an indispensable prosthetic for incomplete evidence.
 
@@ -54,16 +54,16 @@ If yes, hiring clarity is achieved through factual observability alone. Future A
 
 ## 4. Scope
 
-1. **Delimit-Owned Immutable Git Baseline & Alternate Object Store:**
-   - Reference baseline commit ($T_0$) from `/opt/delimit/repo-template/.git`.
-   - Store newly generated intermediate evidence objects in protected `/run/delimit-evidence/objects`.
-   - Candidate manipulation or deletion of `/workspace/.git` has zero effect on Delimit evidence capture.
+1. **Hirearchy Software-Owned Immutable Git Baseline & Alternate Object Store:**
+   - Reference baseline commit ($T_0$) from `/opt/hirearchy/repo-template/.git`.
+   - Store newly generated intermediate evidence objects in protected `/run/hirearchy-evidence/objects`.
+   - Candidate manipulation or deletion of `/workspace/.git` has zero effect on Hirearchy Software evidence capture.
 2. **Ephemeral Evidence Scratch Isolation:**
-   - Execute tree captures using strictly ephemeral temporary indices (`GIT_INDEX_FILE=/run/delimit-evidence/idx_${uuid}`).
+   - Execute tree captures using strictly ephemeral temporary indices (`GIT_INDEX_FILE=/run/hirearchy-evidence/idx_${uuid}`).
    - Temporary indices are created, evaluated, and trap-unlinked within protected storage.
    - Zero platform evidence state is ever placed in candidate-accessible `/tmp` or `/workspace`.
-3. **Delimit-Owned Exclusion Policy (Immune to Candidate `.gitignore`):**
-   - Force-add all candidate files (`git add -f -A`) while applying an explicit Delimit-owned recursive pathspec exclusion policy.
+3. **Hirearchy Software-Owned Exclusion Policy (Immune to Candidate `.gitignore`):**
+   - Force-add all candidate files (`git add -f -A`) while applying an explicit Hirearchy Software-owned recursive pathspec exclusion policy.
    - Candidate `.gitignore` edits cannot suppress candidate files from evidence.
    - True platform/runtime noise (`.git`, `__pycache__`, `.pytest_cache`, logs) is strictly excluded.
 4. **Authoritative `WORKSPACE_CHANGED` Event with Tree Chaining:**
@@ -110,30 +110,30 @@ If yes, hiring clarity is achieved through factual observability alone. Future A
 
 - **Threat:** A candidate command may spawn a background process (e.g. `python watcher.py &` or shell daemon) that continues running after the command returns. If evidence capture uses candidate-accessible paths like `/tmp` or `/workspace`, background processes could monitor, corrupt, or race evidence capture.
 - **Defense:**
-  - The container provisions a dedicated tmpfs mount `/run/delimit-evidence` (size 64MB) with mode `0700`, owned by `root:root` (UID 0).
-  - Candidate commands and descendant background processes execute under unprivileged user `delimit` (UID `1000:1000`).
-  - UID 1000 cannot traverse, list contents, read, write, or delete files inside `/run/delimit-evidence`.
-  - Platform evidence capture executes via `docker exec -u 0:0` (control plane), which has exclusive access to `/run/delimit-evidence`.
+  - The container provisions a dedicated tmpfs mount `/run/hirearchy-evidence` (size 64MB) with mode `0700`, owned by `root:root` (UID 0).
+  - Candidate commands and descendant background processes execute under unprivileged user `hirearchy software` (UID `1000:1000`).
+  - UID 1000 cannot traverse, list contents, read, write, or delete files inside `/run/hirearchy-evidence`.
+  - Platform evidence capture executes via `docker exec -u 0:0` (control plane), which has exclusive access to `/run/hirearchy-evidence`.
 
 ### 6.2 Immutable Baseline & Alternate Object Directory
 
-- **Threat:** `git write-tree` requires writing tree and blob objects, but `/opt/delimit/repo-template/.git` is mounted read-only (`--read-only`).
+- **Threat:** `git write-tree` requires writing tree and blob objects, but `/opt/hirearchy/repo-template/.git` is mounted read-only (`--read-only`).
 - **Defense:**
-  - Delimit configures Git plumbing to read baseline objects from the immutable baseline while writing new evidence objects to the protected evidence store:
+  - Hirearchy Software configures Git plumbing to read baseline objects from the immutable baseline while writing new evidence objects to the protected evidence store:
     ```sh
-    GIT_DIR=/opt/delimit/repo-template/.git
+    GIT_DIR=/opt/hirearchy/repo-template/.git
     GIT_WORK_TREE=/workspace
-    GIT_OBJECT_DIRECTORY=/run/delimit-evidence/objects
-    GIT_ALTERNATE_OBJECT_DIRECTORIES=/opt/delimit/repo-template/.git/objects
+    GIT_OBJECT_DIRECTORY=/run/hirearchy-evidence/objects
+    GIT_ALTERNATE_OBJECT_DIRECTORIES=/opt/hirearchy/repo-template/.git/objects
     ```
-  - Unchanged files are referenced from the read-only baseline; new intermediate blobs/trees are written to `/run/delimit-evidence/objects`.
+  - Unchanged files are referenced from the read-only baseline; new intermediate blobs/trees are written to `/run/hirearchy-evidence/objects`.
   - The baseline repository is never modified.
 
-### 6.3 Delimit-Owned Recursive Exclusions vs Candidate `.gitignore`
+### 6.3 Hirearchy Software-Owned Recursive Exclusions vs Candidate `.gitignore`
 
 - **Threat:** A candidate adds `inventory/**` or `tests/**` to `/workspace/.gitignore` to conceal modifications or trick diffing tools.
 - **Defense:**
-  - Delimit uses force-add with explicit recursive pathspec exclusions:
+  - Hirearchy Software uses force-add with explicit recursive pathspec exclusions:
     ```sh
     git add -f -A -- . \
       ':(exclude,top).git' \
@@ -204,15 +204,15 @@ export type SessionEventPayload =
 
 ## 8. Ephemeral Evidence Capture Scripts
 
-### 8.1 In-Container Script: `delimit-capture-tree.sh`
+### 8.1 In-Container Script: `hirearchy-capture-tree.sh`
 
-Installed at `/usr/local/bin/delimit-capture-tree.sh` (owned by root, mode `0755`):
+Installed at `/usr/local/bin/hirearchy-capture-tree.sh` (owned by root, mode `0755`):
 
 ```bash
 #!/bin/sh
 set -e
 
-EVIDENCE_DIR="/run/delimit-evidence"
+EVIDENCE_DIR="/run/hirearchy-evidence"
 INDEX_FILE="${EVIDENCE_DIR}/idx_$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
 
 # Exception-safe cleanup: remove ephemeral index on exit, error, or signal
@@ -221,15 +221,15 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM HUP
 
-export GIT_DIR="/opt/delimit/repo-template/.git"
+export GIT_DIR="/opt/hirearchy/repo-template/.git"
 export GIT_WORK_TREE="/workspace"
 export GIT_OBJECT_DIRECTORY="${EVIDENCE_DIR}/objects"
-export GIT_ALTERNATE_OBJECT_DIRECTORIES="/opt/delimit/repo-template/.git/objects"
+export GIT_ALTERNATE_OBJECT_DIRECTORIES="/opt/hirearchy/repo-template/.git/objects"
 export GIT_INDEX_FILE="${INDEX_FILE}"
 
 mkdir -p "${EVIDENCE_DIR}/objects"
 
-# Force-index workspace while respecting only Delimit-owned recursive exclusion pathspecs
+# Force-index workspace while respecting only Hirearchy Software-owned recursive exclusion pathspecs
 git add -f -A -- . \
   ':(exclude,top).git' \
   ':(exclude)**/__pycache__/**' \
@@ -247,9 +247,9 @@ TREE_HASH=$(git write-tree)
 echo "${TREE_HASH}"
 ```
 
-### 8.2 In-Container Script: `delimit-diff-trees.sh`
+### 8.2 In-Container Script: `hirearchy-diff-trees.sh`
 
-Installed at `/usr/local/bin/delimit-diff-trees.sh` (owned by root, mode `0755`):
+Installed at `/usr/local/bin/hirearchy-diff-trees.sh` (owned by root, mode `0755`):
 
 ```bash
 #!/bin/sh
@@ -258,16 +258,16 @@ set -e
 BEFORE_TREE="$1"
 AFTER_TREE="$2"
 
-EVIDENCE_DIR="/run/delimit-evidence"
+EVIDENCE_DIR="/run/hirearchy-evidence"
 
-export GIT_DIR="/opt/delimit/repo-template/.git"
+export GIT_DIR="/opt/hirearchy/repo-template/.git"
 export GIT_WORK_TREE="/workspace"
 export GIT_OBJECT_DIRECTORY="${EVIDENCE_DIR}/objects"
-export GIT_ALTERNATE_OBJECT_DIRECTORIES="/opt/delimit/repo-template/.git/objects"
+export GIT_ALTERNATE_OBJECT_DIRECTORIES="/opt/hirearchy/repo-template/.git/objects"
 
 # Output numstat and raw patch between two tree hashes
 git diff --numstat "${BEFORE_TREE}" "${AFTER_TREE}"
-echo "---DELIMIT_DIFF_BOUNDARY---"
+echo "---HIREARCHY_DIFF_BOUNDARY---"
 git diff "${BEFORE_TREE}" "${AFTER_TREE}"
 ```
 
@@ -337,10 +337,10 @@ Status checks are evaluated **inside** the lock, preventing mutations from slipp
 
 ## 10. Platform Failure Semantics
 
-Delimit explicitly accounts for potential capture failures without fabricating state or hiding evidence gaps:
+Hirearchy Software explicitly accounts for potential capture failures without fabricating state or hiding evidence gaps:
 
 1. **Pre-Command Capture Failure:**
-   - If `delimit-capture-tree.sh` fails before a candidate command runs:
+   - If `hirearchy-capture-tree.sh` fails before a candidate command runs:
    - **Action:** Abort immediately. Do **not** execute candidate code.
    - **Response:** Return HTTP 500 `PLATFORM_CAPTURE_FAILED`.
 2. **Post-Command Capture Failure:**
@@ -364,7 +364,7 @@ Delimit explicitly accounts for potential capture failures without fabricating s
 
 ### Retention Model: Option A (Hashes as Integrity Identifiers)
 
-- Intermediate full patches are not guaranteed to be reconstructable after sandbox teardown because `/run/delimit-evidence/objects` is destroyed with the container.
+- Intermediate full patches are not guaranteed to be reconstructable after sandbox teardown because `/run/hirearchy-evidence/objects` is destroyed with the container.
 - The stored event preserves:
   - `beforeTree`: 40-character SHA.
   - `afterTree`: 40-character SHA.
@@ -457,7 +457,7 @@ export type ReconstructionItem =
 ### 13.1 Mandatory Acceptance Cases
 
 1. **Immutable Baseline Integrity:**
-   - Verify `/opt/delimit/repo-template/.git` is mounted read-only.
+   - Verify `/opt/hirearchy/repo-template/.git` is mounted read-only.
    - Verify candidate attempts to write to it fail with `Read-only file system`.
 2. **Candidate `.git` Destruction:**
    - Candidate executes `rm -rf /workspace/.git`.
@@ -469,12 +469,12 @@ export type ReconstructionItem =
      echo 'inventory/**' >> .gitignore
      echo 'important candidate code' > inventory/new_logic.py
      ```
-   - Delimit still records `inventory/new_logic.py` in `WORKSPACE_CHANGED`, tree hashes, and final submission diff.
+   - Hirearchy Software still records `inventory/new_logic.py` in `WORKSPACE_CHANGED`, tree hashes, and final submission diff.
    - Platform noise (nested `__pycache__`, `.pytest_cache`, logs) remains excluded.
 4. **Evidence Scratch Isolation:**
-   - Candidate command attempts to inspect `/run/delimit-evidence`:
+   - Candidate command attempts to inspect `/run/hirearchy-evidence`:
      ```sh
-     ls -la /run/delimit-evidence
+     ls -la /run/hirearchy-evidence
      ```
    - Command exits non-zero with `Permission denied`.
    - Candidate cannot traverse, list, read, modify, or delete temporary index files or evidence Git objects.
@@ -483,11 +483,11 @@ export type ReconstructionItem =
      ```sh
      python3 -c 'import time, os; [time.sleep(0.01) for _ in range(1000)]' &
      ```
-   - Delimit executes file saves and commands.
+   - Hirearchy Software executes file saves and commands.
    - Evidence capture completes cleanly because zero evidence files exist in `/tmp`.
 6. **Exception-Safe Ephemeral Index Cleanup:**
    - Simulate a Git failure during capture.
-   - Verify that the trap fires and no `idx_*` file remains in `/run/delimit-evidence`.
+   - Verify that the trap fires and no `idx_*` file remains in `/run/hirearchy-evidence`.
 7. **Revert Behavior:**
    - Candidate modifies `inventory/service.py` (`WORKSPACE_CHANGED` emitted).
    - Candidate restores `inventory/service.py` to baseline (`WORKSPACE_CHANGED` emitted).
@@ -526,7 +526,7 @@ export type ReconstructionItem =
 10. **Step 8:** Run `redis-cli del "stock:wh-east-01:PROD-1001"`.
 11. **Step 9:** Run `pytest` in command console (all 3 tests pass).
 12. **Step 10:** Submit session.
-13. Authenticate as Evaluator (`passcode: delimit-local-evaluator-secret`).
+13. Authenticate as Evaluator (`passcode: hirearchy-local-evaluator-secret`).
 14. Open Evaluator review page and verify:
     - Chronological timeline renders in exact alternating order:
       1. `SESSION_ACTIVATED`
@@ -551,9 +551,9 @@ export type ReconstructionItem =
 At each checkpoint, the dev server remains running on `http://localhost:3000` with direct verification URLs:
 
 - **Checkpoint 1: Protected Evidence Store & Browser Save Capture**
-  - Candidate saves file; verify `WORKSPACE_CHANGED` event is logged with `beforeTree` and `afterTree` hashes using `/run/delimit-evidence/objects` and read-only baseline `/opt/delimit/repo-template/.git`.
+  - Candidate saves file; verify `WORKSPACE_CHANGED` event is logged with `beforeTree` and `afterTree` hashes using `/run/hirearchy-evidence/objects` and read-only baseline `/opt/hirearchy/repo-template/.git`.
 - **Checkpoint 2: Ephemeral Shadow Index & Command Mutation Capture**
-  - Candidate runs `sed -i ...`; verify ephemeral index in `/run/delimit-evidence` is deleted and `WORKSPACE_CHANGED` event is logged with causative `commandId`.
+  - Candidate runs `sed -i ...`; verify ephemeral index in `/run/hirearchy-evidence` is deleted and `WORKSPACE_CHANGED` event is logged with causative `commandId`.
 - **Checkpoint 3: Combined Command Execution Cards in Evaluator**
   - Evaluator view folds correlated `COMMAND_STARTED` and `COMMAND_FINISHED` events into single execution cards.
 - **Checkpoint 4: Interleaved Chronological Timeline**
@@ -566,14 +566,14 @@ At each checkpoint, the dev server remains running on `http://localhost:3000` wi
 ## 16. Implementation Sequence
 
 1. **Phase 1: Sandbox Image & Adapter Evidence Store**
-   - Update Scenario 001 Dockerfile/start script to provision `/run/delimit-evidence` (mode `0700`, owner root) and install `/usr/local/bin/delimit-capture-tree.sh` (with trap cleanup) and `delimit-diff-trees.sh`.
+   - Update Scenario 001 Dockerfile/start script to provision `/run/hirearchy-evidence` (mode `0700`, owner root) and install `/usr/local/bin/hirearchy-capture-tree.sh` (with trap cleanup) and `hirearchy-diff-trees.sh`.
    - Update `DockerSandboxAdapter` with `captureWorkspaceTree` and `captureTreeDiff` executing as UID 0.
 2. **Phase 2: Event Taxonomy & Domain Models**
    - Update `session-event.ts` with `WORKSPACE_CHANGED` and `WORKSPACE_CAPTURE_FAILED`.
 3. **Phase 3: Universal Serialization & Mutation Pipeline**
    - Implement `withSessionLock` in `SessionService`.
    - Wire pre/post capture and tree diffing into `saveWorkspaceFile` and `executeCommand` with post-write capture failure semantics.
-   - Implement submission failure handling, tree consistency check, and Delimit-owned baseline diffing in `submit`.
+   - Implement submission failure handling, tree consistency check, and Hirearchy Software-owned baseline diffing in `submit`.
 4. **Phase 4: Chronological Projection Engine**
    - Implement `buildChronologicalReconstruction(session, events)` in `apps/web/src/evidence/chronological-reconstruction.ts`.
 5. **Phase 5: Evaluator Reconstruction UI**
@@ -588,8 +588,8 @@ At each checkpoint, the dev server remains running on `http://localhost:3000` wi
 
 ## 17. Definition of Done
 
-- [x] Delimit Git evidence operations use `--git-dir=/opt/delimit/repo-template/.git` with mutable objects in `/run/delimit-evidence/objects`.
-- [x] Ephemeral shadow indices are created in `/run/delimit-evidence` and trap-unlinked immediately; candidate UID 1000 cannot traverse, list, read, write, or delete files in `/run/delimit-evidence`.
+- [x] Hirearchy Software Git evidence operations use `--git-dir=/opt/hirearchy/repo-template/.git` with mutable objects in `/run/hirearchy-evidence/objects`.
+- [x] Ephemeral shadow indices are created in `/run/hirearchy-evidence` and trap-unlinked immediately; candidate UID 1000 cannot traverse, list, read, write, or delete files in `/run/hirearchy-evidence`.
 - [x] Candidate `.gitignore` edits cannot suppress candidate files from evidence capture.
 - [x] Candidate deleting `/workspace/.git` does not disrupt evidence capture or final diff generation.
 - [x] Every `WORKSPACE_CHANGED` event carries authoritative `beforeTree` and `afterTree` hashes.

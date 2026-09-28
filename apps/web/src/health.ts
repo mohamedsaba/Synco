@@ -1,9 +1,9 @@
 export type HealthStatus = Readonly<{
-  service: 'delimit-web';
+  service: 'hirearchy-web';
   status: 'ok';
 }>;
 
 export const getHealthStatus = (): HealthStatus => ({
-  service: 'delimit-web',
+  service: 'hirearchy-web',
   status: 'ok',
 });

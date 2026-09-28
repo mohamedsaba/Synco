@@ -18,9 +18,9 @@ import { SqliteSessionStore } from '../../apps/web/src/sessions/sqlite-session-s
 import { scenarioAcceptanceHistories } from './scenario-acceptance-histories';
 
 const liveEnabled =
-  process.env.DELIMIT_LIVE_NIM_ACCEPTANCE === '1' &&
+  process.env.HIREARCHY_LIVE_NIM_ACCEPTANCE === '1' &&
   Boolean(process.env.NVIDIA_API_KEY);
-const liveDirectory = '/tmp/delimit-nvidia-live-acceptance';
+const liveDirectory = '/tmp/hirearchy-nvidia-live-acceptance';
 const databasePath = path.join(liveDirectory, 'acceptance.sqlite');
 
 class CountingGenerator implements EvidenceReconstructionGenerator {

@@ -11,8 +11,8 @@ import { EvidenceReconstructionService } from './evidence-reconstruction-service
 import { SqliteEvidenceReconstructionStore } from './sqlite-evidence-reconstruction-store';
 
 const databasePath = () =>
-  process.env.DELIMIT_DB_PATH ??
-  path.join(process.cwd(), '.data/delimit.sqlite');
+  process.env.HIREARCHY_DB_PATH ??
+  path.join(process.cwd(), '.data/hirearchy.sqlite');
 
 const createStore = () => new SqliteEvidenceReconstructionStore(databasePath());
 

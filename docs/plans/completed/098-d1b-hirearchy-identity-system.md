@@ -182,7 +182,7 @@ Hirearchy uses a **wordmark-first identity** paired with an architectural signat
 3. ❌ No semantic red/green candidate evaluation or automatic pass/fail grading.
 4. ❌ No floating connection lines that lack structural alignment purpose.
 5. ❌ No outline typography used as general decorative heading text.
-6. ❌ No legacy identifiers ("Synco", "Delimit") in user-facing views.
+6. ❌ No legacy identifiers ("Hirearchy", "Hirearchy Software") in user-facing views.
 
 ---
 
@@ -313,7 +313,7 @@ Attention requires contrast. Every section is tuned to an intentional energy cur
 - Final verification passed formatting, lint, type generation, TypeScript, 649
   tests with 6 skipped, and the optimized production build. Focused homepage
   verification passed 9 tests.
-- No visible legacy `Synco` or `Delimit` name, generated Next.js development
+- No visible legacy `Hirearchy` or `Hirearchy Software` name, generated Next.js development
   file, new dependency, automated candidate judgment, score, ranking, or
   non-human hiring verdict is accepted into the frozen D1B state.
 

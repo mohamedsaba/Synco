@@ -5,7 +5,7 @@ Baseline: `bc44c75c328ef7f8a7e0f2d80dcfb677a28e9fd2` (security/s1-control-plane-
 
 ## Objective
 
-Establish the authoritative timing and lifecycle persistence foundation for Delimit candidate sessions:
+Establish the authoritative timing and lifecycle persistence foundation for Hirearchy Software candidate sessions:
 
 - Explicit duration snapshotting from scenario definitions onto sessions.
 - Backward-compatible SQLite schema migration preserving historical untimed sessions (`duration_seconds = NULL`) while backfilling historical submitted sessions to `closure_reason = 'candidate_submission'`.

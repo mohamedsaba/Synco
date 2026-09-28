@@ -27,7 +27,7 @@ describe('SqliteAiInteractionStore', () => {
       configuredModelId: defaultAiCapabilitySnapshot.configuredModelId,
       candidatePromptText: 'Explain the bug in the greeting formatter.',
       candidateContext: [{ filePath: 'src/format-greeting.ts' }],
-      delimitContext: {
+      hirearchyContext: {
         scenarioId: 'slice-1-greeting-format',
         scenarioVersion: '1.0.0',
         configurationVersion: '1.0.0',
@@ -50,7 +50,7 @@ describe('SqliteAiInteractionStore', () => {
     expect(found?.candidateContext).toEqual([
       { filePath: 'src/format-greeting.ts' },
     ]);
-    expect(found?.delimitContext?.scenarioId).toBe('slice-1-greeting-format');
+    expect(found?.hirearchyContext?.scenarioId).toBe('slice-1-greeting-format');
   });
 
   it('enforces UNIQUE(session_id, client_request_id)', () => {

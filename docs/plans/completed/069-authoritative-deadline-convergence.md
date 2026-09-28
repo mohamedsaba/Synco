@@ -55,7 +55,7 @@ preserving trusted pre-deadline manual submission admission and same-session FIF
    - Added `findActiveTimed()` — queries `ACTIVE` sessions with non-null `activated_at` and `duration_seconds`.
 
 6. **`SessionTimeoutSweeper`** (new file):
-   - `startSessionTimeoutSweeper()` registers a 1-second `setInterval` guarded by a `Symbol.for('delimit.sessionTimeoutSweeper')` global singleton key and a re-entrancy flag.
+   - `startSessionTimeoutSweeper()` registers a 1-second `setInterval` guarded by a `Symbol.for('hirearchy.sessionTimeoutSweeper')` global singleton key and a re-entrancy flag.
    - Timer is `unref()`'d so it does not keep the process alive.
 
 7. **`apps/web/instrumentation.ts`** (new file):

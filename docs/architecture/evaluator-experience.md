@@ -5,7 +5,7 @@ Slice 5.1 presents an evidence-first review rather than an analytics dashboard.
 ## Review entry and discovery
 
 `/evaluator` is the evaluator entry point. The existing single global
-`DELIMIT_EVALUATOR_KEY` produces the HTTP-only `delimit_evaluator` cookie; a
+`HIREARCHY_EVALUATOR_KEY` produces the HTTP-only `hirearchy_evaluator` cookie; a
 valid cookie is the complete current evaluator authorization scope. There is no
 evaluator identity, organization, tenant, or session-specific grant.
 
@@ -134,7 +134,7 @@ polish.
 
 Key architectural components:
 
-1. `EvaluatorHeader`: Delimit branding, session reference, scenario title, submitted status badge, deterministic elapsed duration, and `RoleLensSwitcher`.
+1. `EvaluatorHeader`: Hirearchy Software branding, session reference, scenario title, submitted status badge, deterministic elapsed duration, and `RoleLensSwitcher`.
 2. `RoleLensSwitcher`: Accessible server-rendered role-depth navigation (`<nav aria-label="Evaluator perspective">`) with native links and query-param preservation (`?depth=...`).
 3. `PlatformNotice`: Non-alarmist callouts for platform-owned limitations (such as `workspace_capture_gap`).
 4. `TaskBrief`: Immutable scenario brief, system invariants, and verification targets, with graceful fallback for legacy sessions lacking evaluation context.

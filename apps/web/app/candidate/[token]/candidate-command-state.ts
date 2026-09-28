@@ -101,6 +101,7 @@ export const commandPlatformError = (
     return 'Command could not be run because finalization has started.';
   }
   if (message) return message;
-  if (status === null) return 'Delimit could not run the command. Try again.';
-  return 'Delimit could not run the command.';
+  if (status === null)
+    return 'Hirearchy Software could not run the command. Try again.';
+  return 'Hirearchy Software could not run the command.';
 };

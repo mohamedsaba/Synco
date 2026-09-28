@@ -21,7 +21,7 @@ vi.mock('next/headers', () => ({
 const directories: string[] = [];
 
 const createFixture = () => {
-  const directory = mkdtempSync(path.join(tmpdir(), 'delimit-discovery-'));
+  const directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-discovery-'));
   directories.push(directory);
   const databasePath = path.join(directory, 'sessions.sqlite');
   const store = new SqliteSessionStore(databasePath);
@@ -56,8 +56,8 @@ describe('evaluator review discovery', () => {
   it('requires evaluator access and returns no session enumeration to an unauthorized caller', async () => {
     const { databasePath, submit } = createFixture();
     const sessionId = submit('2026-09-22T10:00:00.000Z');
-    vi.stubEnv('DELIMIT_DB_PATH', databasePath);
-    vi.stubEnv('DELIMIT_EVALUATOR_KEY', 'review-key');
+    vi.stubEnv('HIREARCHY_DB_PATH', databasePath);
+    vi.stubEnv('HIREARCHY_EVALUATOR_KEY', 'review-key');
 
     const response = await discoveryGet();
 
@@ -80,8 +80,8 @@ describe('evaluator review discovery', () => {
     const active = service.createSession().session;
     store.activate(active.candidateTokenHash, '2026-09-22T10:00:00.000Z');
     service.createSession();
-    vi.stubEnv('DELIMIT_DB_PATH', databasePath);
-    vi.stubEnv('DELIMIT_EVALUATOR_KEY', 'review-key');
+    vi.stubEnv('HIREARCHY_DB_PATH', databasePath);
+    vi.stubEnv('HIREARCHY_EVALUATOR_KEY', 'review-key');
     state.cookie = createEvaluatorCookieValue('review-key');
 
     const response = await discoveryGet();
@@ -116,8 +116,8 @@ describe('evaluator review discovery', () => {
   it('preserves evaluator-only direct session access after discovery is introduced', async () => {
     const { databasePath, submit } = createFixture();
     const sessionId = submit('2026-09-22T10:00:00.000Z');
-    vi.stubEnv('DELIMIT_DB_PATH', databasePath);
-    vi.stubEnv('DELIMIT_EVALUATOR_KEY', 'review-key');
+    vi.stubEnv('HIREARCHY_DB_PATH', databasePath);
+    vi.stubEnv('HIREARCHY_EVALUATOR_KEY', 'review-key');
 
     expect(
       (

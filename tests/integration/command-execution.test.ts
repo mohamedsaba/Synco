@@ -16,7 +16,7 @@ describe('command execution and event capture integration', () => {
   let databasePath: string;
 
   beforeEach(() => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-command-test-'));
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-command-test-'));
     databasePath = path.join(directory, 'test.sqlite');
   });
 

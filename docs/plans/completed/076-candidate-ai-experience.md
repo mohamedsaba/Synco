@@ -8,7 +8,7 @@ The panel is a local chronological conversation. A send appends a stable request
 
 ## Context truth
 
-Each request sends only the current active file's relative-path reference as candidate context. It sends neither persisted file content nor the editor's unsaved buffer. The panel shows the exact path captured for each request and says that content boundary plainly. The route separately supplies scenario ID, scenario version, and AI configuration version as Delimit metadata; no evaluator context, secret, provider choice, model choice, or hidden conversation history is sent from the browser.
+Each request sends only the current active file's relative-path reference as candidate context. It sends neither persisted file content nor the editor's unsaved buffer. The panel shows the exact path captured for each request and says that content boundary plainly. The route separately supplies scenario ID, scenario version, and AI configuration version as Hirearchy Software metadata; no evaluator context, secret, provider choice, model choice, or hidden conversation history is sent from the browser.
 
 ## Lifecycle and safety
 

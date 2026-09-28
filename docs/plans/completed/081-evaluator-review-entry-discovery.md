@@ -10,8 +10,8 @@ there is no corresponding routing or review-request workflow.
 
 ## Existing authorization model
 
-`DELIMIT_EVALUATOR_KEY` is one global credential. `POST /api/evaluator/access`
-validates it and stores a SHA-256-derived `delimit_evaluator` value in an
+`HIREARCHY_EVALUATOR_KEY` is one global credential. `POST /api/evaluator/access`
+validates it and stores a SHA-256-derived `hirearchy_evaluator` value in an
 HTTP-only, `SameSite=Strict` cookie. Every evaluator evidence route validates
 that cookie against the configured credential. The repository has no evaluator
 identity, organization, tenant, scenario, or session-specific authorization

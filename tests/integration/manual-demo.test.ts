@@ -16,7 +16,7 @@ describe('Manual End-to-End Acceptance Demo (17 steps)', () => {
   let databasePath: string;
 
   beforeEach(() => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-demo-'));
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-demo-'));
     databasePath = path.join(directory, 'demo.sqlite');
   });
 

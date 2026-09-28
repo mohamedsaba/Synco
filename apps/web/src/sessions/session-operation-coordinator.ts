@@ -17,7 +17,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
  */
 
 export const GLOBAL_SESSION_COORDINATOR_KEY = Symbol.for(
-  'delimit.sessionOperationCoordinator',
+  'hirearchy.sessionOperationCoordinator',
 );
 
 export class SessionOperationCoordinator {

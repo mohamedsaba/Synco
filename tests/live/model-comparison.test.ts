@@ -21,10 +21,10 @@ import { SessionService } from '../../apps/web/src/sessions/session-service';
 import { SqliteSessionStore } from '../../apps/web/src/sessions/sqlite-session-store';
 import { scenarioAcceptanceHistories } from './scenario-acceptance-histories';
 
-const outputDirectory = '/tmp/delimit-model-experiment';
+const outputDirectory = '/tmp/hirearchy-model-experiment';
 const databasePath = path.join(outputDirectory, 'scenario-a.sqlite');
 const experimentEnabled =
-  process.env.DELIMIT_MODEL_EXPERIMENT === '1' &&
+  process.env.HIREARCHY_MODEL_EXPERIMENT === '1' &&
   Boolean(process.env.NVIDIA_API_KEY) &&
   Boolean(process.env.OPENROUTER_KEY);
 
@@ -92,10 +92,10 @@ const candidates: readonly Candidate[] = [
   },
 ];
 
-const selectedCandidates = process.env.DELIMIT_MODEL_EXPERIMENT_MODEL
+const selectedCandidates = process.env.HIREARCHY_MODEL_EXPERIMENT_MODEL
   ? candidates.filter(
       (candidate) =>
-        candidate.modelId === process.env.DELIMIT_MODEL_EXPERIMENT_MODEL,
+        candidate.modelId === process.env.HIREARCHY_MODEL_EXPERIMENT_MODEL,
     )
   : candidates;
 
@@ -245,8 +245,8 @@ describe.skipIf(!experimentEnabled)('Slice 5 model comparison', () => {
         }
       }
 
-      const resultFileName = process.env.DELIMIT_MODEL_EXPERIMENT_MODEL
-        ? `results-${process.env.DELIMIT_MODEL_EXPERIMENT_MODEL.replace(/[^a-z0-9]+/gi, '-')}.json`
+      const resultFileName = process.env.HIREARCHY_MODEL_EXPERIMENT_MODEL
+        ? `results-${process.env.HIREARCHY_MODEL_EXPERIMENT_MODEL.replace(/[^a-z0-9]+/gi, '-')}.json`
         : 'results.json';
       writeFileSync(
         path.join(outputDirectory, resultFileName),

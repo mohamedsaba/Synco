@@ -1,4 +1,4 @@
-# 059 — Delimit Slice 6D: AI Evidence Reconstruction Integration
+# 059 — Hirearchy Software Slice 6D: AI Evidence Reconstruction Integration
 
 Status: completed.
 Authorized: 2026-09-18.
@@ -6,7 +6,7 @@ Baseline: `12588c82b516c89d847d0630178c241eb9533a54` (origin/main).
 
 ## Objective
 
-Integrate candidate AI interaction events into Delimit's evidence reconstruction pipeline while preserving the frozen epistemic contract:
+Integrate candidate AI interaction events into Hirearchy Software's evidence reconstruction pipeline while preserving the frozen epistemic contract:
 
 - Observable facts only;
 - AI use is neutral;

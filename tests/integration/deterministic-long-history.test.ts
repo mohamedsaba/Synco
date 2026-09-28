@@ -105,10 +105,10 @@ describe('deterministic long-history acceptance', () => {
   });
 
   const reconstruct = async (events: readonly SessionEvent[], diff = '') => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-long-history-'));
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-long-history-'));
     const service = new EvidenceReconstructionService(
       new SqliteEvidenceReconstructionStore(
-        path.join(directory, 'delimit.sqlite'),
+        path.join(directory, 'hirearchy.sqlite'),
       ),
       new DeterministicEvidenceReconstructionGenerator(),
       () => ({

@@ -1,4 +1,4 @@
-# Delimit Evaluator Experience v2 — architecture feasibility audit
+# Hirearchy Software Evaluator Experience v2 — architecture feasibility audit
 
 Date: 2026-09-16. Scope: repository-grounded analysis only. No product implementation, visual redesign, Slice 6, reconstruction changes, or test implementation.
 

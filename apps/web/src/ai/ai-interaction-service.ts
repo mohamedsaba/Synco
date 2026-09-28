@@ -14,7 +14,7 @@ import {
   AiInteractionError,
   boundExcerpt,
   type CandidateContextAttachment,
-  type DelimitContextMetadata,
+  type HirearchyContextMetadata,
   type ExecuteAiInteractionResult,
   isValidAiInteractionTransition,
   MAXIMUM_PROMPT_LENGTH,
@@ -33,14 +33,14 @@ export type AdmitAiInteractionParams = Readonly<{
   clientRequestId: string;
   candidatePromptText: string;
   candidateContext?: readonly CandidateContextAttachment[];
-  delimitContext?: DelimitContextMetadata;
+  hirearchyContext?: HirearchyContextMetadata;
 }>;
 
 export type ExecuteAiInteractionParams = Readonly<{
   clientRequestId: string;
   candidatePromptText: string;
   candidateContext?: readonly CandidateContextAttachment[];
-  delimitContext?: DelimitContextMetadata;
+  hirearchyContext?: HirearchyContextMetadata;
 }>;
 
 export type CompleteAiInteractionParams = Readonly<{
@@ -207,7 +207,7 @@ export class AiInteractionService {
           configuredModelId: snapshot.configuredModelId,
           candidatePromptText: params.candidatePromptText,
           candidateContext: params.candidateContext,
-          delimitContext: params.delimitContext,
+          hirearchyContext: params.hirearchyContext,
           createdAt,
         };
 
@@ -227,7 +227,7 @@ export class AiInteractionService {
             candidateInputExcerpt: boundExcerpt(params.candidatePromptText),
             candidateInputBytes: inputBytes,
             candidateContext: params.candidateContext,
-            delimitContext: params.delimitContext,
+            hirearchyContext: params.hirearchyContext,
           },
         });
 
@@ -691,7 +691,7 @@ export class AiInteractionService {
       configuredModelId: admission.interaction.configuredModelId,
       candidateInput: params.candidatePromptText,
       candidateContext: params.candidateContext,
-      delimitContext: params.delimitContext,
+      hirearchyContext: params.hirearchyContext,
     };
 
     try {
@@ -821,8 +821,8 @@ export const getAiInteractionService = (
 ) => {
   const resolvedPath =
     databasePath ??
-    process.env.DELIMIT_DB_PATH ??
-    path.join(process.cwd(), '.data/delimit.sqlite');
+    process.env.HIREARCHY_DB_PATH ??
+    path.join(process.cwd(), '.data/hirearchy.sqlite');
 
   const sessionStore =
     options?.sessionStore ?? new SqliteSessionStore(resolvedPath);

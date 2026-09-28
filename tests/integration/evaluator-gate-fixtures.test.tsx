@@ -126,8 +126,8 @@ describe('evaluator gate fixture consistency', () => {
         expect(record.content).toEqual(fixture.record.content);
         const view = buildReconstructionView(store, entry.sessionId);
         const review = buildEvaluatorReviewPresentation(evidence, view);
-        vi.stubEnv('DELIMIT_DB_PATH', dbPath);
-        vi.stubEnv('DELIMIT_EVALUATOR_KEY', 'fixture-evaluator-key');
+        vi.stubEnv('HIREARCHY_DB_PATH', dbPath);
+        vi.stubEnv('HIREARCHY_EVALUATOR_KEY', 'fixture-evaluator-key');
         const defaultHtml = renderToStaticMarkup(
           await EvidencePage({
             params: Promise.resolve({ sessionId: entry.sessionId }),
@@ -161,7 +161,7 @@ describe('evaluator gate fixture consistency', () => {
           expect(defaultHtml).toContain('Activity capture incomplete');
           expect(defaultHtml).toContain('Platform recording limitation');
           expect(defaultHtml).toContain(
-            'Delimit did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
+            'Hirearchy Software did not capture part of the workspace history during this interval. Later recorded activity and the frozen submitted diff remain available.',
           );
         }
         if (caseId === 'A')

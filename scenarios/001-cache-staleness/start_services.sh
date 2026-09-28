@@ -2,8 +2,8 @@
 set -e
 
 # 1. Populate /workspace from pre-baked template
-if [ -d "/opt/delimit/repo-template" ]; then
-    cp -a /opt/delimit/repo-template/. /workspace/
+if [ -d "/opt/hirearchy/repo-template" ]; then
+    cp -a /opt/hirearchy/repo-template/. /workspace/
 fi
 
 # 2. Populate PostgreSQL data directory in /tmp/pgdata
@@ -15,11 +15,11 @@ fi
 
 # 3. Start PostgreSQL
 postgres -D /tmp/pgdata -k /tmp -h 127.0.0.1 -p 5432 > /tmp/postgres.log 2>&1 &
-until pg_isready -h 127.0.0.1 -p 5432 -U delimit -q; do
+until pg_isready -h 127.0.0.1 -p 5432 -U hirearchy -q; do
     sleep 0.1
 done
 
-createdb -h 127.0.0.1 -p 5432 -U delimit inventory 2>/dev/null || true
+createdb -h 127.0.0.1 -p 5432 -U hirearchy inventory 2>/dev/null || true
 
 # 4. Start Redis
 redis-server --daemonize yes --port 6379 --bind 127.0.0.1 --dir /tmp --logfile /tmp/redis.log

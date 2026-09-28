@@ -16,7 +16,7 @@ export const scenarioAcceptanceHistories: Readonly<
   A: async (service, token) => {
     await service.executeCommand(
       token,
-      "psql -h 127.0.0.1 -U delimit -d inventory -t -A -c \"SELECT quantity FROM inventory WHERE warehouse_id='WH-EAST-01' AND product_id='PROD-1001';\"",
+      "psql -h 127.0.0.1 -U hirearchy -d inventory -t -A -c \"SELECT quantity FROM inventory WHERE warehouse_id='WH-EAST-01' AND product_id='PROD-1001';\"",
     );
     await service.executeCommand(
       token,
@@ -37,7 +37,7 @@ export const scenarioAcceptanceHistories: Readonly<
   C: async (service, token) => {
     await service.executeCommand(
       token,
-      "psql -h 127.0.0.1 -U delimit -d inventory -t -A -c \"SELECT quantity FROM inventory WHERE warehouse_id='WH-EAST-01' AND product_id='PROD-1001';\"",
+      "psql -h 127.0.0.1 -U hirearchy -d inventory -t -A -c \"SELECT quantity FROM inventory WHERE warehouse_id='WH-EAST-01' AND product_id='PROD-1001';\"",
     );
     await service.executeCommand(
       token,

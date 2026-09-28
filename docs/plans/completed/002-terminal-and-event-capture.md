@@ -6,7 +6,7 @@ Deliver the smallest next vertical slice after Slice 1: a candidate executes com
 
 ## Why this slice exists
 
-In Slice 1, Delimit proved that a candidate could edit a permitted file and produce a deterministic final diff. However, software engineering work is not merely a final file state; it is an active investigation process involving commands, exploration, and verification.
+In Slice 1, Hirearchy Software proved that a candidate could edit a permitted file and produce a deterministic final diff. However, software engineering work is not merely a final file state; it is an active investigation process involving commands, exploration, and verification.
 
 Slice 2 establishes the core boundary that makes candidate work observable:
 
@@ -37,7 +37,7 @@ This proves that candidate actions can be captured with strict provenance and se
 Vertical Slice 1 is committed (`4f8d709`) and fully verified:
 
 - Web modular monolith on Next.js 16 (App Router) and TypeScript.
-- SQLite database (`.data/delimit.sqlite`) stores `assessment_sessions` with statuses `CREATED`, `ACTIVE`, `SUBMITTED`.
+- SQLite database (`.data/hirearchy.sqlite`) stores `assessment_sessions` with statuses `CREATED`, `ACTIVE`, `SUBMITTED`.
 - Candidate edits one file in a textarea (`/candidate/[token]`).
 - Evaluator diff view (`/evaluator/sessions/[sessionId]`) displays unified diff derived from immutable original and submitted snapshots.
 - No terminal, no container sandbox, and no event stream exist in code today.
@@ -55,7 +55,7 @@ Vertical Slice 1 is committed (`4f8d709`) and fully verified:
    - Single container per ACTIVE session: created upon activation, shared across all commands run during that session, preserving working changes and command side-effects in `/workspace`.
    - Teardown on session submission, timeout, or terminal session failure.
 2. **Hardened Local Container Boundary:**
-   - Unprivileged non-root user (`USER delimit`).
+   - Unprivileged non-root user (`USER hirearchy software`).
    - `--network none` (isolated from internal host networks and the public Internet).
    - Strict resource limits: 1.0 CPU (`--cpus=1.0`), 512MB RAM (`--memory=512m`), 64 PIDs (`--pids-limit=64`).
    - Read-only root filesystem (`--read-only`), with a dedicated writable volume mounted at `/workspace` and a bounded tmpfs mounted at `/tmp`.
@@ -70,7 +70,7 @@ Vertical Slice 1 is committed (`4f8d709`) and fully verified:
    - On timeout, the server forcefully terminates the command and its process group inside the sandbox container.
    - The timeout outcome is recorded factually in the event stream (`timedOut: true`, `exitCode: null`), and the sandbox remains in a known usable state.
 5. **Append-Only Event Persistence with Correlated Lifecycle:**
-   - New `assessment_events` table in SQLite (`.data/delimit.sqlite`).
+   - New `assessment_events` table in SQLite (`.data/hirearchy.sqlite`).
    - Server-assigned strictly monotonic sequence counter per session allocated inside an immediate write transaction.
    - Stable `commandId` explicitly correlating `COMMAND_STARTED` and `COMMAND_FINISHED` lifecycle pairs.
 6. **Distinction Between Candidate Command Failure and Platform Failure:**
@@ -94,9 +94,9 @@ Vertical Slice 1 is committed (`4f8d709`) and fully verified:
 ## Proposed architecture
 
 ```text
-Browser (Candidate)                       Delimit Web Application (Server)                 Docker Runtime (Sandbox)
+Browser (Candidate)                       Hirearchy Software Web Application (Server)                 Docker Runtime (Sandbox)
         │                                                │                                             │
-        ├─── POST .../activate ─────────────────────────>│── 1. Create container delimit-<sessionId> ─>│
+        ├─── POST .../activate ─────────────────────────>│── 1. Create container hirearchy-<sessionId> ─>│
         │                                                │── 2. Run readiness probe (echo/ping) ──────>│
         │                                                │<── 3. Readiness OK ─────────────────────────┤
         │                                                │── 4. Atomically set status=ACTIVE, startedAt
@@ -113,7 +113,7 @@ Browser (Candidate)                       Delimit Web Application (Server)      
         │<── { commandId, exitCode, timedOut, ... } ─────│
         │
         ├─── POST .../submit ───────────────────────────>│── 1. Atomically set status=SUBMITTED
-        │                                                │── 2. docker rm -f delimit-<sessionId> ─────>│
+        │                                                │── 2. docker rm -f hirearchy-<sessionId> ─────>│
         │<── { status: 'SUBMITTED' } ────────────────────│
         │
 Browser (Evaluator)
@@ -124,13 +124,13 @@ Browser (Evaluator)
 
 ## Sandbox boundary
 
-- **Session-Scoped Lifetime:** Exactly one container per `ACTIVE` session (`delimit-sandbox-<sessionId>`).
+- **Session-Scoped Lifetime:** Exactly one container per `ACTIVE` session (`hirearchy-sandbox-<sessionId>`).
   - Container is started and verified before session status becomes `ACTIVE`.
   - Multiple successive commands execute inside this same container via `docker exec`. Any filesystem edits, installed local dependencies, or environment changes made by a command in `/workspace` persist across commands while the session is ACTIVE.
   - Container is stopped and removed (`docker rm -f`) atomically on session submission, timeout, or terminal session failure.
   - Persisted events and session metadata remain permanently in SQLite after the sandbox container is destroyed.
 - **Hardened Container Configuration:**
-  - Non-root user: container runs as unprivileged user `delimit` (UID 1000).
+  - Non-root user: container runs as unprivileged user `hirearchy software` (UID 1000).
   - Network isolation: `--network none`.
   - Resource bounds: `--memory=512m --cpus=1.0 --pids-limit=64`.
   - Filesystem: root is read-only (`--read-only`), session workspace mounted at `/workspace` (writable), bounded tmpfs at `/tmp` (`--tmpfs /tmp:rw,noexec,nosuid,size=64m`).
@@ -224,7 +224,7 @@ Host memory usage is bounded to $O(1)$ regardless of output length.
 
 ## Persistence changes
 
-Add an `assessment_events` table to `.data/delimit.sqlite`:
+Add an `assessment_events` table to `.data/hirearchy.sqlite`:
 
 ```sql
 CREATE TABLE IF NOT EXISTS assessment_events (
@@ -261,7 +261,7 @@ CREATE INDEX IF NOT EXISTS idx_events_session_sequence
 
 ## Security constraints
 
-- **Untrusted code execution:** Runs exclusively inside Docker as non-root user `delimit`.
+- **Untrusted code execution:** Runs exclusively inside Docker as non-root user `hirearchy software`.
 - **Read-only root & minimal capabilities:** `--read-only`, `--cap-drop=ALL`, `--security-opt=no-new-privileges:true`.
 - **No network:** `--network none`.
 - **No host leakage:** Zero host application secrets, no Docker socket mounted inside the container.
@@ -313,7 +313,7 @@ CREATE INDEX IF NOT EXISTS idx_events_session_sequence
 2. Create candidate session from `/`.
 3. Open candidate URL, verify workspace displays brief and command console in `CREATED` state.
 4. Click "Start Session":
-   - Verify sandbox container starts (`docker ps` shows `delimit-sandbox-<sessionId>`).
+   - Verify sandbox container starts (`docker ps` shows `hirearchy-sandbox-<sessionId>`).
    - Verify session transitions to `ACTIVE` with timer running.
 5. In command console:
    - Run `echo "hello" > /workspace/shared.txt` $\rightarrow$ verify exit code 0.

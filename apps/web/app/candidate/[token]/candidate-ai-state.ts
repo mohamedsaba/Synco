@@ -127,7 +127,7 @@ export const resolveSubmissionResult = (
     if (typeof data.responseText !== 'string') {
       return fail(
         state,
-        'Delimit received an incomplete AI result. Try again.',
+        'Hirearchy Software received an incomplete AI result. Try again.',
       );
     }
     const nextState = updateCurrentEntry(state, {
@@ -144,7 +144,7 @@ export const resolveSubmissionResult = (
   ) {
     return fail(
       state,
-      'This request may already be in progress. Delimit will not send it again automatically.',
+      'This request may already be in progress. Hirearchy Software will not send it again automatically.',
       'ambiguous',
     );
   }
@@ -200,7 +200,8 @@ export const resolveSubmissionResult = (
 
 export const resolveSubmissionNetworkError = (
   state: CandidateAiState,
-): CandidateAiState => fail(state, 'Delimit could not reach AI. Try again.');
+): CandidateAiState =>
+  fail(state, 'Hirearchy Software could not reach AI. Try again.');
 
 export const buildAiInteractionPayload = (
   state: CandidateAiState,

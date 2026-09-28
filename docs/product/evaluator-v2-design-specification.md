@@ -1,4 +1,4 @@
-# Delimit Evaluator Experience v2: Final Reconciled Specification
+# Hirearchy Software Evaluator Experience v2: Final Reconciled Specification
 
 ---
 
@@ -54,7 +54,7 @@
 
 ### 1. Design Thesis
 
-**"Delimit carries the technical complexity so the evaluator doesn’t have to—without stating or implying anything that exceeds observable evidence."**
+**"Hirearchy Software carries the technical complexity so the evaluator doesn’t have to—without stating or implying anything that exceeds observable evidence."**
 
 Evaluator v2 decouples high-fidelity technical evidence from presentation complexity while strictly preserving epistemic boundaries:
 

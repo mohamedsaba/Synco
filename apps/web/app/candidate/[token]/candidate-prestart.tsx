@@ -129,7 +129,7 @@ export const CandidatePrestart = ({
       <main className="workspace-shell" aria-labelledby="prestart-title">
         <header className="workspace-header">
           <div>
-            <p className="eyebrow">Delimit Assessment</p>
+            <p className="eyebrow">Hirearchy Software Assessment</p>
             <p className="session-reference">Session {session.id}</p>
           </div>
           <span className="status">Ready</span>
@@ -181,7 +181,7 @@ export const CandidatePrestart = ({
       <main className="workspace-shell" aria-labelledby="prestart-title">
         <header className="workspace-header">
           <div>
-            <p className="eyebrow">Delimit Assessment</p>
+            <p className="eyebrow">Hirearchy Software Assessment</p>
             <p className="session-reference">Session {session.id}</p>
           </div>
           <span className="status">Orientation</span>
@@ -319,7 +319,7 @@ export const CandidatePrestart = ({
     <main className="workspace-shell" aria-labelledby="prestart-title">
       <header className="workspace-header">
         <div>
-          <p className="eyebrow">Delimit Candidate Workspace</p>
+          <p className="eyebrow">Hirearchy Software Candidate Workspace</p>
           <p className="session-reference">Session {session.id}</p>
         </div>
         <span className="status">Pre-start</span>

@@ -1,6 +1,6 @@
-# Synco / Delimit
+# Hirearchy / Hirearchy Software
 
-Delimit is an early Synco product for observing realistic engineering work. A candidate works in a controlled environment, the system records observable events, and an evaluator reviews a chronological reconstruction and underlying evidence. The product does not score candidates or make hiring decisions.
+Hirearchy Software is an early Hirearchy product for observing realistic engineering work. A candidate works in a controlled environment, the system records observable events, and an evaluator reviews a chronological reconstruction and underlying evidence. The product does not score candidates or make hiring decisions.
 
 This repository contains the product and architecture baseline plus five completed vertical slices spanning candidate work, authoritative evidence capture, and deterministic evaluator reconstruction.
 
@@ -14,7 +14,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Set a long local `DELIMIT_EVALUATOR_KEY` in `.env.local`, then open `http://localhost:3000` and create a candidate session. Slice 5 Candidate Work is deterministic and needs no AI provider key. Runtime sessions are stored in `.data/delimit.sqlite` by default. A diagnostic endpoint is available at `GET /api/health`.
+Set a long local `HIREARCHY_EVALUATOR_KEY` in `.env.local`, then open `http://localhost:3000` and create a candidate session. Slice 5 Candidate Work is deterministic and needs no AI provider key. Runtime sessions are stored in `.data/hirearchy.sqlite` by default. A diagnostic endpoint is available at `GET /api/health`.
 
 The repository retains server-only NVIDIA NIM and OpenRouter adapters for explicit synthetic model experiments. Set `NVIDIA_API_KEY` or `OPENROUTER_KEY` only when intentionally running those credential-gated experiments. They are not connected to the application reconstruction runtime, and neither key is sent to the browser or candidate sandbox. Do not use real applicant, personal, sensitive, or confidential data with experimental providers without a separate privacy/provider review.
 

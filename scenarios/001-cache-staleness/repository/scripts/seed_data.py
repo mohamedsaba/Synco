@@ -5,7 +5,7 @@ import redis
 DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
 DB_PORT = int(os.getenv("DB_PORT", "5432"))
 DB_NAME = os.getenv("DB_NAME", "inventory")
-DB_USER = os.getenv("DB_USER", "delimit")
+DB_USER = os.getenv("DB_USER", "hirearchy")
 DB_PASS = os.getenv("DB_PASS", "")
 
 REDIS_HOST = os.getenv("REDIS_HOST", "127.0.0.1")

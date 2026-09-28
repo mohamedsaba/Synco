@@ -12,7 +12,7 @@ import { SqliteSessionStore } from '../../apps/web/src/sessions/sqlite-session-s
 
 describe('Scenario 001 Integration & Lifecycle', () => {
   it('runs full Scenario 001 incident lifecycle: seed verification, reproduction, fix, verification, and diff capture', async () => {
-    const tempDir = mkdtempSync(path.join(tmpdir(), 'delimit-scenario001-'));
+    const tempDir = mkdtempSync(path.join(tmpdir(), 'hirearchy-scenario001-'));
     const dbPath = path.join(tempDir, 'test.sqlite');
     const store = new SqliteSessionStore(dbPath);
     const eventStore = new SqliteEventStore(dbPath);
@@ -63,7 +63,7 @@ describe('Scenario 001 Integration & Lifecycle', () => {
       // PostgreSQL has quantity = 150
       const dbCheck = await service.executeCommand(
         candidateToken,
-        "psql -h 127.0.0.1 -U delimit -d inventory -t -A -c \"SELECT quantity FROM inventory WHERE warehouse_id='WH-EAST-01' AND product_id='PROD-1001';\"",
+        "psql -h 127.0.0.1 -U hirearchy -d inventory -t -A -c \"SELECT quantity FROM inventory WHERE warehouse_id='WH-EAST-01' AND product_id='PROD-1001';\"",
       );
       expect(dbCheck.exitCode).toBe(0);
       expect(dbCheck.stdoutPreview.trim()).toBe('150');

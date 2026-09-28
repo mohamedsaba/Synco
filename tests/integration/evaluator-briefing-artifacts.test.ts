@@ -27,14 +27,14 @@ const manifest = JSON.parse(
   generatorVersion: string;
 }>;
 
-it.skipIf(process.env.DELIMIT_CAPTURE_BRIEFING_C !== '1')(
+it.skipIf(process.env.HIREARCHY_CAPTURE_BRIEFING_C !== '1')(
   'preserves the existing original C record without rerunning or rewriting its history',
   async () => {
     const entry = manifest.find((entry) => entry.caseId === 'C')!;
-    const directory = mkdtempSync(path.join(tmpdir(), 'delimit-briefing-c-'));
+    const directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-briefing-c-'));
     const copy = path.join(directory, 'original-copy.sqlite');
     const sourcePath =
-      '/tmp/delimit-deterministic-acceptance/acceptance.sqlite';
+      '/tmp/hirearchy-deterministic-acceptance/acceptance.sqlite';
     const source = new Database(sourcePath, { readonly: true });
     try {
       await source.backup(copy);
@@ -112,7 +112,7 @@ describe('serialized briefing review artifacts', () => {
       };
       const filename = `docs/artifacts/evaluator-briefing/${caseId}.json`;
       const reviewFilename = `docs/artifacts/evaluator-briefing/${caseId}.md`;
-      if (process.env.DELIMIT_WRITE_BRIEFING_ARTIFACTS === '1') {
+      if (process.env.HIREARCHY_WRITE_BRIEFING_ARTIFACTS === '1') {
         writeFileSync(filename, JSON.stringify(output, null, 2) + '\n');
         writeFileSync(reviewFilename, renderBriefingReview(caseId, briefing));
       } else {

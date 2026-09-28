@@ -68,15 +68,15 @@ class GapSandbox extends DockerSandboxAdapter {
   }
 }
 
-const enabled = process.env.DELIMIT_GATE_FIXTURES === '1';
+const enabled = process.env.HIREARCHY_GATE_FIXTURES === '1';
 describe.skipIf(!enabled)('real evaluator gate fixture capture', () => {
   it('captures only missing A/D/F/G and manifests existing B/C/E without relabeling', async () => {
     const directory =
-      process.env.DELIMIT_GATE_OUTPUT ?? '/tmp/delimit-evaluator-gate';
+      process.env.HIREARCHY_GATE_OUTPUT ?? '/tmp/hirearchy-evaluator-gate';
     mkdirSync(directory, { recursive: true });
     const dbPath = path.join(directory, 'gate.sqlite');
     copyFileSync(
-      '/tmp/delimit-deterministic-acceptance/acceptance.sqlite',
+      '/tmp/hirearchy-deterministic-acceptance/acceptance.sqlite',
       dbPath,
     );
     const sandbox = new GapSandbox();
@@ -91,7 +91,7 @@ describe.skipIf(!enabled)('real evaluator gate fixture capture', () => {
     );
     const existing = JSON.parse(
       readFileSync(
-        '/tmp/delimit-deterministic-acceptance/results.json',
+        '/tmp/hirearchy-deterministic-acceptance/results.json',
         'utf8',
       ),
     ) as { label: string; sessionId: string }[];

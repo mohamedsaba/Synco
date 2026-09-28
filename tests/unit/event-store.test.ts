@@ -11,7 +11,7 @@ describe('SqliteEventStore', () => {
   let databasePath: string;
 
   beforeEach(() => {
-    directory = mkdtempSync(path.join(tmpdir(), 'delimit-event-test-'));
+    directory = mkdtempSync(path.join(tmpdir(), 'hirearchy-event-test-'));
     databasePath = path.join(directory, 'events.sqlite');
   });
 

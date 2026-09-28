@@ -1,18 +1,18 @@
 **SOFTWARE REQUIREMENTS<br />
 SPECIFICATION**
 
-**Synco**
+**Hirearchy**
 
 **Engineering Assessment Product**
 
-Working product name: Delimit
+Working product name: Hirearchy Software
 
 | **Document** | Software Requirements Specification (SRS) |
 | ------------ | ----------------------------------------- |
 | **Version**  | 1.0                                       |
 | **Status**   | Prototype / MVP Baseline                  |
 | **Date**     | 14 September 2026                         |
-| **Owner**    | Synco                                     |
+| **Owner**    | Hirearchy                                 |
 
 **Baseline principle**
 
@@ -80,7 +80,7 @@ Appendix D. Traceability Matrix
 
 ## 1.1 Purpose
 
-This SRS specifies the requirements for Synco's first engineering-assessment product, currently referred to as Delimit. The product allows a candidate to perform a realistic engineering incident inside a controlled workspace containing a code editor, terminal, tests, and an AI assistant. The system captures observable work events and reconstructs the session into a compact, auditable account for a human evaluator.
+This SRS specifies the requirements for Hirearchy's first engineering-assessment product, currently referred to as Hirearchy Software. The product allows a candidate to perform a realistic engineering incident inside a controlled workspace containing a code editor, terminal, tests, and an AI assistant. The system captures observable work events and reconstructs the session into a compact, auditable account for a human evaluator.
 
 ## 1.2 Product Intent
 
@@ -449,7 +449,7 @@ The candidate workspace should feel like a working environment, not a questionna
 | COMMAND_STARTED       | command_id, command, cwd                                                                    |
 | COMMAND_FINISHED      | command_id, exit_code, output_ref, duration                                                 |
 | TEST_RUN              | command_id or test_run_id, framework if known, result summary                               |
-| AI_REQUEST_STARTED    | interactionId, clientRequestId, provider, model, prompt, candidateContext, delimitContext   |
+| AI_REQUEST_STARTED    | interactionId, clientRequestId, provider, model, prompt, candidateContext, hirearchyContext |
 | AI_RESPONSE_COMPLETED | interactionId, provider, model, promptTokens, completionTokens, durationMs, responseExcerpt |
 | AI_REQUEST_CANCELLED  | interactionId, reason, cancelledAt                                                          |
 | AI_REQUEST_FAILED     | interactionId, errorCode, errorMessage, failedAt                                            |

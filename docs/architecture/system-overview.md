@@ -1,6 +1,6 @@
 # System overview
 
-Delimit is a Next.js modular monolith with SQLite persistence and a Docker isolation boundary for candidate execution.
+Hirearchy Software is a Next.js modular monolith with SQLite persistence and a Docker isolation boundary for candidate execution.
 
 ```text
 Browser

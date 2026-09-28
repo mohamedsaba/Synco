@@ -1,4 +1,4 @@
-# 062 — Delimit Architecture Correction A1/A2: Same-Session Coordination + Submission Evidence Closure
+# 062 — Hirearchy Software Architecture Correction A1/A2: Same-Session Coordination + Submission Evidence Closure
 
 Status: completed.
 Baseline: `4b44690e2e88a26c66c24b80ee4351969df8f264` (origin/main).
@@ -15,7 +15,7 @@ Strictly out of scope: F03 through F16.
 ## Architectural Boundaries
 
 1. **Shared Same-Session Coordinator (`SessionOperationCoordinator`)**:
-   - Process-wide singleton per deployment via a named `globalThis` slot (`Symbol.for('delimit.sessionOperationCoordinator')`).
+   - Process-wide singleton per deployment via a named `globalThis` slot (`Symbol.for('hirearchy.sessionOperationCoordinator')`).
    - FIFO serialization per session; different sessions remain concurrent.
    - Non-reentrant / non-recursive acquisition enforced via `AsyncLocalStorage`.
    - Queue released in `finally`; idle entries evicted from internal map.
@@ -51,5 +51,5 @@ Strictly out of scope: F03 through F16.
 
 6. **Candidate Presentation**:
    - Factual candidate wording for `CANCELLED / session_ended`:
-     `Delimit closed this AI interaction because the assessment session ended.`
+     `Hirearchy Software closed this AI interaction because the assessment session ended.`
    - No causal attribution or claim of candidate cancellation / provider failure.

@@ -47,7 +47,7 @@ describe('Workspace Evidence Lifecycle & Edge Cases (Mock)', () => {
   let dbPath: string;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(path.join(tmpdir(), 'delimit-mock-test-'));
+    tempDir = mkdtempSync(path.join(tmpdir(), 'hirearchy-mock-test-'));
     dbPath = path.join(tempDir, 'test.sqlite');
   });
 

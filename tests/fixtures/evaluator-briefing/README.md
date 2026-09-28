@@ -1,6 +1,6 @@
 # Preserved briefing source evidence
 
-`C.json` preserves the original existing gate-C (acceptance history B) record from `/tmp/delimit-deterministic-acceptance/acceptance.sqlite`. It contains actual SessionService evidence and the existing deterministic-v3 consumer reconstruction view, without candidate credentials or attempt tokens.
+`C.json` preserves the original existing gate-C (acceptance history B) record from `/tmp/hirearchy-deterministic-acceptance/acceptance.sqlite`. It contains actual SessionService evidence and the existing deterministic-v3 consumer reconstruction view, without candidate credentials or attempt tokens.
 
 A read-only source connection created a temporary consistent SQLite backup. Extraction checked event IDs/order/types and frozen submitted-diff SHA-256 against `tests/fixtures/evaluator-gate/manifest.json`, plus generator version. No commands were replayed, test output invented, historical scenario semantics backfilled, or original database mutated.
 

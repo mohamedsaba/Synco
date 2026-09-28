@@ -2,23 +2,23 @@
 
 ## 1. Objective
 
-Deliver the first realistic engineering assessment scenario in Delimit: **Scenario 001 (Stale storefront inventory after warehouse restock)**.
+Deliver the first realistic engineering assessment scenario in Hirearchy Software: **Scenario 001 (Stale storefront inventory after warehouse restock)**.
 
-Transition Delimit from a synthetic single-file toy fixture to an authentic multi-file Python service backed by local PostgreSQL and Redis instances inside Delimit's hardened session-scoped sandbox. Enable candidates to browse files, edit multiple files in a multi-file workspace, investigate live services and execute tests via the command console, and submit their work. Capture multi-file git diffs from the authoritative container filesystem and factual chronological command events for evaluator review.
+Transition Hirearchy Software from a synthetic single-file toy fixture to an authentic multi-file Python service backed by local PostgreSQL and Redis instances inside Hirearchy Software's hardened session-scoped sandbox. Enable candidates to browse files, edit multiple files in a multi-file workspace, investigate live services and execute tests via the command console, and submit their work. Capture multi-file git diffs from the authoritative container filesystem and factual chronological command events for evaluator review.
 
 ---
 
 ## 2. Product Question
 
-> **Can Delimit host a realistic engineering incident that produces meaningfully different, inspectable candidate work histories?**
+> **Can Hirearchy Software host a realistic engineering incident that produces meaningfully different, inspectable candidate work histories?**
 
-This slice tests whether an authentic production defect—with competing hypotheses, a tempting shallow mitigation (TTL reduction), a root invalidation defect, and a subtle key-normalization bug—elicits distinguishable problem-solving paths from candidates, and whether Delimit's command-and-diff evidence model makes those paths legible to a human evaluator without scoring, candidate classification, or synthetic reconstruction prose.
+This slice tests whether an authentic production defect—with competing hypotheses, a tempting shallow mitigation (TTL reduction), a root invalidation defect, and a subtle key-normalization bug—elicits distinguishable problem-solving paths from candidates, and whether Hirearchy Software's command-and-diff evidence model makes those paths legible to a human evaluator without scoring, candidate classification, or synthetic reconstruction prose.
 
 ---
 
 ## 3. Scope
 
-1. **Scenario 001 Container Environment (`delimit-scenario-001`):**
+1. **Scenario 001 Container Environment (`hirearchy-scenario-001`):**
    - Single session-scoped Docker container with Python 3.11/3.12, Flask, PostgreSQL, Redis, and `pytest`.
    - Strict network isolation (`--network none`). All inter-process communication runs over local Unix sockets or loopback (`127.0.0.1`).
    - Hardened isolation: unprivileged execution (`1000:1000`), read-only root, dedicated writable tmpfs directories for `/workspace`, `/tmp`, PostgreSQL socket/data, and Redis data.
@@ -62,7 +62,7 @@ This slice tests whether an authentic production defect—with competing hypothe
 | Component                | Current State (Slice 2)                                                                  | Required State (Slice 3)                                                                                                                                                           | Justification                                                                                             |
 | :----------------------- | :--------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
 | **Session Domain Model** | Single file strings: `filePath`, `workingContent`, `originalContent`, `submittedContent` | Multi-file repository representation. Working state resides authoritatively in container `/workspace`; session tracks scenario ID, baseline commit, and submitted multi-file diff. | Scenario 001 has 6+ files across directories; single-string fields cannot represent a repository.         |
-| **Sandbox Adapter**      | Hardcoded `alpine:3.20`, single file injected via `cat > /workspace/filePath`            | Scenario-specific container image (`delimit-scenario-001`), pre-baked git repo in image, multi-service startup.                                                                    | Scenario 001 requires Python, Flask, Postgres, Redis, and pytest pre-installed with zero internet access. |
+| **Sandbox Adapter**      | Hardcoded `alpine:3.20`, single file injected via `cat > /workspace/filePath`            | Scenario-specific container image (`hirearchy-scenario-001`), pre-baked git repo in image, multi-service startup.                                                                  | Scenario 001 requires Python, Flask, Postgres, Redis, and pytest pre-installed with zero internet access. |
 | **Readiness Check**      | Simple `echo ready` in shell                                                             | Multi-service readiness probe: PostgreSQL responds (`pg_isready`), Redis responds (`redis-cli ping`), seed data confirmed.                                                         | Guarantees the assessment timer starts only when database, cache, and code are ready for candidate work.  |
 | **Submission Model**     | Takes single-file string from SQLite store and calls `diff.createTwoFilesPatch`          | Extracts `git diff HEAD` from sandbox `/workspace` before teardown, filtering out runtime junk.                                                                                    | Captures modifications across any permitted files, including changes made via shell scripts or editor.    |
 | **Candidate UI**         | Single `<textarea>` editing one hardcoded file                                           | File tree/list navigator + multi-file editor allowing candidate to view any file and edit relevant code.                                                                           | Engineers must inspect tests, app configuration, and multiple modules to diagnose a caching bug.          |
@@ -95,7 +95,7 @@ The Scenario 001 repository is placed under `scenarios/001-cache-staleness/repos
 
 ### Purpose of Key Files:
 
-- `README.md`: Explains service architecture, local endpoints, how to run tests (`pytest`), and CLI connections (`psql -h 127.0.0.1 -U delimit inventory`, `redis-cli`). Contains no spoilers or debugging hints.
+- `README.md`: Explains service architecture, local endpoints, how to run tests (`pytest`), and CLI connections (`psql -h 127.0.0.1 -U hirearchy software inventory`, `redis-cli`). Contains no spoilers or debugging hints.
 - `inventory/db.py`: PostgreSQL queries using `psycopg2-binary`.
 - `inventory/cache.py`: Manages Redis connection and cache keys (`stock:{warehouse_id}:{product_id}`).
 - `inventory/service.py`: Implements `get_product_stock()` and `update_stock()`. Contains the missing cache invalidation defect.
@@ -129,15 +129,15 @@ To preserve `--network none` without external networks or host port conflicts:
 
 During image build (`Dockerfile`):
 
-- Repository files are copied into `/opt/delimit/repo-template`.
+- Repository files are copied into `/opt/hirearchy/repo-template`.
 - A Git repository is initialized with `git init`.
-- User config set: `Candidate <candidate@delimit.local>`.
+- User config set: `Candidate <candidate@hirearchy.local>`.
 - Initial commit created: `git commit -m "baseline scenario state"`.
   At container startup, the template is synced to `/workspace` tmpfs, ensuring every session starts with an identical, clean Git baseline commit.
 
 ### 7.3 Service Startup & Readiness Gate
 
-Container initialization script `/usr/local/bin/delimit-scenario-init.sh`:
+Container initialization script `/usr/local/bin/hirearchy-scenario-init.sh`:
 
 1. Initializes PostgreSQL database cluster in `/var/lib/postgresql/data` as user `1000:1000`.
 2. Starts PostgreSQL on local socket `/tmp` and `127.0.0.1:5432`.
@@ -239,7 +239,7 @@ Backward compatibility preserved for legacy single-file sessions.
 >
 > - The inventory service is in `/workspace` (Flask app backed by PostgreSQL and Redis).
 > - Tests can be run from the command console: `pytest`
-> - PostgreSQL CLI: `psql -h 127.0.0.1 -U delimit inventory`
+> - PostgreSQL CLI: `psql -h 127.0.0.1 -U hirearchy software inventory`
 > - Redis CLI: `redis-cli`
 >
 > **Your Task:**
@@ -303,7 +303,7 @@ During implementation, the web application will be kept continuously running and
 
 1. Create `scenarios/001-cache-staleness/repository/` with Flask, Postgres DB, Redis cache, service logic, and pytest suite.
 2. Author `Dockerfile` and `start_services.sh` with unprivileged execution, pre-baked git baseline, and local socket/loopback services.
-3. Build image: `docker build -t delimit-scenario-001:latest scenarios/001-cache-staleness`.
+3. Build image: `docker build -t hirearchy-scenario-001:latest scenarios/001-cache-staleness`.
 4. Update `DockerSandboxAdapter` to support Scenario 001 image and multi-service readiness check.
 5. **>> LIVE PREVIEW CHECKPOINT 1: Scenario 001 Sandbox Activation <<**
 
@@ -342,7 +342,7 @@ During implementation, the web application will be kept continuously running and
 ## 16. Test Strategy
 
 1. **Scenario Environment Integration Tests (`tests/integration/scenario-001-environment.test.ts`):**
-   - Spins up `delimit-scenario-001` container.
+   - Spins up `hirearchy-scenario-001` container.
    - Verifies PostgreSQL is listening and seeded with `PROD-1001` quantity `150`.
    - Verifies Redis is listening and pre-cached with stale value `0`.
    - Verifies baseline `pytest` runs and fails with expected stale cache assertion.
@@ -367,7 +367,7 @@ During implementation, the web application will be kept continuously running and
 
 ## 17. Definition of Done
 
-1. Scenario 001 container image (`delimit-scenario-001:latest`) builds deterministically and starts under `--network none` with unprivileged execution.
+1. Scenario 001 container image (`hirearchy-scenario-001:latest`) builds deterministically and starts under `--network none` with unprivileged execution.
 2. Candidate can activate a Scenario 001 session, browse the multi-file codebase, view README/brief, edit multiple files, and save changes.
 3. Candidate can execute commands in the console (`pytest`, `psql`, `redis-cli`, `python`) against the running services, observing authentic outputs.
 4. Both Scenario 001 defects (missing invalidation and key normalization) are faithfully reproducible on baseline.

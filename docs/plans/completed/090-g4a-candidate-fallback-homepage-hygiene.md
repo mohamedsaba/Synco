@@ -21,8 +21,8 @@ No Scenario 001 path is fabricated.
 
 ## F-06
 
-The visible homepage eyebrow changed from `Synco / Delimit · Vertical Slice 3`
-to `Synco / Delimit · Candidate + Evaluator Experience`. No homepage rendering
+The visible homepage eyebrow changed from `Hirearchy / Hirearchy Software · Vertical Slice 3`
+to `Hirearchy / Hirearchy Software · Candidate + Evaluator Experience`. No homepage rendering
 test existed, and static copy alone did not justify one.
 
 ## Tests and verification

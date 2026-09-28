@@ -34,7 +34,7 @@ export const EvaluatorHeader = ({
           <span className="brand-mark" aria-hidden="true">
             ◩
           </span>
-          <span className="brand-name">Delimit</span>
+          <span className="brand-name">Hirearchy Software</span>
           <span className="brand-separator">/</span>
           <span className="brand-product">Evaluator Briefing</span>
         </div>

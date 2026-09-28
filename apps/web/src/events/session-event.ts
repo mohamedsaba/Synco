@@ -84,7 +84,7 @@ export type AiRequestStartedPayload = Readonly<{
     startLine?: number;
     endLine?: number;
   }>[];
-  delimitContext?: Readonly<{
+  hirearchyContext?: Readonly<{
     scenarioId: string;
     scenarioVersion: string;
     configurationVersion: string;

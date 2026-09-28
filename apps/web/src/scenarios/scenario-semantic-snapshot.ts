@@ -144,7 +144,7 @@ export const scenario001SemanticSnapshot: ScenarioSemanticSnapshot = {
         '-h',
         '127.0.0.1',
         '-U',
-        'delimit',
+        'hirearchy',
         '-d',
         'inventory',
         '-t',

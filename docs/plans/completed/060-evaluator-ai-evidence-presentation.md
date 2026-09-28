@@ -1,4 +1,4 @@
-# 060 — Delimit Slice 6E: Evaluator AI Evidence Presentation
+# 060 — Hirearchy Software Slice 6E: Evaluator AI Evidence Presentation
 
 Status: completed.
 Authorized: 2026-09-18.
@@ -58,7 +58,7 @@ Implement the frozen presentation architecture for candidate AI evidence in the 
    - `evidence-item-card.tsx`: Native buttons with `aria-expanded` and `aria-controls` collapsing prompt/response excerpts by default across all roles.
    - `recorded-activity.tsx`: Presentation-only burst grouping for 3+ complete consecutive successful interactions with full restoration on expansion.
    - `evaluator-experience.tsx`: Role projection depth wiring.
-   - `workspace.css`: Native styling matching Delimit design system.
+   - `workspace.css`: Native styling matching Hirearchy Software design system.
 
 3. **Verification**:
    - Comprehensive unit and rendering tests covering truth invariance, role depths, default collapsed excerpts, burst grouping, failures, accessibility, and C/D/F/G golden stability.

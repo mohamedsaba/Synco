@@ -27,10 +27,10 @@ describe('Security Correction S1 — Control-Plane Hardening', () => {
   let originalDbPath: string | undefined;
 
   beforeAll(async () => {
-    tempDir = mkdtempSync(path.join(tmpdir(), 'delimit-sec-s1-'));
+    tempDir = mkdtempSync(path.join(tmpdir(), 'hirearchy-sec-s1-'));
     dbPath = path.join(tempDir, 'test.sqlite');
-    originalDbPath = process.env.DELIMIT_DB_PATH;
-    process.env.DELIMIT_DB_PATH = dbPath;
+    originalDbPath = process.env.HIREARCHY_DB_PATH;
+    process.env.HIREARCHY_DB_PATH = dbPath;
 
     adapter = new DockerSandboxAdapter({ defaultTimeoutMs: 15_000 });
     sessionStore = new SqliteSessionStore(dbPath);
@@ -57,9 +57,9 @@ describe('Security Correction S1 — Control-Plane Hardening', () => {
       }
     } finally {
       if (originalDbPath !== undefined) {
-        process.env.DELIMIT_DB_PATH = originalDbPath;
+        process.env.HIREARCHY_DB_PATH = originalDbPath;
       } else {
-        delete process.env.DELIMIT_DB_PATH;
+        delete process.env.HIREARCHY_DB_PATH;
       }
       rmSync(tempDir, { recursive: true, force: true });
     }
@@ -90,9 +90,13 @@ describe('Security Correction S1 — Control-Plane Hardening', () => {
     const session = sessionService.getCandidateSession(candidateToken);
     const normalPath = 'src/normal-test.txt';
 
-    await adapter.writeFile(session.id, normalPath, 'hello delimit\n');
+    await adapter.writeFile(
+      session.id,
+      normalPath,
+      'hello hirearchy software\n',
+    );
     const read = await adapter.readFile(session.id, normalPath);
-    expect(read).toBe('hello delimit\n');
+    expect(read).toBe('hello hirearchy software\n');
   });
 
   // S3: runProcess rejects when stdout exceeds configured safe bound
@@ -237,10 +241,10 @@ describe('Security Correction S1 — Control-Plane Hardening', () => {
     const shellRes = await adapter.exec(
       session.id,
       'cmd-shell-syntax',
-      'VAL="synco"; echo "start-$VAL" | tr "a-z" "A-Z"',
+      'VAL="hirearchy"; echo "start-$VAL" | tr "a-z" "A-Z"',
     );
     expect(shellRes.exitCode).toBe(0);
-    expect(shellRes.stdoutPreview.trim()).toBe('START-SYNCO');
+    expect(shellRes.stdoutPreview.trim()).toBe('START-HIREARCHY');
 
     // Command timeout terminates and reports timedOut: true
     const timeoutRes = await adapter.exec(
@@ -268,7 +272,7 @@ describe('Security Correction S1 — Control-Plane Hardening', () => {
   it('S10 & S11: sandbox infrastructure errors over HTTP do NOT contain Docker invocation strings, container names, internal paths, or raw stderr', async () => {
     const leakySandboxError = new SandboxError(
       'SANDBOX_EXECUTION_FAILED',
-      "Command 'docker exec -u 0:0 delimit-sandbox-test_123 /usr/local/bin/delimit-capture-tree.sh' exited with code 1: cat: can't open '/workspace/secret': No such file or directory",
+      "Command 'docker exec -u 0:0 hirearchy-sandbox-test_123 /usr/local/bin/hirearchy-capture-tree.sh' exited with code 1: cat: can't open '/workspace/secret': No such file or directory",
     );
 
     const res = errorResponse(leakySandboxError);
@@ -278,7 +282,7 @@ describe('Security Correction S1 — Control-Plane Hardening', () => {
     // S10: Verify sensitive diagnostics are redacted
     const serialized = JSON.stringify(body);
     expect(serialized).not.toContain('docker');
-    expect(serialized).not.toContain('delimit-sandbox');
+    expect(serialized).not.toContain('hirearchy-sandbox');
     expect(serialized).not.toContain('/usr/local/bin');
     expect(serialized).not.toContain("can't open");
 
@@ -293,14 +297,14 @@ describe('Security Correction S1 — Control-Plane Hardening', () => {
     // Also verify PLATFORM_CAPTURE_FAILED redaction
     const leakyPlatformError = new SessionError(
       'PLATFORM_CAPTURE_FAILED',
-      "Pre-command workspace capture failed: Command 'docker exec delimit-sandbox-456 /usr/local/bin/delimit-baseline-tree.sh' exited with code 1: fatal: not a git repo",
+      "Pre-command workspace capture failed: Command 'docker exec hirearchy-sandbox-456 /usr/local/bin/hirearchy-baseline-tree.sh' exited with code 1: fatal: not a git repo",
     );
     const platformRes = errorResponse(leakyPlatformError);
     expect(platformRes.status).toBe(500);
     const platformBody = await platformRes.json();
     const platformSerialized = JSON.stringify(platformBody);
     expect(platformSerialized).not.toContain('docker');
-    expect(platformSerialized).not.toContain('delimit-sandbox');
+    expect(platformSerialized).not.toContain('hirearchy-sandbox');
     expect(platformSerialized).not.toContain('/usr/local/bin');
     expect(platformBody).toEqual({
       error: {

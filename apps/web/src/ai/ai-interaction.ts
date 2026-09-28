@@ -7,7 +7,7 @@ export type CandidateContextAttachment = Readonly<{
   endLine?: number;
 }>;
 
-export type DelimitContextMetadata = Readonly<{
+export type HirearchyContextMetadata = Readonly<{
   scenarioId: string;
   scenarioVersion: string;
   configurationVersion: string;
@@ -140,7 +140,7 @@ export type AiInteraction = Readonly<{
   configuredModelId: string;
   candidatePromptText: string;
   candidateContext?: readonly CandidateContextAttachment[];
-  delimitContext?: DelimitContextMetadata;
+  hirearchyContext?: HirearchyContextMetadata;
   capturedResponseText?: string | null;
   terminalReason?: string | null;
   errorMessage?: string | null;

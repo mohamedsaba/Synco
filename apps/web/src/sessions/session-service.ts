@@ -305,7 +305,7 @@ export class SessionService {
         ) {
           await this.sandboxAdapter.createAndVerify(current.id, {
             imageName:
-              current.scenario.imageName ?? 'delimit-scenario-001:latest',
+              current.scenario.imageName ?? 'hirearchy-scenario-001:latest',
             scenarioType: 'multi_file',
           });
         } else {
@@ -1280,8 +1280,8 @@ export class SessionService {
 
 export const getSessionService = () => {
   const databasePath =
-    process.env.DELIMIT_DB_PATH ??
-    path.join(process.cwd(), '.data/delimit.sqlite');
+    process.env.HIREARCHY_DB_PATH ??
+    path.join(process.cwd(), '.data/hirearchy.sqlite');
 
   const store = new SqliteSessionStore(databasePath);
   const eventStore = new SqliteEventStore(databasePath);

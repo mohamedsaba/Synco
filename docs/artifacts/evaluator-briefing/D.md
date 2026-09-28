@@ -15,7 +15,7 @@ Full base and all four projections: [D.json](D.json).
 - task_brief: attributed scenario data at `scenario:ddd5ad93-4144-407e-a11f-5934044ebcfa:brief` (version 1.0.0).
 
 ```json
-"Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U delimit inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
+"Warehouse staff recently restocked units of product PROD-1001 into warehouse WH-EAST-01. The database reflects the restocked quantity, but customers on the storefront are still seeing the item as out of stock.\n\nExpected Behavior:\nAfter stock is updated in the warehouse, subsequent reads from the storefront must reflect the current inventory without serving stale cached counts.\n\nEnvironment & Tools:\n- The inventory service is in /workspace (Flask app backed by PostgreSQL and Redis).\n- Tests can be run from the command console: pytest\n- PostgreSQL CLI: psql -h 127.0.0.1 -U hirearchy inventory\n- Redis CLI: redis-cli\n\nYour Task:\n1. Investigate the cause of the discrepancy.\n2. Implement an appropriate fix in the codebase.\n3. Verify that your change corrects the issue and does not introduce regressions.\n4. Submit your work when finished."
 ```
 
 - system_invariant: attributed scenario data at `scenario:ddd5ad93-4144-407e-a11f-5934044ebcfa:evaluationContext.systemInvariants[0]` (version 1.0.0).
@@ -63,7 +63,7 @@ Full base and all four projections: [D.json](D.json).
 - interpretation_warning: attributed scenario data at `scenario:ddd5ad93-4144-407e-a11f-5934044ebcfa:evaluationContext.interpretationWarnings[2]` (version 1.0.0).
 
 ```json
-"Not observed means Delimit recorded no evidence of that activity in the captured assessment environment. It does not mean the candidate lacks the underlying capability."
+"Not observed means Hirearchy Software recorded no evidence of that activity in the captured assessment environment. It does not mean the candidate lacks the underlying capability."
 ```
 
 ### Observed activity
@@ -186,8 +186,8 @@ Attributed static policy context: `scenario:ddd5ad93-4144-407e-a11f-5934044ebcfa
     "sha256": null
   },
   "scenarioVersion": "1.0.0",
-  "scenarioSnapshotSha256": "11ff1d62775f353a72c97f14aaa29f1c92dc576d6ede95275a42fd9a2d257566",
-  "evaluationContextSha256": "3c8973524a187ac1af2f77a8a9b49f2559edb25ef3f9c8c322ca3a2b777eb005",
+  "scenarioSnapshotSha256": "d2ff20ea39a00aec9591c9fd79a6dcd03817074b1f22c38e1fd425edbbc5b69a",
+  "evaluationContextSha256": "fbfcdaf035f1be43736dae5e96447636d34556e28318212ef53b4ab56bbdf80f",
   "evaluationContextVersion": "1.0.0",
   "mapperVersion": "briefing-mapper-v1",
   "wordingVersion": "briefing-wording-v2",

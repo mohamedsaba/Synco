@@ -2,7 +2,7 @@
 
 ## 1. Visual Direction
 
-- Established a restrained, editorial, and technically credible visual language for Delimit's candidate evaluation experience.
+- Established a restrained, editorial, and technically credible visual language for Hirearchy Software's candidate evaluation experience.
 - Replaced harsh brutalist blocks and neon styling with calm, warm neutral surfaces, subtle structural borders, and refined hierarchy.
 - Eliminated all artificial exam/quiz/gamification metaphors, hacker-terminal green accents, and generic SaaS aesthetic tropes.
 - Designed a calm, spacious engineering environment where candidate focus is centered entirely on code, requirements, commands, and integrated AI.
@@ -136,7 +136,7 @@ Consolidated visual properties into pragmatic CSS custom properties on `:root`:
 
 ## 15. FINALIZING
 
-- Clean, centered status presentation communicating: "Delimit is completing the assessment. Submission has begun. No more changes can be accepted while finalization is underway."
+- Clean, centered status presentation communicating: "Hirearchy Software is completing the assessment. Submission has begun. No more changes can be accepted while finalization is underway."
 - No fake progress percentages, spinners, or infrastructure implementation details.
 
 ## 16. Completion

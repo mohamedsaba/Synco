@@ -1,23 +1,26 @@
 import type { Metadata } from 'next';
+import localFont from 'next/font/local';
 import type { ReactNode } from 'react';
-
-import './home.css';
 import './styles.css';
 import './workspace.css';
-
+import './home.css';
+const dmSans = localFont({
+  src: '../public/fonts/dm-sans-latin.woff2',
+  weight: '100 1000',
+  variable: '--font-dm-sans',
+  display: 'swap',
+});
 export const metadata: Metadata = {
-  title: 'Hirearchy — Evidence over impressions',
-  description: 'Real-work assessments for clearer human hiring decisions.',
+  title: { default: 'Hirearchy', template: '%s | Hirearchy' },
+  description:
+    'A family of tools for seeing work clearly. Evidence informs. People decide.',
 };
-
-type RootLayoutProps = Readonly<{
-  children: ReactNode;
-}>;
-
-const RootLayout = ({ children }: RootLayoutProps) => (
-  <html lang="en">
-    <body>{children}</body>
-  </html>
-);
-
-export default RootLayout;
+export default function RootLayout({
+  children,
+}: Readonly<{ children: ReactNode }>) {
+  return (
+    <html lang="en">
+      <body className={dmSans.variable}>{children}</body>
+    </html>
+  );
+}

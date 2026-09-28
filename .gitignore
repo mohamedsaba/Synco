@@ -19,3 +19,8 @@ npm-debug.log*
 *~
 .DS_Store
 Thumbs.db
+
+# Design evidence binaries (~195MB of screenshots and reference rasters).
+# Regenerable from tests/browser/*.mjs; kept on disk, not in git history.
+docs/design/screenshots/
+docs/design/assets/

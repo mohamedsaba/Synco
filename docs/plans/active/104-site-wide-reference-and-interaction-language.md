@@ -219,7 +219,75 @@ rather than depending on a transient, and five rapid hover/unhover cycles each
 reset to 0.34 with no stale animation state. Every new animation is additionally
 suppressed by the existing `prefers-reduced-motion` block.
 
-### 4.8 Two CSS defects found while verifying
+### 4.9 Correction after review: the section floor broke four designs
+
+The first implementation of the section floor was wrong and was corrected. It
+declared more than it needed to:
+
+```css
+/* WRONG — reverted */
+.ct-site main > section {
+  min-height: var(--ct-section-min);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+```
+
+`.ct-site main > section` is specificity (0,1,2), so it outranked every
+section's own layout at (0,1,0). Four defects followed, all reported by
+review:
+
+| #   | Symptom                                                                      | Mechanism                                                                                                                                                                                               |
+| --- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Buttons spanned the full section width on `/thinking`, `/about`, `/products` | `<Button>` is a direct child of `.ct-statement`, `.ct-editorial` and `.ct-contact-cta`. In a column flex container the default `align-items: stretch` widens a flex item to the container's cross size. |
+| 2   | `/products` section 2 grew much larger                                       | `.ct-product-spread` is `display:grid; grid-template-columns:1fr 1fr`. Forcing `display:flex` collapsed the two columns into a vertical stack.                                                          |
+| 3   | The `/contact` design changed                                                | `.ct-contact` is `display:grid; grid-template-columns:1fr 1.1fr`; the same override destroyed its two-column form layout.                                                                               |
+| 4   | The mint thread line was cut off at "Our Philosophy" and "The First Step"    | The rule also matched the landing page's `.ct-process` and `.ct-philosophy`, changing their internal layout and clipping the absolutely positioned thread.                                              |
+
+The corrected rule sets **only** `min-height`, and is scoped to interior routes
+so the landing page — the approved reference — is excluded entirely:
+
+```css
+.ct-inner main > section {
+  min-height: var(--ct-section-min);
+}
+```
+
+Content is no longer vertically centred. That is deliberate: centring requires
+declaring `display`, and every mechanism for doing so overrides a section's own
+layout. A section that under-fills keeps its original top-aligned composition and
+simply occupies the full viewport, which is what was asked for.
+
+Verified with `/tmp/opencode/verify-regression.mjs`, 35 assertions, one per
+reported symptom plus the two original requirements:
+
+| Check                                  | Result                                                                                                                                     |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Buttons not stretched, all five routes | `Explore Software` 376px of 1680px (22%), `Meet the family` 361px (21%), `Get in touch` 324px (19%), `Send message` 293px (17%) — was 100% |
+| Header CTA compact                     | 216px of 1920px                                                                                                                            |
+| `/products` section 2 two columns      | `display=grid`, `cols="787.359px 787.375px"`, x = 120 / 1013                                                                               |
+| `/contact` two columns                 | `display=grid`, `cols="778.469px 856.328px"`, intro x=105, form x=959                                                                      |
+| Landing sections not forced to flex    | all five report `display=block`                                                                                                            |
+| Landing thread not clipped             | `.ct-process` and `.ct-philosophy` paths all within bounds                                                                                 |
+| No next-section bleed                  | 0 on all five interior routes                                                                                                              |
+| Navbar identical on every route        | 110.16px at 1920×1080, 91.80px at 1440×900, 78.33px at 1366×768                                                                            |
+
+**Baseline comparison.** To prove the landing page was genuinely restored rather
+than merely re-measured, `apps/web/app/home.css` was temporarily replaced with
+its `84384f8` version, rebuilt and measured, then restored. The landing thread
+geometry is unchanged: `.ct-family`'s leading path measures `top=-13` in both
+builds. That 13px overhang is a pre-existing designed bleed — `.ct-family`
+declares no `overflow`, so the path paints into the neighbouring section rather
+than being clipped — and is not a defect. `git diff 84384f8 -- home.css` also
+shows that no rule governing `.ct-process`, `.ct-family`, `.ct-philosophy`,
+`.ct-software`, `.ct-hero`, `.ct-thread` or `.ct-paths` was modified.
+
+Two probe defects were corrected here as well: the side-by-side test compared
+`y` for equality, which is wrong for an `align-self:center` child, and the
+clipping test compared an absolute viewport `Y` against a section _length_.
+
+### 4.10 Two CSS defects found while verifying
 
 1. **Specificity.** The shared `.ct-site :is(.ct-button, .ct-start)` token setter
    (0,2,0) beat a plain `.ct-button` setter (0,1,0), so the dark button painted

@@ -775,20 +775,20 @@
 }
 /* One major section = one viewport.
    A min-height floor, never a forced height and never a clip: a section whose
-   content exceeds the floor keeps its natural height and scrolls normally, and
-   a section that under-fills is centred so the remainder reads as breathing
-   room. Interior routes subtract the in-flow header, because --ct-section-min
-   does it for them. Same dual-axis idiom the hero already uses, so overflow
-   behaviour at ultra-wide and short-landscape sizes is inherited rather than
-   newly invented. See plan 104 section 2.2. */
-.ct-site main > section {
+   content exceeds the floor keeps its natural height and scrolls normally.
+   Interior routes subtract the in-flow header, because --ct-section-min does
+   it for them; the landing page is excluded entirely, since it is the
+   approved reference and its own sections already carry composed heights.
+
+   This rule deliberately sets ONLY min-height. It must not declare `display`:
+   sections own their own layout (.ct-product-spread and .ct-contact are
+   two-column grids, the rest are block stacks whose direct children include
+   buttons). An earlier revision forced `display:flex; flex-direction:column`,
+   which at this specificity overrode every one of them — collapsing the
+   two-column grids into vertical stacks and stretching each button to the
+   full section width via the default align-items:stretch. See plan 104. */
+.ct-inner main > section {
   min-height: var(--ct-section-min);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.ct-site main > section > :first-child {
-  margin-top: 0;
 }
 .ct-page-hero {
   position: relative;

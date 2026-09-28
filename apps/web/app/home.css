@@ -729,27 +729,27 @@
 }
 .ct-page-hero {
   position: relative;
-  padding: 7cqw 8cqw 8cqw;
+  padding: min(7cqw, 9.73svh) min(8cqw, 11.12svh) min(8cqw, 11.12svh);
   background: var(--ct-lilac);
   overflow: hidden;
 }
 .ct-page-hero h1 {
-  font-size: 8cqw;
-  margin-top: 2.5cqw;
+  font-size: min(8cqw, 11.12svh);
+  margin-top: min(2.5cqw, 3.47svh);
   max-width: 90%;
 }
 .ct-page-hero > p:not(.ct-kicker) {
-  font-size: 1.9cqw;
+  font-size: min(1.9cqw, 2.64svh);
   line-height: 1.5;
   max-width: 49cqw;
-  margin-top: 3cqw;
+  margin-top: min(3cqw, 4.17svh);
 }
 .ct-page-hero--dark {
   background: var(--ct-plum);
   color: #f4eef8;
 }
 .ct-page-hero--dark .ct-button {
-  margin-top: 3cqw;
+  margin-top: min(3cqw, 4.17svh);
 }
 .ct-page-hero--white {
   background: #fff;
@@ -760,31 +760,31 @@
   height: 85%;
   right: -12%;
   top: 12%;
-  border: 2.3cqw solid var(--ct-mint);
-  border-radius: 10cqw;
+  border: min(2.3cqw, 3.2svh) solid var(--ct-mint);
+  border-radius: min(10cqw, 13.9svh);
   pointer-events: none;
 }
 .ct-product-spread {
-  padding: 7cqw 8cqw;
+  padding: min(7cqw, 9.73svh) min(8cqw, 11.12svh);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 7cqw;
+  gap: min(7cqw, 9.73svh);
   background: var(--ct-plum);
   color: #f4eef8;
 }
 .ct-product-spread h2 {
-  font-size: 5.7cqw;
-  margin-top: 3cqw;
+  font-size: min(5.7cqw, 7.92svh);
+  margin-top: min(3cqw, 4.17svh);
 }
 .ct-product-spread p:not(.ct-kicker) {
-  font-size: 1.65cqw;
+  font-size: min(1.65cqw, 2.29svh);
   line-height: 1.5;
-  margin: 2.5cqw 0;
+  margin: min(2.5cqw, 3.47svh) 0;
 }
 .ct-product-diagram {
   align-self: center;
   position: relative;
-  padding: 4cqw 0;
+  padding: min(4cqw, 5.56svh) 0;
 }
 .ct-product-diagram::before {
   content: '';
@@ -793,102 +793,102 @@
   bottom: 0;
   left: 15%;
   width: 55%;
-  border: 1.6cqw solid var(--ct-mint);
-  border-radius: 5cqw;
+  border: min(1.6cqw, 2.22svh) solid var(--ct-mint);
+  border-radius: min(5cqw, 6.95svh);
 }
 .ct-product-diagram > div {
   position: relative;
-  padding: 2cqw;
+  padding: min(2cqw, 2.78svh);
   background: var(--ct-mint);
   color: var(--ct-ink);
-  border-radius: 2cqw;
+  border-radius: min(2cqw, 2.78svh);
   display: flex;
   align-items: center;
-  gap: 2cqw;
-  font-size: 2.2cqw;
+  gap: min(2cqw, 2.78svh);
+  font-size: min(2.2cqw, 3.06svh);
   font-weight: 650;
   width: 85%;
 }
 .ct-product-diagram > div:last-child {
-  margin: 5cqw 0 0 15%;
+  margin: min(5cqw, 6.95svh) 0 0 15%;
   background: var(--ct-lilac);
 }
 .ct-product-diagram svg {
   width: 3.5cqw;
 }
 .ct-editorial {
-  padding: 7cqw 8cqw;
+  padding: min(7cqw, 9.73svh) min(8cqw, 11.12svh);
 }
 .ct-editorial--lilac {
   background: var(--ct-lilac);
 }
 .ct-editorial h2 {
-  font-size: 5.3cqw;
-  margin-bottom: 4cqw;
+  font-size: min(5.3cqw, 7.37svh);
+  margin-bottom: min(4cqw, 5.56svh);
 }
 .ct-editorial > p {
-  font-size: 2cqw;
+  font-size: min(2cqw, 2.78svh);
   line-height: 1.6;
   max-width: 65cqw;
 }
 .ct-future-row {
-  padding: 3cqw;
-  margin-top: 2cqw;
+  padding: min(3cqw, 4.17svh);
+  margin-top: min(2cqw, 2.78svh);
   display: grid;
   grid-template-columns: 1fr 1.5fr 1fr;
-  gap: 3cqw;
+  gap: min(3cqw, 4.17svh);
   align-items: center;
   background: #ffdbd3;
-  border-radius: 2.5cqw;
+  border-radius: min(2.5cqw, 3.47svh);
 }
 .ct-future-row + .ct-future-row {
   background: #d0bafa;
 }
 .ct-future-row h3 {
-  font-size: 2.7cqw;
+  font-size: min(2.7cqw, 3.75svh);
 }
 .ct-future-row p {
-  font-size: 1.5cqw;
+  font-size: min(1.5cqw, 2.08svh);
 }
 .ct-future-row span {
-  font-size: 1.15cqw;
+  font-size: min(1.15cqw, 1.6svh);
   text-transform: uppercase;
   letter-spacing: 0.07em;
   justify-self: end;
 }
 .ct-contact-cta {
-  padding: 6cqw 8cqw;
+  padding: min(6cqw, 8.34svh) min(8cqw, 11.12svh);
   background: var(--ct-mint);
 }
 .ct-contact-cta h2 {
-  font-size: 5.8cqw;
+  font-size: min(5.8cqw, 8.06svh);
   max-width: 65cqw;
-  margin: 2cqw 0 3cqw;
+  margin: min(2cqw, 2.78svh) 0 min(3cqw, 4.17svh);
 }
 .ct-record-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6cqw;
+  gap: min(6cqw, 8.34svh);
 }
 .ct-record {
   border-top: 1px solid #a497b4;
-  padding-top: 2cqw;
+  padding-top: min(2cqw, 2.78svh);
 }
 .ct-record h3 {
-  font-size: 3cqw;
-  margin: 2cqw 0;
+  font-size: min(3cqw, 4.17svh);
+  margin: min(2cqw, 2.78svh) 0;
 }
 .ct-record p {
-  font-size: 1.7cqw;
+  font-size: min(1.7cqw, 2.36svh);
   line-height: 1.5;
 }
 .ct-record ol {
-  margin: 3cqw 0 0;
+  margin: min(3cqw, 4.17svh) 0 0;
   padding-left: 1.5em;
 }
 .ct-record li {
-  padding: 1cqw 0;
-  font-size: 1.5cqw;
+  padding: min(1cqw, 1.39svh) 0;
+  font-size: min(1.5cqw, 2.08svh);
 }
 .ct-principles {
   margin: 0;
@@ -898,82 +898,82 @@
 .ct-principles li {
   display: grid;
   grid-template-columns: 5cqw 1fr 1.1fr;
-  gap: 3cqw;
-  padding: 3.5cqw 0;
+  gap: min(3cqw, 4.17svh);
+  padding: min(3.5cqw, 4.86svh) 0;
   border-top: 1px solid #b5aabd;
 }
 .ct-principles li > span {
-  font-size: 1.3cqw;
+  font-size: min(1.3cqw, 1.81svh);
   color: var(--ct-muted);
 }
 .ct-principles h3 {
-  font-size: 3cqw;
+  font-size: min(3cqw, 4.17svh);
 }
 .ct-principles p {
-  font-size: 1.6cqw;
+  font-size: min(1.6cqw, 2.22svh);
   line-height: 1.6;
 }
 .ct-statement {
-  padding: 7cqw 8cqw;
+  padding: min(7cqw, 9.73svh) min(8cqw, 11.12svh);
   background: var(--ct-plum);
   color: #f4eef8;
 }
 .ct-statement h2 {
-  font-size: 7.2cqw;
+  font-size: min(7.2cqw, 10.01svh);
 }
 .ct-statement p {
-  margin-top: 3cqw;
-  font-size: 1.8cqw;
+  margin-top: min(3cqw, 4.17svh);
+  font-size: min(1.8cqw, 2.5svh);
   max-width: 52cqw;
 }
 .ct-statement .ct-button {
-  margin-top: 3cqw;
+  margin-top: min(3cqw, 4.17svh);
 }
 .ct-columns {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 4cqw;
+  gap: min(4cqw, 5.56svh);
 }
 .ct-columns h3 {
-  font-size: 3cqw;
-  margin: 2cqw 0;
+  font-size: min(3cqw, 4.17svh);
+  margin: min(2cqw, 2.78svh) 0;
 }
 .ct-columns p {
-  font-size: 1.6cqw;
+  font-size: min(1.6cqw, 2.22svh);
   line-height: 1.6;
 }
 .ct-contact {
-  padding: 6cqw 7cqw 8cqw;
+  padding: min(6cqw, 8.34svh) min(7cqw, 9.73svh) min(8cqw, 11.12svh);
   background: var(--ct-lilac);
   display: grid;
   grid-template-columns: 1fr 1.1fr;
-  gap: 5cqw;
+  gap: min(5cqw, 6.95svh);
 }
 .ct-contact h1 {
-  font-size: 7.5cqw;
-  margin-top: 3cqw;
+  font-size: min(7.5cqw, 10.42svh);
+  margin-top: min(3cqw, 4.17svh);
 }
 .ct-contact-intro > p:last-of-type {
-  font-size: 1.75cqw;
+  font-size: min(1.75cqw, 2.43svh);
   max-width: 29cqw;
-  margin-top: 3cqw;
+  margin-top: min(3cqw, 4.17svh);
 }
 .ct-contact-line {
   width: 80%;
-  height: 14cqw;
-  border: 1.8cqw solid var(--ct-purple);
+  height: min(14cqw, 19.46svh);
+  border: min(1.8cqw, 2.5svh) solid var(--ct-purple);
   border-right: 0;
-  border-radius: 6cqw 0 0 6cqw;
-  margin-top: 5cqw;
+  border-radius: min(6cqw, 8.34svh) 0 0 min(6cqw, 8.34svh);
+  margin-top: min(5cqw, 6.95svh);
 }
 .ct-contact-form {
-  padding: 3.5cqw;
+  padding: min(3.5cqw, 4.86svh);
   background: white;
-  border-radius: 3cqw;
+  border-radius: min(3cqw, 4.17svh);
 }
 .ct-contact-form h2 {
-  font-size: 3cqw;
-  margin-bottom: 2cqw;
+  font-size: min(3cqw, 4.17svh);
+  margin-bottom: min(2cqw, 2.78svh);
 }
 /* The form is a connected conversation, with native editable controls inside designed rows. */
 .ct-contact-form {
@@ -985,13 +985,13 @@
 .ct-form-stage {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: min(10px, 0.724svh);
   min-height: 24px;
-  font-size: 11px;
+  font-size: min(11px, 0.796svh);
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  margin-bottom: 18px !important;
+  margin-bottom: min(18px, 1.303svh) !important;
 }
 .ct-form-stage > span {
   width: 24px;
@@ -1009,8 +1009,8 @@
 .ct-contact-form .ct-field {
   position: relative;
   display: block;
-  padding: 18px 18px 15px 44px;
-  margin: 12px -12px 0;
+  padding: min(18px, 1.303svh) 18px min(15px, 1.086svh) 44px;
+  margin: min(12px, 0.869svh) -12px 0;
   border-radius: 16px 16px 4px 4px;
   transition: background 180ms;
 }
@@ -1019,13 +1019,13 @@
   position: absolute;
   top: 20px;
   left: 12px;
-  font-size: 11px;
+  font-size: min(11px, 0.796svh);
   color: var(--ct-muted);
   font-variant-numeric: tabular-nums;
 }
 .ct-field-title {
   display: block;
-  font-size: 13px;
+  font-size: min(13px, 0.941svh);
   font-weight: 650;
 }
 .ct-field-title > span {
@@ -1035,14 +1035,14 @@
 .ct-contact-form .ct-field :is(input, textarea) {
   display: block;
   width: 100%;
-  padding: 10px 0 2px;
+  padding: min(10px, 0.724svh) 0 min(2px, 0.145svh);
   margin: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
   color: var(--ct-ink);
   font: inherit;
-  font-size: clamp(16px, 1.45cqw, 24px);
+  font-size: clamp(16px, min(1.45cqw, 2.02svh), 24px);
   line-height: 1.4;
   caret-color: #634083;
   box-shadow: none;
@@ -1057,7 +1057,7 @@
 }
 .ct-contact-form .ct-field textarea {
   resize: vertical;
-  min-height: 130px;
+  min-height: min(130px, 9.412svh);
   max-height: 420px;
 }
 .ct-field-underline {
@@ -1092,9 +1092,9 @@
 .ct-contact-form .ct-field-error {
   display: block;
   color: #982a29;
-  font-size: 12px;
+  font-size: min(12px, 0.869svh);
   font-weight: 500;
-  margin: 10px 0 0;
+  margin: min(10px, 0.724svh) 0 0;
 }
 .ct-field[data-invalid='true'] .ct-field-underline::after {
   clip-path: inset(0);
@@ -1102,28 +1102,28 @@
 }
 .ct-topic-field {
   min-width: 0;
-  margin: 28px 0 16px;
+  margin: min(28px, 2.027svh) 0 min(16px, 1.158svh);
   padding: 0;
   border: 0;
 }
 .ct-topic-field legend {
   display: flex;
   align-items: baseline;
-  gap: 16px;
+  gap: min(16px, 1.158svh);
   padding: 0;
   color: var(--ct-muted);
-  font-size: 11px;
+  font-size: min(11px, 0.796svh);
 }
 .ct-topic-field legend span {
   color: var(--ct-ink);
-  font-size: 13px;
+  font-size: min(13px, 0.941svh);
   font-weight: 650;
 }
 .ct-topic-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 16px;
+  gap: min(8px, 0.579svh);
+  margin-top: min(16px, 1.158svh);
 }
 .ct-contact-form .ct-topic-choice {
   position: relative;
@@ -1140,8 +1140,8 @@
   display: block;
   border: 1px solid #b7acbf;
   border-radius: 30px;
-  padding: 11px 14px;
-  font-size: 12px;
+  padding: min(11px, 0.796svh) 14px;
+  font-size: min(12px, 0.869svh);
   color: var(--ct-ink);
   transition:
     background 180ms,

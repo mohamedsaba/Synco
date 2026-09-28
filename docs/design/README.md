@@ -56,27 +56,30 @@ Current on-disk inventory after the 2026-09-28 prune:
 
 **Pruned:** 2026-09-28. **Reason:** plans `099-hirearchy-website-experience-rebuild` and `100-hirearchy-scene-01-02` describe a visual direction that was **superseded** by the common-thread direction in plans `101`, `102` and `103`. The evidence captured that direction and was no longer decision-relevant.
 
-Exactly four directories were removed. Each is the declared output directory of a committed browser script, which is what makes the inventory verifiable:
+Exactly four directories were removed. Each was the declared output directory of a browser script, which is what made the inventory verifiable:
 
-| Removed directory                     | Produced by                           | Contents                                                                            |
-| ------------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------- |
-| `screenshots/corrective-scene-01-02/` | `tests/browser/hirearchy-opening.mjs` | `scene-01-*`, `scene-02-*` viewport and reduced-motion captures.                    |
-| `screenshots/final-scene-01-02/`      | `tests/browser/capture-final.mjs`     | Final-scene captures, `reference-comparison.html`, `hero-reference-comparison.png`. |
-| `screenshots/lease/`                  | `tests/browser/lease.mjs`             | Lease-sequence captures.                                                            |
-| `screenshots/scenes/`                 | `tests/browser/scenes.mjs`            | Scene captures.                                                                     |
+| Removed directory                     | Produced by             | Contents                                                                            |
+| ------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------- |
+| `screenshots/corrective-scene-01-02/` | `hirearchy-opening.mjs` | `scene-01-*`, `scene-02-*` viewport and reduced-motion captures.                    |
+| `screenshots/final-scene-01-02/`      | `capture-final.mjs`     | Final-scene captures, `reference-comparison.html`, `hero-reference-comparison.png`. |
+| `screenshots/lease/`                  | `lease.mjs`             | Lease-sequence captures.                                                            |
+| `screenshots/scenes/`                 | `scenes.mjs`            | Scene captures.                                                                     |
 
-Regenerating any of them re-creates the directory; the captures will reflect the **current** common-thread site, not the discarded direction. The discarded direction is therefore not reproducible and this section is its only surviving record.
+The discarded direction is **not reproducible**. The four producing scripts were deleted alongside their output, so re-running them is no longer possible and the captures cannot be reproduced from this repository.
 
-### 3.1 Dangling Script References
+### 3.1 Removed Producing Scripts
 
-Four committed browser scripts still target pruned directories:
+The scripts that produced the pruned evidence were committed tooling for the discarded direction. They were deleted so that no committed script targets a directory this record declares intentionally absent:
 
-- `tests/browser/hirearchy-opening.mjs` → `corrective-scene-01-02/`
-- `tests/browser/capture-final.mjs` → `final-scene-01-02/`
-- `tests/browser/lease.mjs` → `lease/`
-- `tests/browser/scenes.mjs` → `scenes/`
+| Deleted script                        | Target directory                                      |
+| ------------------------------------- | ----------------------------------------------------- |
+| `tests/browser/hirearchy-opening.mjs` | `screenshots/corrective-scene-01-02/`                 |
+| `tests/browser/capture-final.mjs`     | `screenshots/final-scene-01-02/`                      |
+| `tests/browser/lease.mjs`             | `screenshots/lease/`                                  |
+| `tests/browser/scenes.mjs`            | `screenshots/scenes/`                                 |
+| `tests/browser/run-craft-qa.mjs`      | drove `hirearchy-opening.mjs` and `capture-final.mjs` |
 
-`tests/browser/run-craft-qa.mjs` drives `hirearchy-opening.mjs` and `capture-final.mjs`, so it inherits the same targets. These are not broken — they `mkdir` recursively — but they belong to the discarded direction and no longer produce meaningful evidence. Removing them is deferred to a later slice.
+No plan, `package.json` script, or remaining browser script referenced any of them; the only other referrer was this file. The surviving harness is `shot.mjs` plus the three plan-scoped suites in section 4.
 
 ---
 

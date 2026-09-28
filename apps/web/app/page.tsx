@@ -97,7 +97,11 @@ export default function HomePage() {
             for a changing world.
           </h2>
         </div>
-        <Link className="ct-family-software ct-enter" href="/products/software">
+        <Link
+          className="ct-family-software ct-enter"
+          href="/products/software"
+          prefetch={false}
+        >
           <span className="ct-icon">
             <Icon type="software" />
           </span>
@@ -117,6 +121,7 @@ export default function HomePage() {
         <Link
           className="ct-family-future ct-family-it ct-enter"
           href="/products#future"
+          prefetch={false}
         >
           <Icon type="it" />
           <span>
@@ -130,6 +135,7 @@ export default function HomePage() {
         <Link
           className="ct-family-future ct-family-marketing ct-enter"
           href="/products#future"
+          prefetch={false}
         >
           <Icon type="marketing" />
           <span>

@@ -111,6 +111,7 @@ export function Button({
     <Link
       className={`ct-button${light ? ' ct-button--light' : ''}`}
       href={href}
+      prefetch={false}
     >
       {children}
       <Arrow />
@@ -123,18 +124,29 @@ export function Kicker({ children }: { children: ReactNode }) {
 export function Header() {
   return (
     <header className="ct-header">
-      <Link className="ct-wordmark" href="/" aria-label="Hirearchy home">
+      <Link
+        className="ct-wordmark"
+        href="/"
+        aria-label="Hirearchy home"
+        prefetch={false}
+      >
         Hirearchy
       </Link>
       <nav className="ct-nav" aria-label="Main navigation">
-        <Link href="/products">Products</Link>
-        <Link href="/thinking">Our thinking</Link>
-        <Link href="/about">About</Link>
-        <Link className="ct-mobile-contact" href="/contact">
+        <Link href="/products" prefetch={false}>
+          Products
+        </Link>
+        <Link href="/thinking" prefetch={false}>
+          Our thinking
+        </Link>
+        <Link href="/about" prefetch={false}>
+          About
+        </Link>
+        <Link className="ct-mobile-contact" href="/contact" prefetch={false}>
           Contact
         </Link>
       </nav>
-      <Link className="ct-start" href="/products/software">
+      <Link className="ct-start" href="/products/software" prefetch={false}>
         Start with Software
       </Link>
     </header>
@@ -144,16 +156,24 @@ export function Footer() {
   return (
     <footer className="ct-footer" id="site-footer" data-chapter="Explore">
       <div className="ct-footer-brand">
-        <Link href="/" aria-label="Hirearchy home">
+        <Link href="/" aria-label="Hirearchy home" prefetch={false}>
           Hirearchy
         </Link>
         <p>Real work. In context.</p>
       </div>
       <nav aria-label="Footer navigation">
-        <Link href="/products">Products</Link>
-        <Link href="/thinking">Our thinking</Link>
-        <Link href="/about">About</Link>
-        <Link href="/contact">Contact</Link>
+        <Link href="/products" prefetch={false}>
+          Products
+        </Link>
+        <Link href="/thinking" prefetch={false}>
+          Our thinking
+        </Link>
+        <Link href="/about" prefetch={false}>
+          About
+        </Link>
+        <Link href="/contact" prefetch={false}>
+          Contact
+        </Link>
       </nav>
       <p className="ct-motto">
         A clearer
@@ -167,8 +187,12 @@ export function Footer() {
         © {new Date().getFullYear()} Hirearchy. All rights reserved.
       </small>
       <div className="ct-legal">
-        <Link href="/privacy">Privacy</Link>
-        <Link href="/terms">Terms</Link>
+        <Link href="/privacy" prefetch={false}>
+          Privacy
+        </Link>
+        <Link href="/terms" prefetch={false}>
+          Terms
+        </Link>
       </div>
     </footer>
   );

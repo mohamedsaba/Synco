@@ -46,6 +46,7 @@ export function Hero() {
       <Link
         className="ct-destination ct-destination--software"
         href="/products/software"
+        prefetch={false}
       >
         <Icon type="software" />
         <span>
@@ -59,6 +60,7 @@ export function Hero() {
       <Link
         className="ct-destination ct-destination--it"
         href="/products#future"
+        prefetch={false}
       >
         <Icon type="it" />
         <span>
@@ -72,6 +74,7 @@ export function Hero() {
       <Link
         className="ct-destination ct-destination--marketing"
         href="/products#future"
+        prefetch={false}
       >
         <Icon type="marketing" />
         <span>

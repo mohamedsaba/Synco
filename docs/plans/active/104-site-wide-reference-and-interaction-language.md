@@ -219,7 +219,7 @@ rather than depending on a transient, and five rapid hover/unhover cycles each
 reset to 0.34 with no stale animation state. Every new animation is additionally
 suppressed by the existing `prefers-reduced-motion` block.
 
-### 4.9 Correction after review: the section floor broke four designs
+### 4.8 Correction after review: the section floor broke four designs
 
 The first implementation of the section floor was wrong and was corrected. It
 declared more than it needed to:
@@ -287,7 +287,7 @@ Two probe defects were corrected here as well: the side-by-side test compared
 `y` for equality, which is wrong for an `align-self:center` child, and the
 clipping test compared an absolute viewport `Y` against a section _length_.
 
-### 4.10 Two CSS defects found while verifying
+### 4.9 Two CSS defects found while verifying
 
 1. **Specificity.** The shared `.ct-site :is(.ct-button, .ct-start)` token setter
    (0,2,0) beat a plain `.ct-button` setter (0,1,0), so the dark button painted
@@ -309,3 +309,74 @@ readings: reading the first `inset()` field instead of the sweep field, sampling
 "Explore Software" while hovering the dark button, reading the arrow's rest state
 while still hovered, sampling navigator contrast 120ms into a 420ms morph, and one
 tautological assertion (`x !== y || x === y`).
+
+### 4.10 Performance pass: load-time prefetch replaced by prefetch-on-intent
+
+A separate, strictly performance-scoped pass. **No visual change of any kind:
+`apps/web/app/home.css` is byte-identical across this work, no motion was
+removed, and no markup structure changed** — the only edits were a `prefetch`
+prop, one new client component, and its mount point.
+
+**Measured before changing anything.** The site was already lean, and the
+evidence ruled out the usual suspects:
+
+| Check                | Finding                                                                                                                                                                                  |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Payload              | 210 KB over 19 requests, all routes statically prerendered                                                                                                                               |
+| Compression          | `Content-Encoding: gzip` on document and CSS                                                                                                                                             |
+| Caching              | `public, max-age=31536000, immutable` on `/_next/static`                                                                                                                                 |
+| JS payload           | 135.8 KB, entirely `react-dom` + Next.js client runtime; the two large chunks were inspected directly and contain no app code and no server dependency. `better-sqlite3` is server-only. |
+| Font                 | 36.4 KB variable font, preloaded, `display: swap`                                                                                                                                        |
+| Animations gate FCP? | No. FCP under `prefers-reduced-motion: reduce` (196/180/300 ms) matches FCP normally (200/328 ms) within noise.                                                                          |
+
+**Root cause of the reported 600 ms.** Next issues two RSC prefetch passes over
+the same in-view links: a viewport batch sharing a single cache key, plus a
+per-`<Link>` pass. Every destination was therefore fetched twice — 10 requests,
+18.9 KB. This was proven to be framework behaviour rather than a markup defect
+because it occurred identically on `/products` and `/about`, which contain no
+duplicate links. Those requests never blocked first paint, but they held the
+`load` event past 600 ms, which is what a Network tab displays.
+
+**Change.** Every marketing link sets `prefetch={false}`, and
+`apps/web/app/home/intent-prefetch.tsx` performs the same prefetch on intent
+instead — one delegated `pointerenter`/`focusin` pair on `document`, covering the
+header, footer, in-content calls to action and the page navigator's chapter links
+without any link knowing it exists. It ignores external links, the current route
+and in-page anchors, and warms each destination at most once per page view.
+
+Two findings worth keeping:
+
+- `prefetch={false}` was verified to remove prefetching entirely on **both** load
+  and hover, so the new component is what keeps navigation warm rather than a
+  redundant layer over Next's own.
+- The component is mounted in `apps/web/app/layout.tsx`, not in the `Site`
+  wrapper. Mounted in `Site` it called `useRouter()` during the standalone server
+  render that `tests/unit/hirearchy-homepage.test.tsx` performs, which has no App
+  Router context, and 7 tests failed with `invariant expected app router to be
+mounted`. The root layout is both the correct home for app-wide behaviour and
+  always inside the router.
+
+**Results**, 5 warm loads of `/products`, medians:
+
+| Metric                        | Before   | After        |
+| ----------------------------- | -------- | ------------ |
+| RSC prefetch requests on load | 10       | **0**        |
+| Requests                      | 19       | **9**        |
+| Transfer                      | 210.4 KB | **191.7 KB** |
+| `load`                        | 220 ms   | **186 ms**   |
+| TTFB                          | 11 ms    | 20 ms        |
+| FCP                           | 176 ms   | 172 ms       |
+
+Cold-load wall time in the measurement sandbox ranged 447–743 ms across runs both
+before and after, which is too noisy to support a claim in either direction; the
+request-count and byte reductions are deterministic and are the result actually
+claimed.
+
+**Checks.** `verify-prefetch.mjs` 10/10 (zero eager prefetch on five routes,
+pointer intent warms, keyboard focus warms, navigation after intent 517 ms and
+lands on the correct heading, no linear growth across repeated hover cycles,
+in-page anchors ignored). `verify-104.mjs` all checks passed, confirming buttons,
+arrows, navigator theming and the shared navbar scale are unchanged.
+`verify-regression.mjs` 34/35, the single failure being the pre-existing
+`.ct-family` thread overhang proven present in the `84384f8` baseline.
+`npm run verify` exit 0, 651 tests, 6 skipped.
